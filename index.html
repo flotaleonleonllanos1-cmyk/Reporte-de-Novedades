@@ -12,6 +12,13 @@
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+.pwwrap{position:relative;margin-top:4px}
+.pwwrap input{margin-top:0;padding-right:46px}
+.ojo{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:38px;height:34px;display:grid;place-items:center;border:0;background:none;color:var(--mut);cursor:pointer;border-radius:6px}
+.ojo:hover{color:var(--ink);background:rgba(0,0,0,.05)}
+.panel .ojo{color:#7a6363}.panel .ojo:hover{color:#2b1b1b}
+.ojo svg{width:22px;height:22px}
+
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Segoe UI",system-ui,sans-serif}
 main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
@@ -86,7 +93,13 @@ input,select{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--l
 .panel .st:before{content:"";width:9px;height:9px;border-radius:50%;background:#c63b3a}
 .panel input{background:#f7f2f2;border-color:#e4d5d5;color:#2b1b1b}
 .panel label{color:#2b1b1b}
-.panel .btn{width:100%;margin-top:18px;background:#a12c2c;color:#fff}
+.panel .btn{width:100%;margin-top:18px;background:#a12c2c;color:#fff;position:relative;overflow:hidden;isolation:isolate}
+.panel .btn::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.08) 38%,rgba(255,214,150,.55) 48%,rgba(255,255,255,.7) 50%,rgba(255,214,150,.55) 52%,rgba(255,255,255,.08) 62%,transparent 70%);
+  background-size:250% 100%;background-position:130% 0;animation:ingresarBrillo 3s ease-in-out infinite}
+.panel .btn:disabled::after{animation:none;opacity:0}
+@keyframes ingresarBrillo{0%{background-position:130% 0}45%,100%{background-position:-30% 0}}
+@media (prefers-reduced-motion:reduce){.panel .btn::after{animation:none;opacity:0}}
 .brand{display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:linear-gradient(105deg,var(--band1,#c63b3a) 0 4%,var(--band2,#a12c2c) 4% 94%,var(--band1,#c63b3a) 94%);color:#fff;border-radius:12px;transition:background-color .3s;padding:12px 28px;margin-bottom:14px}
 .brand{min-height:88px}
 .mods{display:flex;flex-wrap:wrap;gap:6px}
@@ -238,7 +251,7 @@ html.tema-cal .kpi b.badc{color:var(--bad)}
   <form class="panel" id="lf">
     <div class="st" id="lst">Conectando…</div>
     <h1 id="lt">Centro de control</h1>
-    <p id="lsub">Novedades / Solucionadas</p>
+    <p id="lsub">Bienvenidos</p>
     <label id="lnw" hidden>Nombre completo<input id="ln" autocomplete="name"></label>
     <label>Usuario<input id="lu" autocomplete="username" required></label>
     <label>Contraseña<input id="lp" type="password" autocomplete="current-password" required></label>
@@ -505,13 +518,24 @@ $('frm').onsubmit=async e=>{
   btn.disabled=false;
 };
 
+
+/* ---------- Ver / ocultar contraseña ---------- */
+const OJO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const OJO_NO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+function ojoEstado(b,ver){const i=b.previousElementSibling;i.type=ver?'text':'password';b.innerHTML=ver?OJO_NO:OJO;b.setAttribute('aria-label',ver?'Ocultar contraseña':'Mostrar contraseña');b.setAttribute('aria-pressed',ver)}
+document.querySelectorAll('input[type=password]').forEach(i=>{
+  const w=document.createElement('span');w.className='pwwrap';i.parentNode.insertBefore(w,i);w.appendChild(i);
+  const b=document.createElement('button');b.type='button';b.className='ojo';w.appendChild(b);ojoEstado(b,false);
+  b.onclick=e=>{e.preventDefault();ojoEstado(b,i.type==='password');i.focus()};
+});
+document.addEventListener('reset',e=>e.target.querySelectorAll('.ojo').forEach(b=>ojoEstado(b,false)),true);
 /* ---------- Sesión ---------- */
 async function checkSetup(){
   try{setup=!(await getDoc(doc(db,'config','init'))).exists()}
   catch(x){setup=false;$('le').textContent='No se pudo leer la base de datos. '+ERR(x.code)}
   $('lnw').hidden=!setup;$('ln').required=setup;
   $('lt').textContent=setup?'Configuración inicial':'Centro de control';
-  $('lsub').textContent=setup?'Crea la cuenta del administrador. Esto se hace una sola vez.':'Novedades / Solucionadas';
+  $('lsub').textContent=setup?'Crea la cuenta del administrador. Esto se hace una sola vez.':'Bienvenidos';
   $('lbtn').textContent=setup?'Crear administrador':'Ingresar';
   $('lp').autocomplete=setup?'new-password':'current-password';
   $('lst').textContent='Acceso restringido';$('lbtn').disabled=false;
