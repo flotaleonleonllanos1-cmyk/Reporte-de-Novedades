@@ -136,12 +136,20 @@ input,select{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--l
 .ctab .num{text-align:right}
 .cbarp{display:flex;align-items:center;gap:8px}
 .cbarp span{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden;min-width:60px}
-.cbarp span i{display:block;height:100%;background:var(--ok)}
+.cbarp span i{display:block;height:100%;background:linear-gradient(90deg,#c0392b,#e0a020 50%,#1f7a4d);border-radius:4px}
 .cbarp b{min-width:42px;text-align:right}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{border:1px solid var(--bad);background:var(--badbg);color:var(--bad);border-radius:8px;padding:6px 10px;font-size:.85rem;cursor:pointer;text-align:left}
 .chip b{letter-spacing:.05em}
 .mall{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.mall label{flex:1;min-width:180px}
+.mnota{display:block;margin:0 0 6px;color:var(--mut);font-size:.88rem}
+textarea{font:inherit;color:inherit;width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);resize:vertical}
+#mdlg .mall{margin:10px 0 4px}
+.phead{display:flex;justify-content:space-between;align-items:center;margin:12px 0 6px}
+.plist{display:flex;flex-wrap:wrap;gap:6px;max-height:210px;overflow:auto;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);min-height:48px}
+.plist .pc2{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:var(--card);border-radius:6px;padding:3px 4px 3px 8px;font-weight:600;letter-spacing:.04em;font-size:.85rem}
+.plist .pc2 button{border:0;background:none;color:var(--mut);cursor:pointer;font-size:1rem;line-height:1;padding:0 4px}
+.plist .vacio{color:var(--mut);font-size:.85rem}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0 12px}
 .whobox{margin-left:auto;display:grid;justify-items:end;gap:6px}
 .brand .who{color:#f6dcdc;width:auto}
@@ -351,11 +359,18 @@ input,select{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--l
 <dialog id="mdlg">
   <form id="mfrm">
     <h2 id="mtit">Cantidad de placas</h2>
-    <p style="margin:0 0 6px;color:var(--mut);font-size:.9rem">Número de placas que deben tener sus dos calibraciones cada mes. El cumplimiento se calcula sobre este número.</p>
-    <div class="mall"><label>Mismo número para todos los meses<input type="number" id="mall" min="0" step="1" inputmode="numeric"></label><button type="button" class="btn ghost" id="mtodos">Aplicar a todos</button></div>
-    <div class="mgrid" id="mgrid"></div>
+    <p class="mnota">Las placas que deben tener sus dos calibraciones cada mes. El cumplimiento se calcula sobre la cantidad de placas de esta lista: solo cuentan las que tienen las dos calibraciones.</p>
+    <label>Añadir placas a mano<textarea id="ptxt" rows="3" placeholder="Una placa por línea, o separadas por comas. Ej: LJV124, TKW456"></textarea></label>
+    <div class="mall">
+      <button type="button" class="btn ghost" id="padd">Añadir a la lista</button>
+      <button type="button" class="btn ghost" id="pxls">Subir Excel</button>
+      <input type="file" id="pfile" accept=".xlsx,.xls,.csv" hidden>
+    </div>
+    <small class="mnota">El Excel debe tener una sola columna con las placas. El título de la columna es opcional.</small>
+    <div class="phead"><b id="pcount">0 placas</b><button type="button" class="del" id="pclear">Quitar todas</button></div>
+    <div class="plist" id="plist"></div>
     <div class="err" id="merr" role="alert"></div>
-    <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn">Guardar cantidades</button></div>
+    <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="psave">Guardar placas</button></div>
   </form>
 </dialog>
 <dialog id="big"><img id="bigimg" alt=""><div class="foot"><button class="btn ghost" onclick="this.closest('dialog').close()">Cerrar</button></div></dialog>
@@ -562,12 +577,16 @@ function modulo(m){
 document.querySelector('.mods').onclick=e=>{const b=e.target.closest('[data-m]');if(b&&cur)modulo(b.dataset.m)};
 function calSede(){return cals.filter(c=>(c.sede||SEDES[0])===sede&&c.anio===canio)}
 function metaDe(){return (metas[sede+'_'+canio]||{}).meses||{}}
+const normP=p=>String(p||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+function placasDe(){return (metas[sede+'_'+canio]||{}).placas||[]}
+const colP=p=>p===null?'var(--mut)':`hsl(${Math.round(Math.min(100,Math.max(0,p))*1.2)},62%,40%)`;
 const pctTxt=p=>p===null?'—':Math.round(p)+'%';
 function renderCal(){
   if(!cur||$('calv').hidden)return;
-  const del=calSede(),meta=metaDe();
-  const S=MESES.map((_,k)=>{const m=k+1,r=del.filter(c=>c.mes===m),ok=r.filter(c=>c.f1&&c.f2).length,mt=Number(meta[m])||0;
-    return{m,n:r.length,ok,inc:r.length-ok,mt,pct:mt?ok/mt*100:null}});
+  const del=calSede(),meta=metaDe(),lista=placasDe();
+  const S=MESES.map((_,k)=>{const m=k+1,r=del.filter(c=>c.mes===m),comp=r.filter(c=>c.f1&&c.f2),okSet=new Set(comp.map(c=>normP(c.placa)));
+    const mt=lista.length||Number(meta[m])||0,ok=lista.length?lista.filter(p=>okSet.has(p)).length:comp.length;
+    return{m,n:r.length,ok,comp:comp.length,fuera:lista.length?[...okSet].filter(p=>!lista.includes(p)).length:0,inc:r.length-comp.length,mt,pct:mt?ok/mt*100:null,falt:lista.filter(p=>!okSet.has(p))}});
   $('meses').innerHTML=S.map(s=>`<button type="button" class="mes" data-mes="${s.m}" aria-pressed="${s.m===cmes}"><b>${MESES[s.m-1]}</b><small>${s.n?`${s.inc?'<span class="dot" style="background:var(--bad)"></span>':'<span class="dot" style="background:var(--ok)"></span>'}${s.n} reg.${s.pct!==null?' · '+pctTxt(s.pct):''}`:(s.mt?'0% · '+s.mt+' placas':'Sin registros')}</small></button>`).join('');
   $('cadd').textContent='+ Registrar calibración en '+MESES[mesReg()-1];
   $('cmetab').hidden=cur.rol!=='admin';
@@ -575,8 +594,10 @@ function renderCal(){
   $('cres').hidden=true;$('cmesv').hidden=false;
   const s=S[cmes-1],v=del.filter(c=>c.mes===cmes).sort((a,b)=>(a.f2?1:0)-(b.f2?1:0)||String(b.f1).localeCompare(String(a.f1)));
   $('ctit').textContent=`${MESES[cmes-1]} ${canio}`;
-  $('csub').textContent=`${sede} · ${s.n} registro${s.n===1?'':'s'} · ${s.ok} completa${s.ok===1?'':'s'} · ${s.inc} incompleta${s.inc===1?'':'s'}${s.mt?' · Cumplimiento '+pctTxt(s.pct)+' de '+s.mt+' placas':''}`;
-  if(!v.length){$('calist').innerHTML=`<div class="empty">No hay calibraciones en ${MESES[cmes-1]} ${canio} para ${esc(sede)}.${canEdit()?' Usa «Registrar calibración» para agregar la primera.':''}</div>`;return}
+  $('csub').textContent=`${sede} · ${s.n} registro${s.n===1?'':'s'} · ${s.comp} completa${s.comp===1?'':'s'} · ${s.inc} incompleta${s.inc===1?'':'s'}${s.mt?' · Cumplimiento '+pctTxt(s.pct)+' ('+s.ok+' de '+s.mt+' placas)':''}${s.fuera?' · '+s.fuera+' completa'+(s.fuera>1?'s':'')+' con placa que no está en la lista':''}`;
+  const faltHtml=lista.length?`<div class="dc" style="margin-top:14px"><h2>Placas que aún no cumplen en ${MESES[cmes-1]}</h2><small>Placas de la lista sin sus dos calibraciones este mes: ${s.falt.length} de ${lista.length}</small>
+    ${s.falt.length?`<div class="chips">${s.falt.map(p=>`<span class="chip" style="cursor:default"><b>${esc(p)}</b></span>`).join('')}</div>`:'<p class="empty" style="margin:0">Todas las placas de la lista tienen sus dos calibraciones este mes.</p>'}</div>`:'';
+  if(!v.length){$('calist').innerHTML=`<div class="empty">No hay calibraciones en ${MESES[cmes-1]} ${canio} para ${esc(sede)}.${canEdit()?' Usa «Registrar calibración» para agregar la primera.':''}</div>`+faltHtml;return}
   $('calist').innerHTML=v.map(c=>{const okc=c.f1&&c.f2;return `<article class="cal ${okc?'':'pend'}">
     <div class="top">
       <div><span class="placa">${esc(c.placa)}</span> <span class="pill ${okc?'o':'b'}">${okc?'Completa':'Falta 2ª calibración'}</span><div class="rpor">Reportado por <b>${esc(c.por||'—')}</b></div></div>
@@ -591,10 +612,10 @@ function renderCal(){
       ${c.editadoPor?`<div><dt>Última edición</dt><dd>${esc(c.editadoPor)}</dd></div>`:''}
     </dl>
     ${c.fotos&&Object.keys(c.fotos).length?`<div class="thumbs">${CF.filter(([k])=>c.fotos[k]).map(([k,t])=>`<figure><img src="${c.fotos[k]}" alt="${t}"><figcaption>${t}</figcaption></figure>`).join('')}</div>`:''}
-  </article>`}).join('');
+  </article>`}).join('')+faltHtml;
 }
 function resumenCal(S,del){
-  const tot=S.reduce((a,s)=>a+s.n,0),ok=S.reduce((a,s)=>a+s.ok,0),inc=tot-ok;
+  const tot=S.reduce((a,s)=>a+s.n,0),ok=S.reduce((a,s)=>a+s.comp,0),inc=tot-ok;
   const hasta=canio<hoyD.getFullYear()?12:canio>hoyD.getFullYear()?0:hoyD.getMonth()+1;
   const conMeta=S.filter(s=>s.m<=hasta&&s.mt),acu=conMeta.length?conMeta.reduce((a,s)=>a+s.ok,0)/conMeta.reduce((a,s)=>a+s.mt,0)*100:null;
   const max=Math.max(1,...S.map(s=>Math.max(s.n,s.mt))),h=v=>v/max*100;
@@ -608,19 +629,19 @@ function resumenCal(S,del){
   </div>
   <div class="dc" style="margin-bottom:14px"><h2>Cómo vamos mes a mes</h2><small>Placas completas e incompletas por mes · ${esc(sede)} ${canio}. Toca un mes para ver sus registros.</small>
     <div class="tscroll"><div style="min-width:520px">
-      <div class="cchart">${S.map(s=>`<div class="ccol" data-mes="${s.m}" title="${MESES[s.m-1]}: ${s.ok} completas, ${s.inc} incompletas${s.mt?', '+s.mt+' placas':''}">
-        <div class="sb" style="height:${h(s.n)}%"><div class="g" style="height:${s.n?s.ok/s.n*100:0}%"></div><div class="r" style="height:${s.n?s.inc/s.n*100:0}%"></div>
-          <div class="pc" style="top:0">${s.pct!==null?pctTxt(s.pct):(s.n||'')}</div></div>
+      <div class="cchart">${S.map(s=>`<div class="ccol" data-mes="${s.m}" title="${MESES[s.m-1]}: ${s.comp} completas, ${s.inc} incompletas${s.mt?', '+s.mt+' placas':''}">
+        <div class="sb" style="height:${h(s.n)}%"><div class="g" style="height:${s.n?s.comp/s.n*100:0}%"></div><div class="r" style="height:${s.n?s.inc/s.n*100:0}%"></div>
+          <div class="pc" style="top:0;color:${colP(s.pct)}">${s.pct!==null?pctTxt(s.pct):(s.n||'')}</div></div>
         ${s.mt?`<div class="mt" style="bottom:${h(s.mt)}%"></div>`:''}
       </div>`).join('')}</div>
       <div class="clab">${MESES.map(n=>`<span>${n.slice(0,3)}</span>`).join('')}</div>
     </div></div>
     <div class="cleg"><span><i style="background:var(--ok)"></i>Completas</span><span><i style="background:var(--bad)"></i>Incompletas</span><span><i class="mt"></i>Cantidad de placas</span><span>El número arriba de cada barra es el % de cumplimiento</span></div>
   </div>
-  <div class="dc" style="margin-bottom:14px"><h2>Cumplimiento por mes</h2><small>Placas con sus dos calibraciones sobre la cantidad de placas del mes${cur.rol==='admin'?' · Cárgala con «Cantidad de placas»':''}</small>
+  <div class="dc" style="margin-bottom:14px"><h2>Cumplimiento por mes</h2><small>Placas de la lista con sus dos calibraciones sobre la cantidad de placas${cur.rol==='admin'?' · Cárgala con «Cantidad de placas»':''}</small>
     <div class="tscroll"><table class="ctab"><thead><tr><th>Mes</th><th class="num">Placas</th><th class="num">Registradas</th><th class="num">Completas</th><th class="num">Incompletas</th><th>Cumplimiento</th></tr></thead>
     <tbody>${S.map(s=>`<tr data-mes="${s.m}"><td>${MESES[s.m-1]}</td><td class="num">${s.mt||'—'}</td><td class="num">${s.n}</td><td class="num" style="color:var(--ok);font-weight:700">${s.ok}</td><td class="num" style="color:${s.inc?'var(--bad)':'inherit'};font-weight:${s.inc?700:400}">${s.inc}</td>
-      <td><div class="cbarp"><span><i style="width:${Math.min(100,s.pct||0)}%"></i></span><b>${pctTxt(s.pct)}</b></div></td></tr>`).join('')}</tbody></table></div>
+      <td><div class="cbarp"><span><i style="width:${Math.min(100,s.pct||0)}%;background-size:${s.pct?Math.max(100,10000/Math.min(100,s.pct)):100}% 100%"></i></span><b style="color:${colP(s.pct)}">${pctTxt(s.pct)}</b></div></td></tr>`).join('')}</tbody></table></div>
   </div>
   <div class="dc"><h2>Placas incompletas</h2><small>Tienen solo la primera calibración. Toca una para ir a su mes.</small>
     ${incs.length?`<div class="chips">${incs.map(c=>`<button type="button" class="chip" data-mes="${c.mes}"><b>${esc(c.placa)}</b> · ${MESES[c.mes-1].slice(0,3)} · 1ª ${fd(c.f1)}</button>`).join('')}</div>`
@@ -629,18 +650,48 @@ function resumenCal(S,del){
 }
 $('cres').onclick=e=>{const b=e.target.closest('[data-mes]');if(b){cmes=Number(b.dataset.mes);renderCal();$('cmesv').scrollIntoView({behavior:'smooth',block:'start'})}};
 $('cback').onclick=()=>{cmes=0;renderCal()};
+let plist=[];
+function pintarPlacas(){
+  $('pcount').textContent=plist.length+' placa'+(plist.length===1?'':'s');
+  $('pclear').hidden=!plist.length;
+  $('plist').innerHTML=plist.length?plist.map((p,k)=>`<span class="pc2">${esc(p)}<button type="button" data-pk="${k}" aria-label="Quitar ${esc(p)}">×</button></span>`).join(''):'<span class="vacio">Aún no hay placas. Añádelas a mano o sube un Excel.</span>';
+}
+function sumarPlacas(arr){
+  const antes=plist.length,set=new Set(plist);
+  arr.map(normP).filter(p=>p.length>=4&&p.length<=10&&!/^PLACAS?$/.test(p)).forEach(p=>{if(!set.has(p)){set.add(p);plist.push(p)}});
+  pintarPlacas();return plist.length-antes;
+}
 $('cmetab').onclick=()=>{
-  if(cur.rol!=='admin')return;const m=metaDe();
-  $('mtit').textContent=`Cantidad de placas · ${sede} ${canio}`;$('merr').textContent='';$('mall').value='';
-  $('mgrid').innerHTML=MESES.map((n,k)=>`<label>${n}<input type="number" min="0" step="1" inputmode="numeric" data-mm="${k+1}" value="${m[k+1]??''}"></label>`).join('');
-  $('mdlg').showModal();
+  if(cur.rol!=='admin')return;
+  plist=[...placasDe()];$('ptxt').value='';$('merr').textContent='';
+  $('mtit').textContent=`Cantidad de placas · ${sede} ${canio}`;
+  pintarPlacas();$('mdlg').showModal();
 };
-$('mtodos').onclick=()=>{const v=$('mall').value;if(v!=='')document.querySelectorAll('[data-mm]').forEach(i=>i.value=v)};
+$('padd').onclick=()=>{
+  const n=sumarPlacas($('ptxt').value.split(/[\n,;\t]+/));
+  $('merr').textContent=n?'':'No se agregaron placas nuevas. Revisa que no estén repetidas.';
+  if(n)$('ptxt').value='';
+};
+$('pxls').onclick=()=>$('pfile').click();
+$('pfile').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  $('merr').textContent='Leyendo archivo…';
+  try{
+    let vals;
+    if(/\.csv$/i.test(f.name)){vals=(await f.text()).split(/\r?\n/).map(l=>l.split(/[;,\t]/)[0])}
+    else{const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]];
+      vals=X.utils.sheet_to_json(ws,{header:1,blankrows:false}).map(r=>r&&r[0])}
+    const n=sumarPlacas(vals.filter(v=>v!==undefined&&v!==null));
+    $('merr').textContent=n?`Se agregaron ${n} placa${n===1?'':'s'} del archivo.`:'El archivo no tenía placas nuevas. Revisa que estén en la primera columna.';
+  }catch(x){$('merr').textContent='No se pudo leer el archivo. Usa un Excel (.xlsx) con las placas en la primera columna, o revisa tu conexión a internet.'}
+};
+$('plist').onclick=e=>{const b=e.target.closest('[data-pk]');if(b){plist.splice(Number(b.dataset.pk),1);pintarPlacas()}};
+$('pclear').onclick=()=>{if(confirm('¿Quitar todas las placas de la lista?')){plist=[];pintarPlacas()}};
 $('mfrm').onsubmit=async e=>{
-  e.preventDefault();const meses={};
-  document.querySelectorAll('[data-mm]').forEach(i=>{if(i.value!=='')meses[i.dataset.mm]=Math.max(0,Math.round(Number(i.value)))});
-  try{await setDoc(doc(db,'metas',sede+'_'+canio),{sede,anio:canio,meses,por:cur.nombre,editado:serverTimestamp()});$('mdlg').close()}
+  e.preventDefault();$('psave').disabled=true;
+  try{await setDoc(doc(db,'metas',sede+'_'+canio),{sede,anio:canio,placas:plist,meses:{},por:cur.nombre,editado:serverTimestamp()});$('mdlg').close()}
   catch(x){$('merr').textContent=ERR(x.code)}
+  $('psave').disabled=false;
 };
 $('meses').onclick=e=>{const b=e.target.closest('[data-mes]');if(b){const m=Number(b.dataset.mes);cmes=cmes===m?0:m;renderCal()}};
 $('canio').onchange=e=>{canio=Number(e.target.value);renderCal()};
