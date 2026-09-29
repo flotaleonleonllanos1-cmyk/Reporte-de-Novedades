@@ -6,9 +6,9 @@
 <title>Novedades / Solucionadas</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
---bg:#f4f0f0;--card:#fff;--ink:#2b1b1b;--mut:#7a6363;--line:#e4d5d5;--acc:#a12c2c;--acc2:#c63b3a;--soft:#f6e3e3;--ok:#1f7a4d;--okbg:#dcf1e5;--wip:#a8650a;--wipbg:#fbecd0}
-:root[data-theme="dark"]{--bg:#1a1212;--card:#251a1a;--ink:#f3e9e9;--mut:#b39c9c;--line:#422d2d;--acc:#c63b3a;--acc2:#e06a69;--soft:#3a2222;--ok:#6fd39c;--okbg:#1b3a2a;--wip:#f0b45a;--wipbg:#3d2f14}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1212;--card:#251a1a;--ink:#f3e9e9;--mut:#b39c9c;--line:#422d2d;--acc:#c63b3a;--acc2:#e06a69;--soft:#3a2222;--ok:#6fd39c;--okbg:#1b3a2a;--wip:#f0b45a;--wipbg:#3d2f14}}
+--bg:#f4f0f0;--card:#fff;--ink:#2b1b1b;--mut:#7a6363;--line:#e4d5d5;--acc:#a12c2c;--acc2:#c63b3a;--soft:#f6e3e3;--ok:#1f7a4d;--okbg:#dcf1e5;--wip:#a8650a;--wipbg:#fbecd0;--bad:#c0392b;--badbg:#fbe4e1}
+:root[data-theme="dark"]{--bg:#1a1212;--card:#251a1a;--ink:#f3e9e9;--mut:#b39c9c;--line:#422d2d;--acc:#c63b3a;--acc2:#e06a69;--soft:#3a2222;--ok:#6fd39c;--okbg:#1b3a2a;--wip:#f0b45a;--wipbg:#3d2f14;--bad:#ff8a80;--badbg:#44201e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1212;--card:#251a1a;--ink:#f3e9e9;--mut:#b39c9c;--line:#422d2d;--acc:#c63b3a;--acc2:#e06a69;--soft:#3a2222;--ok:#6fd39c;--okbg:#1b3a2a;--wip:#f0b45a;--wipbg:#3d2f14;--bad:#ff8a80;--badbg:#44201e}}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -98,18 +98,51 @@ input,select{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--l
 .cbar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;justify-content:space-between;margin-bottom:12px}
 .cbar label{margin:0}
 .cbar select{width:auto;min-width:110px}
-.meses{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;margin-bottom:18px}
+.meses{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px;margin-bottom:18px}
 .mes{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;text-align:left;cursor:pointer;display:grid;gap:2px}
 .mes b{font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:480px){.meses{grid-template-columns:repeat(3,1fr)}.mes{padding:9px 8px}.mes b{font-size:.88rem}.mes small{font-size:.72rem}}
 .mes small{color:var(--mut);font-size:.8rem}
 .mes[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
 .mes[aria-pressed="true"] small{color:#f6dcdc}
+.mes[aria-pressed="true"] .dot{box-shadow:0 0 0 2px #fff}
 .chead{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between;margin:0 0 10px}
 .chead h2{margin:0;font-size:1.3rem}
 .chead span{color:var(--mut);font-size:.9rem}
 .cal{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--acc);border-radius:10px;padding:14px 16px;margin-bottom:12px}
-.cal.pend{border-left-color:var(--wip)}
+.cal{border-left-color:var(--ok)}
+.cal.pend{border-left-color:var(--bad);background:linear-gradient(90deg,var(--badbg),var(--card) 55%)}
+.pill.b{background:var(--badbg);color:var(--bad)}
+.chead #cback{margin-left:auto}
+.mes .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.cres-kpi .kpi b.okc{color:var(--ok)}.cres-kpi .kpi b.badc{color:var(--bad)}
+.cchart{display:grid;grid-template-columns:repeat(12,minmax(34px,1fr));gap:8px;align-items:end;height:220px;padding-top:22px;border-bottom:1px solid var(--line);position:relative}
+.ccol{position:relative;height:100%;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer;border-radius:4px}
+.ccol:hover{background:var(--soft)}
+.ccol .pc{position:absolute;left:0;right:0;text-align:center;font-size:.75rem;font-weight:700;transform:translateY(-100%);padding-bottom:3px}
+.ccol .sb{display:flex;flex-direction:column-reverse;width:70%;margin:0 auto;position:relative}
+.ccol .g{background:var(--ok);border-radius:0 0 3px 3px}
+.ccol .r{background:var(--bad);border-radius:3px 3px 0 0}
+.ccol .mt{position:absolute;left:4%;right:4%;border-top:2px dashed var(--ink);opacity:.55}
+.clab{display:grid;grid-template-columns:repeat(12,minmax(34px,1fr));gap:8px;font-size:.75rem;color:var(--mut);text-align:center;padding-top:4px}
+.cleg{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--mut);margin-top:10px}
+.cleg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.cleg i.mt{height:0;border-top:2px dashed var(--ink);border-radius:0;width:16px;vertical-align:3px;opacity:.6}
+.tscroll{overflow-x:auto}
+.ctab{width:100%;border-collapse:collapse;font-size:.9rem;min-width:560px}
+.ctab th{text-align:left;font-size:.8rem;color:var(--mut);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}
+.ctab td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.ctab tbody tr{cursor:pointer}.ctab tbody tr:hover{background:var(--soft)}
+.ctab .num{text-align:right}
+.cbarp{display:flex;align-items:center;gap:8px}
+.cbarp span{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden;min-width:60px}
+.cbarp span i{display:block;height:100%;background:var(--ok)}
+.cbarp b{min-width:42px;text-align:right}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--bad);background:var(--badbg);color:var(--bad);border-radius:8px;padding:6px 10px;font-size:.85rem;cursor:pointer;text-align:left}
+.chip b{letter-spacing:.05em}
+.mall{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.mall label{flex:1;min-width:180px}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0 12px}
 .whobox{margin-left:auto;display:grid;justify-items:end;gap:6px}
 .brand .who{color:#f6dcdc;width:auto}
 .brand select{width:auto;margin:0;padding:6px 32px 6px 12px;border:1px solid rgba(255,255,255,.55);border-radius:8px;background:rgba(255,255,255,.12);color:#fff;font-weight:600;cursor:pointer}
@@ -217,11 +250,17 @@ input,select{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--l
 <section id="calv" hidden aria-label="Calibraciones">
   <div class="cbar">
     <label>Año<select id="canio"></select></label>
-    <button class="btn" id="cadd">+ Registrar calibración</button>
+    <div class="hb">
+      <button class="btn ghost" id="cmetab" hidden>Cantidad de placas</button>
+      <button class="btn" id="cadd">+ Registrar calibración</button>
+    </div>
   </div>
   <div class="meses" id="meses" role="group" aria-label="Mes"></div>
-  <div class="chead"><h2 id="ctit"></h2><span id="csub"></span></div>
-  <div id="calist"></div>
+  <div id="cres"></div>
+  <div id="cmesv" hidden>
+    <div class="chead"><h2 id="ctit"></h2><span id="csub"></span><button type="button" class="btn ghost" id="cback">Ver resumen del año</button></div>
+    <div id="calist"></div>
+  </div>
 </section>
 <section id="dash" hidden aria-label="Dashboard">
   <div class="kpis" id="d-kpi"></div>
@@ -307,6 +346,16 @@ input,select{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--l
       <button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button>
       <button type="submit" class="btn" id="csave">Guardar registro</button>
     </div>
+  </form>
+</dialog>
+<dialog id="mdlg">
+  <form id="mfrm">
+    <h2 id="mtit">Cantidad de placas</h2>
+    <p style="margin:0 0 6px;color:var(--mut);font-size:.9rem">Número de placas que deben tener sus dos calibraciones cada mes. El cumplimiento se calcula sobre este número.</p>
+    <div class="mall"><label>Mismo número para todos los meses<input type="number" id="mall" min="0" step="1" inputmode="numeric"></label><button type="button" class="btn ghost" id="mtodos">Aplicar a todos</button></div>
+    <div class="mgrid" id="mgrid"></div>
+    <div class="err" id="merr" role="alert"></div>
+    <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn">Guardar cantidades</button></div>
   </form>
 </dialog>
 <dialog id="big"><img id="bigimg" alt=""><div class="foot"><button class="btn ghost" onclick="this.closest('dialog').close()">Cerrar</button></div></dialog>
@@ -435,6 +484,8 @@ async function checkSetup(){
 function salir(){
   if(unsub){unsub();unsub=null}
   if(unsubC){unsubC();unsubC=null}
+  if(unsubM){unsubM();unsubM=null}
+  metas={};cmes=0;
   cals=[];modulo('nov');
   todas=[];items=[];cur=null;showDash(false);
   $('app').hidden=true;$('login').hidden=false;
@@ -457,6 +508,7 @@ async function entrar(user){
   unsubC=onSnapshot(collection(db,'calibraciones'),snap=>{
     cals=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal();
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
+  unsubM=onSnapshot(collection(db,'metas'),snap=>{metas={};snap.docs.forEach(d=>metas[d.id]=d.data());renderCal()},()=>{});
   $('cadd').hidden=!canEdit();
   modulo('nov');
 }
@@ -496,7 +548,8 @@ function aplicarSede(){
 const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const CF=[['c1','Foto primera calibración'],['c2','Foto segunda calibración']];
 let cals=[],unsubC=null,cfotos={},cedit=null;
-const hoyD=new Date();let canio=hoyD.getFullYear(),cmes=hoyD.getMonth()+1;
+const hoyD=new Date();let canio=hoyD.getFullYear(),cmes=0,metas={},unsubM=null;
+const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
   const cal=m==='cal';
@@ -508,18 +561,25 @@ function modulo(m){
 }
 document.querySelector('.mods').onclick=e=>{const b=e.target.closest('[data-m]');if(b&&cur)modulo(b.dataset.m)};
 function calSede(){return cals.filter(c=>(c.sede||SEDES[0])===sede&&c.anio===canio)}
+function metaDe(){return (metas[sede+'_'+canio]||{}).meses||{}}
+const pctTxt=p=>p===null?'—':Math.round(p)+'%';
 function renderCal(){
   if(!cur||$('calv').hidden)return;
-  const del=calSede(),cnt=m=>del.filter(c=>c.mes===m).length;
-  $('meses').innerHTML=MESES.map((n,k)=>`<button type="button" class="mes" data-mes="${k+1}" aria-pressed="${k+1===cmes}"><b>${n}</b><small>${cnt(k+1)?cnt(k+1)+' registro'+(cnt(k+1)>1?'s':''):'Sin registros'}</small></button>`).join('');
-  const v=del.filter(c=>c.mes===cmes).sort((a,b)=>String(b.f1).localeCompare(String(a.f1)));
+  const del=calSede(),meta=metaDe();
+  const S=MESES.map((_,k)=>{const m=k+1,r=del.filter(c=>c.mes===m),ok=r.filter(c=>c.f1&&c.f2).length,mt=Number(meta[m])||0;
+    return{m,n:r.length,ok,inc:r.length-ok,mt,pct:mt?ok/mt*100:null}});
+  $('meses').innerHTML=S.map(s=>`<button type="button" class="mes" data-mes="${s.m}" aria-pressed="${s.m===cmes}"><b>${MESES[s.m-1]}</b><small>${s.n?`${s.inc?'<span class="dot" style="background:var(--bad)"></span>':'<span class="dot" style="background:var(--ok)"></span>'}${s.n} reg.${s.pct!==null?' · '+pctTxt(s.pct):''}`:(s.mt?'0% · '+s.mt+' placas':'Sin registros')}</small></button>`).join('');
+  $('cadd').textContent='+ Registrar calibración en '+MESES[mesReg()-1];
+  $('cmetab').hidden=cur.rol!=='admin';
+  if(!cmes){$('cmesv').hidden=true;$('cres').hidden=false;resumenCal(S,del);return}
+  $('cres').hidden=true;$('cmesv').hidden=false;
+  const s=S[cmes-1],v=del.filter(c=>c.mes===cmes).sort((a,b)=>(a.f2?1:0)-(b.f2?1:0)||String(b.f1).localeCompare(String(a.f1)));
   $('ctit').textContent=`${MESES[cmes-1]} ${canio}`;
-  $('csub').textContent=`${sede} · ${v.length} registro${v.length===1?'':'s'}`;
-  $('cadd').textContent='+ Registrar calibración en '+MESES[cmes-1];
+  $('csub').textContent=`${sede} · ${s.n} registro${s.n===1?'':'s'} · ${s.ok} completa${s.ok===1?'':'s'} · ${s.inc} incompleta${s.inc===1?'':'s'}${s.mt?' · Cumplimiento '+pctTxt(s.pct)+' de '+s.mt+' placas':''}`;
   if(!v.length){$('calist').innerHTML=`<div class="empty">No hay calibraciones en ${MESES[cmes-1]} ${canio} para ${esc(sede)}.${canEdit()?' Usa «Registrar calibración» para agregar la primera.':''}</div>`;return}
-  $('calist').innerHTML=v.map(c=>`<article class="cal ${c.f2?'':'pend'}">
+  $('calist').innerHTML=v.map(c=>{const okc=c.f1&&c.f2;return `<article class="cal ${okc?'':'pend'}">
     <div class="top">
-      <div><span class="placa">${esc(c.placa)}</span><div class="rpor">Reportado por <b>${esc(c.por||'—')}</b></div></div>
+      <div><span class="placa">${esc(c.placa)}</span> <span class="pill ${okc?'o':'b'}">${okc?'Completa':'Falta 2ª calibración'}</span><div class="rpor">Reportado por <b>${esc(c.por||'—')}</b></div></div>
       <div class="acts">
         ${canEdit()?`<button class="btn ghost" data-ced="${c.id}">Editar</button>`:''}
         ${cur.rol==='admin'?`<button class="del" data-cdel="${c.id}">Eliminar</button>`:''}
@@ -531,9 +591,58 @@ function renderCal(){
       ${c.editadoPor?`<div><dt>Última edición</dt><dd>${esc(c.editadoPor)}</dd></div>`:''}
     </dl>
     ${c.fotos&&Object.keys(c.fotos).length?`<div class="thumbs">${CF.filter(([k])=>c.fotos[k]).map(([k,t])=>`<figure><img src="${c.fotos[k]}" alt="${t}"><figcaption>${t}</figcaption></figure>`).join('')}</div>`:''}
-  </article>`).join('');
+  </article>`}).join('');
 }
-$('meses').onclick=e=>{const b=e.target.closest('[data-mes]');if(b){cmes=Number(b.dataset.mes);renderCal()}};
+function resumenCal(S,del){
+  const tot=S.reduce((a,s)=>a+s.n,0),ok=S.reduce((a,s)=>a+s.ok,0),inc=tot-ok;
+  const hasta=canio<hoyD.getFullYear()?12:canio>hoyD.getFullYear()?0:hoyD.getMonth()+1;
+  const conMeta=S.filter(s=>s.m<=hasta&&s.mt),acu=conMeta.length?conMeta.reduce((a,s)=>a+s.ok,0)/conMeta.reduce((a,s)=>a+s.mt,0)*100:null;
+  const max=Math.max(1,...S.map(s=>Math.max(s.n,s.mt))),h=v=>v/max*100;
+  const incs=del.filter(c=>!(c.f1&&c.f2)).sort((a,b)=>a.mes-b.mes||String(a.placa).localeCompare(b.placa));
+  $('cres').innerHTML=`
+  <div class="kpis cres-kpi">
+    <div class="kpi"><b>${tot}</b><span>Calibraciones registradas en ${canio}</span></div>
+    <div class="kpi"><b class="okc">${ok}</b><span>Completas (dos calibraciones)</span></div>
+    <div class="kpi"><b class="badc">${inc}</b><span>Incompletas (solo una)</span></div>
+    <div class="kpi"><b>${pctTxt(acu)}</b><span>${acu===null?'Cumplimiento acumulado: falta cargar la cantidad de placas':'Cumplimiento acumulado'+(hasta&&hasta<12?' a '+MESES[hasta-1].toLowerCase():'')}</span></div>
+  </div>
+  <div class="dc" style="margin-bottom:14px"><h2>Cómo vamos mes a mes</h2><small>Placas completas e incompletas por mes · ${esc(sede)} ${canio}. Toca un mes para ver sus registros.</small>
+    <div class="tscroll"><div style="min-width:520px">
+      <div class="cchart">${S.map(s=>`<div class="ccol" data-mes="${s.m}" title="${MESES[s.m-1]}: ${s.ok} completas, ${s.inc} incompletas${s.mt?', '+s.mt+' placas':''}">
+        <div class="sb" style="height:${h(s.n)}%"><div class="g" style="height:${s.n?s.ok/s.n*100:0}%"></div><div class="r" style="height:${s.n?s.inc/s.n*100:0}%"></div>
+          <div class="pc" style="top:0">${s.pct!==null?pctTxt(s.pct):(s.n||'')}</div></div>
+        ${s.mt?`<div class="mt" style="bottom:${h(s.mt)}%"></div>`:''}
+      </div>`).join('')}</div>
+      <div class="clab">${MESES.map(n=>`<span>${n.slice(0,3)}</span>`).join('')}</div>
+    </div></div>
+    <div class="cleg"><span><i style="background:var(--ok)"></i>Completas</span><span><i style="background:var(--bad)"></i>Incompletas</span><span><i class="mt"></i>Cantidad de placas</span><span>El número arriba de cada barra es el % de cumplimiento</span></div>
+  </div>
+  <div class="dc" style="margin-bottom:14px"><h2>Cumplimiento por mes</h2><small>Placas con sus dos calibraciones sobre la cantidad de placas del mes${cur.rol==='admin'?' · Cárgala con «Cantidad de placas»':''}</small>
+    <div class="tscroll"><table class="ctab"><thead><tr><th>Mes</th><th class="num">Placas</th><th class="num">Registradas</th><th class="num">Completas</th><th class="num">Incompletas</th><th>Cumplimiento</th></tr></thead>
+    <tbody>${S.map(s=>`<tr data-mes="${s.m}"><td>${MESES[s.m-1]}</td><td class="num">${s.mt||'—'}</td><td class="num">${s.n}</td><td class="num" style="color:var(--ok);font-weight:700">${s.ok}</td><td class="num" style="color:${s.inc?'var(--bad)':'inherit'};font-weight:${s.inc?700:400}">${s.inc}</td>
+      <td><div class="cbarp"><span><i style="width:${Math.min(100,s.pct||0)}%"></i></span><b>${pctTxt(s.pct)}</b></div></td></tr>`).join('')}</tbody></table></div>
+  </div>
+  <div class="dc"><h2>Placas incompletas</h2><small>Tienen solo la primera calibración. Toca una para ir a su mes.</small>
+    ${incs.length?`<div class="chips">${incs.map(c=>`<button type="button" class="chip" data-mes="${c.mes}"><b>${esc(c.placa)}</b> · ${MESES[c.mes-1].slice(0,3)} · 1ª ${fd(c.f1)}</button>`).join('')}</div>`
+      :`<p class="empty" style="margin:0">${tot?'Todas las placas registradas tienen sus dos calibraciones.':'Aún no hay calibraciones registradas en '+canio+'.'}</p>`}
+  </div>`;
+}
+$('cres').onclick=e=>{const b=e.target.closest('[data-mes]');if(b){cmes=Number(b.dataset.mes);renderCal();$('cmesv').scrollIntoView({behavior:'smooth',block:'start'})}};
+$('cback').onclick=()=>{cmes=0;renderCal()};
+$('cmetab').onclick=()=>{
+  if(cur.rol!=='admin')return;const m=metaDe();
+  $('mtit').textContent=`Cantidad de placas · ${sede} ${canio}`;$('merr').textContent='';$('mall').value='';
+  $('mgrid').innerHTML=MESES.map((n,k)=>`<label>${n}<input type="number" min="0" step="1" inputmode="numeric" data-mm="${k+1}" value="${m[k+1]??''}"></label>`).join('');
+  $('mdlg').showModal();
+};
+$('mtodos').onclick=()=>{const v=$('mall').value;if(v!=='')document.querySelectorAll('[data-mm]').forEach(i=>i.value=v)};
+$('mfrm').onsubmit=async e=>{
+  e.preventDefault();const meses={};
+  document.querySelectorAll('[data-mm]').forEach(i=>{if(i.value!=='')meses[i.dataset.mm]=Math.max(0,Math.round(Number(i.value)))});
+  try{await setDoc(doc(db,'metas',sede+'_'+canio),{sede,anio:canio,meses,por:cur.nombre,editado:serverTimestamp()});$('mdlg').close()}
+  catch(x){$('merr').textContent=ERR(x.code)}
+};
+$('meses').onclick=e=>{const b=e.target.closest('[data-mes]');if(b){const m=Number(b.dataset.mes);cmes=cmes===m?0:m;renderCal()}};
 $('canio').onchange=e=>{canio=Number(e.target.value);renderCal()};
 function buildCFotos(prev={}){
   cfotos={...prev};
@@ -548,7 +657,7 @@ function buildCFotos(prev={}){
 $('cfotos').onclick=e=>{const b=e.target.closest('[data-ck]');if(b)$('c'+b.dataset.m+'-'+b.dataset.ck).click()};
 function abrirCal(c){
   cedit=c||null;$('cfrm').reset();$('cerr').textContent='';
-  $('cdlgt').textContent=c?`Editar calibración · ${c.placa}`:`Registrar calibración · ${MESES[cmes-1]} ${canio} · ${sede}`;
+  $('cdlgt').textContent=c?`Editar calibración · ${c.placa}`:`Registrar calibración · ${MESES[mesReg()-1]} ${canio} · ${sede}`;
   if(c){$('cf1').value=c.f1||'';$('cf2').value=c.f2||'';$('cplaca').value=c.placa||''}
   buildCFotos(c&&c.fotos||{});$('cdlg').showModal();
 }
@@ -568,7 +677,7 @@ $('cfrm').onsubmit=async e=>{
   $('csave').disabled=true;$('cerr').textContent='';
   try{
     if(cedit)await updateDoc(doc(db,'calibraciones',cedit.id),{f1,f2,placa,fotos:{...cfotos},editadoPor:cur.nombre,editado:serverTimestamp()});
-    else await addDoc(collection(db,'calibraciones'),{f1,f2,placa,fotos:{...cfotos},sede,anio:canio,mes:cmes,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});
+    else await addDoc(collection(db,'calibraciones'),{f1,f2,placa,fotos:{...cfotos},sede,anio:canio,mes:mesReg(),por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});
     $('cdlg').close();
   }catch(x){$('cerr').textContent=ERR(x.code)}
   $('csave').disabled=false;
@@ -578,6 +687,7 @@ $('sede').onchange=e=>{
   sede=e.target.value;try{localStorage.setItem('sede-v1',sede)}catch(x){}
   if($('dlg').open)$('dlg').close();
   if($('cdlg').open)$('cdlg').close();
+  if($('mdlg').open)$('mdlg').close();
   aplicarSede();renderCal();
 };
 $('out').onclick=()=>signOut(auth);
