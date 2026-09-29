@@ -87,7 +87,7 @@ input,select{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--l
 .panel input{background:#f7f2f2;border-color:#e4d5d5;color:#2b1b1b}
 .panel label{color:#2b1b1b}
 .panel .btn{width:100%;margin-top:18px;background:#a12c2c;color:#fff}
-.brand{display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:linear-gradient(105deg,#c63b3a 0 4%,#a12c2c 4% 94%,#c63b3a 94%);color:#fff;border-radius:12px;padding:12px 28px;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:linear-gradient(105deg,var(--band1,#c63b3a) 0 4%,var(--band2,#a12c2c) 4% 94%,var(--band1,#c63b3a) 94%);color:#fff;border-radius:12px;transition:background-color .3s;padding:12px 28px;margin-bottom:14px}
 .brand{min-height:88px}
 .mods{display:flex;flex-wrap:wrap;gap:6px}
 .mods button{background:none;border:1px solid transparent;color:rgba(255,255,255,.72);font-size:clamp(1.1rem,2.6vw,1.5rem);font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer}
@@ -104,7 +104,7 @@ input,select{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--l
 @media(max-width:480px){.meses{grid-template-columns:repeat(3,1fr)}.mes{padding:9px 8px}.mes b{font-size:.88rem}.mes small{font-size:.72rem}}
 .mes small{color:var(--mut);font-size:.8rem}
 .mes[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
-.mes[aria-pressed="true"] small{color:#f6dcdc}
+.mes[aria-pressed="true"] small{color:rgba(255,255,255,.85)}
 .mes[aria-pressed="true"] .dot{box-shadow:0 0 0 2px #fff}
 .chead{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between;margin:0 0 10px}
 .chead h2{margin:0;font-size:1.3rem}
@@ -152,7 +152,13 @@ textarea{font:inherit;color:inherit;width:100%;margin-top:4px;padding:9px 10px;b
 .plist .vacio{color:var(--mut);font-size:.85rem}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0 12px}
 .whobox{margin-left:auto;display:grid;justify-items:end;gap:6px}
-.brand .who{color:#f6dcdc;width:auto}
+.brand .who{color:rgba(255,255,255,.85);width:auto}
+/* Tema verde del módulo Calibraciones */
+html.tema-cal{--bg:#eef4ef;--card:#fff;--ink:#16261c;--mut:#5b7062;--line:#d2e2d6;--acc:#1f6b3f;--acc2:#2f8a52;--soft:#e2f1e6;--band1:#2f8a52;--band2:#1f6b3f}
+html.tema-cal[data-theme="dark"]{--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}
+@media (prefers-color-scheme:dark){html.tema-cal:not([data-theme="light"]){--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}}
+html.tema-cal .kpi b{color:var(--acc)}
+html.tema-cal .kpi b.badc{color:var(--bad)}
 .brand select{width:auto;margin:0;padding:6px 32px 6px 12px;border:1px solid rgba(255,255,255,.55);border-radius:8px;background:rgba(255,255,255,.12);color:#fff;font-weight:600;cursor:pointer}
 .brand select option{color:#2b1b1b;background:#fff}
 .brand select:focus-visible{outline:3px solid #fff}
@@ -568,6 +574,7 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
   const cal=m==='cal';
+  document.documentElement.classList.toggle('tema-cal',cal);
   document.querySelectorAll('.mods button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m));
   if(cal)showDash(false);
   $('calv').hidden=!cal;$('listv').hidden=cal;
@@ -577,8 +584,9 @@ function modulo(m){
 document.querySelector('.mods').onclick=e=>{const b=e.target.closest('[data-m]');if(b&&cur)modulo(b.dataset.m)};
 function calSede(){return cals.filter(c=>(c.sede||SEDES[0])===sede&&c.anio===canio)}
 function metaDe(){return (metas[sede+'_'+canio]||{}).meses||{}}
+const cmpP=(a,b)=>String(a).localeCompare(String(b),'es',{numeric:true,sensitivity:'base'});
 const normP=p=>String(p||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-function placasDe(){return (metas[sede+'_'+canio]||{}).placas||[]}
+function placasDe(){return [...((metas[sede+'_'+canio]||{}).placas||[])].sort(cmpP)}
 const colP=p=>p===null?'var(--mut)':`hsl(${Math.round(Math.min(100,Math.max(0,p))*1.2)},62%,40%)`;
 const pctTxt=p=>p===null?'—':Math.round(p)+'%';
 function renderCal(){
@@ -592,7 +600,7 @@ function renderCal(){
   $('cmetab').hidden=cur.rol!=='admin';
   if(!cmes){$('cmesv').hidden=true;$('cres').hidden=false;resumenCal(S,del);return}
   $('cres').hidden=true;$('cmesv').hidden=false;
-  const s=S[cmes-1],v=del.filter(c=>c.mes===cmes).sort((a,b)=>(a.f2?1:0)-(b.f2?1:0)||String(b.f1).localeCompare(String(a.f1)));
+  const s=S[cmes-1],v=del.filter(c=>c.mes===cmes).sort((a,b)=>cmpP(normP(a.placa),normP(b.placa))||String(a.f1).localeCompare(String(b.f1)));
   $('ctit').textContent=`${MESES[cmes-1]} ${canio}`;
   $('csub').textContent=`${sede} · ${s.n} registro${s.n===1?'':'s'} · ${s.comp} completa${s.comp===1?'':'s'} · ${s.inc} incompleta${s.inc===1?'':'s'}${s.mt?' · Cumplimiento '+pctTxt(s.pct)+' ('+s.ok+' de '+s.mt+' placas)':''}${s.fuera?' · '+s.fuera+' completa'+(s.fuera>1?'s':'')+' con placa que no está en la lista':''}`;
   const faltHtml=lista.length?`<div class="dc" style="margin-top:14px"><h2>Placas que aún no cumplen en ${MESES[cmes-1]}</h2><small>Placas de la lista sin sus dos calibraciones este mes: ${s.falt.length} de ${lista.length}</small>
@@ -619,7 +627,7 @@ function resumenCal(S,del){
   const hasta=canio<hoyD.getFullYear()?12:canio>hoyD.getFullYear()?0:hoyD.getMonth()+1;
   const conMeta=S.filter(s=>s.m<=hasta&&s.mt),acu=conMeta.length?conMeta.reduce((a,s)=>a+s.ok,0)/conMeta.reduce((a,s)=>a+s.mt,0)*100:null;
   const max=Math.max(1,...S.map(s=>Math.max(s.n,s.mt))),h=v=>v/max*100;
-  const incs=del.filter(c=>!(c.f1&&c.f2)).sort((a,b)=>a.mes-b.mes||String(a.placa).localeCompare(b.placa));
+  const incs=del.filter(c=>!(c.f1&&c.f2)).sort((a,b)=>cmpP(normP(a.placa),normP(b.placa))||a.mes-b.mes);
   $('cres').innerHTML=`
   <div class="kpis cres-kpi">
     <div class="kpi"><b>${tot}</b><span>Calibraciones registradas en ${canio}</span></div>
@@ -659,6 +667,7 @@ function pintarPlacas(){
 function sumarPlacas(arr){
   const antes=plist.length,set=new Set(plist);
   arr.map(normP).filter(p=>p.length>=4&&p.length<=10&&!/^PLACAS?$/.test(p)).forEach(p=>{if(!set.has(p)){set.add(p);plist.push(p)}});
+  plist.sort(cmpP);
   pintarPlacas();return plist.length-antes;
 }
 $('cmetab').onclick=()=>{
