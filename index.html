@@ -232,6 +232,9 @@ html.tema-cal .kpi b.badc{color:var(--bad)}
 .xl p{margin:0;color:var(--mut);font-size:.9rem;max-width:60ch}
 .xl b{color:var(--ink);display:block;font-size:1rem}
 .xl .btn{background:#1d6f42}
+.xl .btn.ppt{background:#b7472a}
+.xl .err:empty{display:none}
+.xl .btn:disabled{opacity:.7;cursor:progress}
 .hb{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .who{color:var(--mut);font-size:.9rem;width:100%;text-align:right}
 .urow{display:grid;grid-template-columns:1.3fr 1fr 1.2fr 1fr auto;gap:10px;align-items:end;padding:10px 0;border-bottom:1px solid var(--line)}
@@ -627,12 +630,16 @@ const normP=p=>String(p||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 function placasDe(){return [...((metas[sede+'_'+canio]||{}).placas||[])].sort(cmpP)}
 const colP=p=>p===null?'var(--mut)':`hsl(${Math.round(Math.min(100,Math.max(0,p))*1.2)},62%,40%)`;
 const pctTxt=p=>p===null?'—':Math.round(p)+'%';
-function renderCal(){
-  if(!cur||$('calv').hidden)return;
+function calcCal(){
   const del=calSede(),meta=metaDe(),lista=placasDe();
   const S=MESES.map((_,k)=>{const m=k+1,r=del.filter(c=>c.mes===m),comp=r.filter(c=>c.f1&&c.f2),okSet=new Set(comp.map(c=>normP(c.placa)));
     const mt=lista.length||Number(meta[m])||0,ok=lista.length?lista.filter(p=>okSet.has(p)).length:comp.length;
     return{m,n:r.length,ok,comp:comp.length,fuera:lista.length?[...okSet].filter(p=>!lista.includes(p)).length:0,inc:r.length-comp.length,mt,pct:mt?ok/mt*100:null,falt:lista.filter(p=>!okSet.has(p))}});
+  return {del,meta,lista,S};
+}
+function renderCal(){
+  if(!cur||$('calv').hidden)return;
+  const {del,lista,S}=calcCal();
   $('meses').innerHTML=S.map(s=>`<button type="button" class="mes" data-mes="${s.m}" aria-pressed="${s.m===cmes}"><b>${MESES[s.m-1]}</b><small>${s.n?`${s.inc?'<span class="dot" style="background:var(--bad)"></span>':'<span class="dot" style="background:var(--ok)"></span>'}${s.n} reg.${s.pct!==null?' · '+pctTxt(s.pct):''}`:(s.mt?'0% · '+s.mt+' placas':'Sin registros')}</small></button>`).join('');
   $('cadd').textContent='+ Registrar calibración en '+MESES[mesReg()-1];
   $('cmetab').hidden=cur.rol!=='admin';
@@ -659,6 +666,256 @@ function renderCal(){
     </dl>
     ${c.fotos&&Object.keys(c.fotos).length?`<div class="thumbs">${CF.filter(([k])=>c.fotos[k]).map(([k,t])=>`<figure><img src="${c.fotos[k]}" alt="${t}"><figcaption>${t}</figcaption></figure>`).join('')}</div>`:''}
   </article>`}).join('')+faltHtml;
+}
+/* ---------- Exportar calibraciones: Excel (con gráficas nativas) y PowerPoint ---------- */
+const XE=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const serialF=d=>{if(!d)return null;const[y,m,dd]=String(d).split('-').map(Number);if(!y||!m||!dd)return null;return (Date.UTC(y,m-1,dd)-Date.UTC(1899,11,30))/864e5};
+const colL=n=>{let s='';n++;while(n){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26)}return s};
+const hueHex=p=>{const h=Math.min(100,Math.max(0,p||0))*1.2/360,s=.62,l=.40;const q=l<.5?l*(1+s):l+s-l*s,pp=2*l-q;
+  const f=t=>{t<0&&(t+=1);t>1&&(t-=1);const v=t<1/6?pp+(q-pp)*6*t:t<1/2?q:t<2/3?pp+(q-pp)*(2/3-t)*6:pp;return Math.round(v*255).toString(16).padStart(2,'0')};
+  return (f(h+1/3)+f(h)+f(h-1/3)).toUpperCase()};
+
+/* celda: número, texto, {f:fórmula,v:valor}, {d:'aaaa-mm-dd'}; estilo con {s} */
+function hojaXML(filas,{cols=[],congelar=false,filtro=null,dibujo=false}={}){
+  const cel=(v,r,c)=>{const ref=colL(c)+(r+1);if(v===null||v===undefined||v==='')return '';
+    let s=0,x=v;if(typeof v==='object'&&!Array.isArray(v)){s=v.s||0;x=('f' in v)?v:('d' in v)?v:v.v}
+    if(x&&typeof x==='object'&&'f' in x)return `<c r="${ref}" s="${s}"><f>${XE(x.f)}</f>${x.v!==undefined?`<v>${x.v}</v>`:''}</c>`;
+    if(x&&typeof x==='object'&&'d' in x){const n=serialF(x.d);return n===null?`<c r="${ref}" s="${s}" t="inlineStr"><is><t>${XE(x.d||'')}</t></is></c>`:`<c r="${ref}" s="${s}"><v>${n}</v></c>`}
+    if(typeof x==='number')return `<c r="${ref}" s="${s}"><v>${x}</v></c>`;
+    if(x===null||x===undefined||x==='')return s?`<c r="${ref}" s="${s}"/>`:'';
+    return `<c r="${ref}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${XE(x)}</t></is></c>`};
+  const rows=filas.map((f,r)=>`<row r="${r+1}">${(f||[]).map((v,c)=>cel(v,r,c)).join('')}</row>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheetViews><sheetView workbookViewId="0"${dibujo?' showGridLines="0"':''}>${congelar?'<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>':''}</sheetView></sheetViews>
+<sheetFormatPr defaultRowHeight="15"/>
+${cols.length?`<cols>${cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>`:''}
+<sheetData>${rows}</sheetData>
+${filtro?`<autoFilter ref="${filtro}"/>`:''}
+<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>
+${dibujo?'<drawing r:id="rId1"/>':''}
+</worksheet>`;
+}
+const ESTILOS=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<numFmts count="1"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/></numFmts>
+<fonts count="5"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="16"/><color rgb="FF1F6B3F"/><name val="Calibri"/></font><font><i/><sz val="10"/><color rgb="FF5B7062"/><name val="Calibri"/></font></fonts>
+<fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1F6B3F"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFDCF1E5"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFBE4E1"/><bgColor indexed="64"/></patternFill></fill></fills>
+<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFD2E2D6"/></left><right style="thin"><color rgb="FFD2E2D6"/></right><top style="thin"><color rgb="FFD2E2D6"/></top><bottom style="thin"><color rgb="FFD2E2D6"/></bottom><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="12">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>
+<xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf>
+<xf numFmtId="9" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1"/>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"/>
+<xf numFmtId="0" fontId="1" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf>
+<xf numFmtId="0" fontId="1" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf>
+<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="1" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/>
+<xf numFmtId="9" fontId="1" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/>
+<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="1" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1"/>
+</cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`;
+/* S: 1 encabezado, 2 fecha, 3 %, 4 borde, 5 verde, 6 rojo, 7 título, 8 total, 9 total %, 10 nota, 11 negrita */
+
+function graficaXML({titulo,cats,series,pct=false,apilada=false,colores=[],coloresPunto=null}){
+  const strCache=a=>`<c:strCache><c:ptCount val="${a.length}"/>${a.map((v,i)=>`<c:pt idx="${i}"><c:v>${XE(v)}</c:v></c:pt>`).join('')}</c:strCache>`;
+  const numCache=(a,fmt)=>`<c:numCache><c:formatCode>${fmt}</c:formatCode><c:ptCount val="${a.length}"/>${a.map((v,i)=>`<c:pt idx="${i}"><c:v>${v}</c:v></c:pt>`).join('')}</c:numCache>`;
+  const fill=h=>`<c:spPr><a:solidFill><a:srgbClr val="${h}"/></a:solidFill></c:spPr>`;
+  const txt=(sz,b,col)=>`<c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="${sz}" b="${b?1:0}"><a:solidFill><a:srgbClr val="${col}"/></a:solidFill></a:defRPr></a:pPr><a:endParaRPr lang="es-CO"/></a:p></c:txPr>`;
+  const ser=series.map((s,k)=>`<c:ser><c:idx val="${k}"/><c:order val="${k}"/>
+<c:tx><c:strRef><c:f>${s.nombreRef}</c:f>${strCache([s.nombre])}</c:strRef></c:tx>
+${fill(colores[k]||'1F6B3F')}<c:invertIfNegative val="0"/>
+${coloresPunto?coloresPunto.map((h,i)=>`<c:dPt><c:idx val="${i}"/><c:invertIfNegative val="0"/><c:bubble3D val="0"/>${fill(h)}</c:dPt>`).join(''):''}
+<c:dLbls>${pct?'<c:numFmt formatCode="0%" sourceLinked="0"/>':'<c:numFmt formatCode="#,##0;;" sourceLinked="0"/>'}<c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr>${txt(900,true,apilada?'FFFFFF':'333333')}<c:dLblPos val="${apilada?'ctr':'outEnd'}"/><c:showLegendKey val="0"/><c:showVal val="1"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/><c:showBubbleSize val="0"/></c:dLbls>
+<c:cat><c:strRef><c:f>${s.catRef}</c:f>${strCache(cats)}</c:strRef></c:cat>
+<c:val><c:numRef><c:f>${s.valRef}</c:f>${numCache(s.valores,pct?'0%':'General')}</c:numRef></c:val></c:ser>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<c:roundedCorners val="0"/>
+<c:chart>
+<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1400" b="1"/></a:pPr><a:r><a:rPr lang="es-CO" sz="1400" b="1"><a:solidFill><a:srgbClr val="16261C"/></a:solidFill></a:rPr><a:t>${XE(titulo)}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>
+<c:autoTitleDeleted val="0"/>
+<c:plotArea><c:layout/>
+<c:barChart><c:barDir val="col"/><c:grouping val="${apilada?'stacked':'clustered'}"/><c:varyColors val="0"/>
+${ser}
+<c:gapWidth val="60"/>${apilada?'<c:overlap val="100"/>':''}<c:axId val="50010"/><c:axId val="50020"/></c:barChart>
+<c:catAx><c:axId val="50010"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:numFmt formatCode="General" sourceLinked="0"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:spPr><a:ln w="9525"><a:solidFill><a:srgbClr val="BFBFBF"/></a:solidFill></a:ln></c:spPr>${txt(900,false,'5B7062')}<c:crossAx val="50020"/><c:crosses val="autoZero"/><c:auto val="1"/><c:lblAlgn val="ctr"/><c:lblOffset val="100"/><c:noMultiLvlLbl val="0"/></c:catAx>
+<c:valAx><c:axId val="50020"/><c:scaling><c:orientation val="minMax"/>${pct?'<c:max val="1"/><c:min val="0"/>':''}</c:scaling><c:delete val="0"/><c:axPos val="l"/><c:majorGridlines><c:spPr><a:ln w="6350"><a:solidFill><a:srgbClr val="E3E8E4"/></a:solidFill></a:ln></c:spPr></c:majorGridlines><c:numFmt formatCode="${pct?'0%':'General'}" sourceLinked="0"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:spPr><a:ln><a:noFill/></a:ln></c:spPr>${txt(900,false,'5B7062')}<c:crossAx val="50010"/><c:crosses val="autoZero"/><c:crossBetween val="between"/></c:valAx>
+</c:plotArea>
+${series.length>1?'<c:legend><c:legendPos val="b"/><c:overlay val="0"/></c:legend>':''}
+<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/>
+</c:chart>
+<c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln><a:noFill/></a:ln></c:spPr>
+</c:chartSpace>`;
+}
+
+async function construirXlsxCal(JSZip,D){
+  const M=D.meses,S=D.S,H={s:1};
+  const h=t=>({v:t,s:1});
+  // Resumen (fila 1 encabezados, filas 2-13 meses, 14 total)
+  const res=[[h('Mes'),h('Placas (lista)'),h('Registros'),h('Registros completos'),h('Registros incompletos'),h('Placas que cumplen'),h('Cumplimiento')]];
+  S.forEach((s,i)=>{const r=i+2;res.push([{v:M[i],s:11},{v:s.mt,s:4},{v:s.n,s:4},{v:s.comp,s:5},{v:s.inc,s:s.inc?6:4},{v:s.ok,s:4},{f:`IF(B${r}>0,F${r}/B${r},0)`,v:s.mt?s.ok/s.mt:0,s:3}])});
+  const T=k=>S.reduce((a,s)=>a+s[k],0);
+  res.push([{v:'Total año',s:8},{f:'SUM(B2:B13)',v:T('mt'),s:8},{f:'SUM(C2:C13)',v:T('n'),s:8},{f:'SUM(D2:D13)',v:T('comp'),s:8},{f:'SUM(E2:E13)',v:T('inc'),s:8},{f:'SUM(F2:F13)',v:T('ok'),s:8},{f:'IF(B14>0,F14/B14,0)',v:T('mt')?T('ok')/T('mt'):0,s:9}]);
+  res.push([]);res.push([{v:'Cumplimiento = placas de la lista con sus dos calibraciones en el mes ÷ placas de la lista. Una placa con una sola calibración no cumple.',s:10}]);
+  // Gráficas
+  const graf=[[{v:`Calibraciones · ${D.sede} ${D.anio}`,s:7}],[{v:`Generado el ${D.generado} por ${D.por}. Los datos de las gráficas están en la hoja «Resumen».`,s:10}]];
+  // Registros
+  const reg=[[h('Placa'),h('Mes'),h('Año'),h('Sede'),h('Primera calibración'),h('Segunda calibración'),h('Estado'),h('Días entre calibraciones'),h('Reportado por'),h('Última edición'),h('Fotos')]];
+  D.registros.forEach(c=>{const ok=c.f1&&c.f2,d=ok?Math.round(serialF(c.f2)-serialF(c.f1)):'';
+    reg.push([{v:c.placa,s:11},{v:M[c.mes-1],s:4},{v:D.anio,s:4},{v:D.sede,s:4},{d:c.f1,s:2},c.f2?{d:c.f2,s:2}:{v:'Pendiente',s:6},{v:ok?'Completa':'Incompleta',s:ok?5:6},d===''?{v:'',s:4}:{v:d,s:4},{v:c.por||'',s:4},{v:c.editadoPor||'',s:4},{v:c.nfotos,s:4}])});
+  // Cumplimiento por placa
+  const mat=[[h('Placa'),...M.map(m=>h(m.slice(0,3))),h('Meses que cumple')]];
+  D.matriz.forEach((p,i)=>{const r=i+2;mat.push([{v:p.placa,s:11},...p.meses.map(b=>({v:b?'Cumple':'No cumple',s:b?5:6})),{f:`COUNTIF(B${r}:M${r},"Cumple")`,v:p.meses.filter(Boolean).length,s:4}])});
+  // Placas incompletas
+  const inc=[[h('Placa'),h('Mes'),h('Primera calibración'),h('Reportado por')]];
+  D.registros.filter(c=>!(c.f1&&c.f2)).forEach(c=>inc.push([{v:c.placa,s:11},{v:M[c.mes-1],s:4},{d:c.f1,s:2},{v:c.por||'',s:4}]));
+  const hojas=[
+    ['Gráficas',hojaXML(graf,{cols:[14],dibujo:true})],
+    ['Resumen',hojaXML(res,{cols:[14,14,12,18,20,18,15],congelar:true})],
+    ['Registros',hojaXML(reg,{cols:[12,12,8,15,18,18,13,14,24,24,8],congelar:true,filtro:`A1:K${Math.max(2,reg.length)}`})],
+    ['Cumplimiento por placa',hojaXML(mat,{cols:[12,...M.map(()=>11),16],congelar:true,filtro:`A1:N${Math.max(2,mat.length)}`})],
+    ['Placas incompletas',hojaXML(inc,{cols:[12,12,18,24],congelar:true})],
+  ];
+  const z=new JSZip();
+  z.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+${hojas.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}
+<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>
+<Override PartName="/xl/charts/chart1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>
+<Override PartName="/xl/charts/chart2.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>
+<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
+<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>`);
+  z.file('_rels/.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>`);
+  z.file('docProps/core.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${XE(`Calibraciones ${D.sede} ${D.anio}`)}</dc:title><dc:creator>${XE(D.por)}</dc:creator></cp:coreProperties>`);
+  z.file('docProps/app.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Flota Llanos</Application></Properties>`);
+  z.file('xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>${hojas.map(([n],i)=>`<sheet name="${XE(n)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets>
+<definedNames>${hojas.map(([n],i)=>i===2||i===3?`<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">'${XE(n)}'!$A$1:$${i===2?'K':'N'}$${Math.max(2,i===2?reg.length:mat.length)}</definedName>`:'').join('')}</definedNames><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
+  z.file('xl/_rels/workbook.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hojas.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${hojas.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
+  z.file('xl/styles.xml',ESTILOS);
+  hojas.forEach(([,x],i)=>z.file(`xl/worksheets/sheet${i+1}.xml`,x));
+  z.file('xl/worksheets/_rels/sheet1.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/></Relationships>`);
+  const anc=(id,r1,r2)=>`<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>0</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${r1}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>11</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${r2}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="${id+1}" name="Gráfico ${id}"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr><xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" r:id="rId${id}"/></a:graphicData></a:graphic></xdr:graphicFrame><xdr:clientData/></xdr:twoCellAnchor>`;
+  z.file('xl/drawings/drawing1.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${anc(1,3,23)}${anc(2,25,45)}</xdr:wsDr>`);
+  z.file('xl/drawings/_rels/drawing1.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart2.xml"/></Relationships>`);
+  const cats=M.map(m=>m.slice(0,3)),catRef="'Resumen'!$A$2:$A$13";
+  z.file('xl/charts/chart1.xml',graficaXML({titulo:'Registros completos e incompletos por mes',cats,apilada:true,colores:['1F7A4D','C0392B'],series:[
+    {nombre:'Registros completos',nombreRef:"'Resumen'!$D$1",catRef,valRef:"'Resumen'!$D$2:$D$13",valores:S.map(s=>s.comp)},
+    {nombre:'Registros incompletos',nombreRef:"'Resumen'!$E$1",catRef,valRef:"'Resumen'!$E$2:$E$13",valores:S.map(s=>s.inc)}]}));
+  z.file('xl/charts/chart2.xml',graficaXML({titulo:'Cumplimiento por mes',cats,pct:true,colores:['1F6B3F'],coloresPunto:S.map(s=>hueHex(s.mt?s.ok/s.mt*100:0)),series:[
+    {nombre:'Cumplimiento',nombreRef:"'Resumen'!$G$1",catRef,valRef:"'Resumen'!$G$2:$G$13",valores:S.map(s=>s.mt?+(s.ok/s.mt).toFixed(4):0)}]}));
+  return z;
+}
+
+function construirPptCal(PptxGenJS,D){
+  const V='1F6B3F',V2='2F8A52',VC='E2F1E6',TX='16261C',MU='5B7062',RO='C0392B',ROC='FBE4E1',OK='1F7A4D',F='Calibri';
+  const pres=new PptxGenJS();pres.layout='LAYOUT_WIDE';pres.author=D.por;pres.title=`Calibraciones ${D.sede} ${D.anio}`;
+  const W=13.333,M=D.meses,S=D.S;
+  const cab=(sl,t,sub)=>{sl.background={color:'F6FAF7'};
+    sl.addShape(pres.shapes.RECTANGLE,{x:0,y:0,w:W,h:0.95,fill:{color:V},line:{color:V}});
+    sl.addText(t,{x:0.5,y:0.12,w:9.5,h:0.5,fontFace:F,fontSize:24,bold:true,color:'FFFFFF',margin:0,isTextBox:true});
+    sl.addText(sub||`${D.sede} · ${D.anio}`,{x:0.5,y:0.58,w:9.5,h:0.3,fontFace:F,fontSize:12,color:'D6EBDD',margin:0,isTextBox:true});
+    sl.addText('FLOTA LLANOS',{x:W-3.5,y:0.3,w:3,h:0.35,fontFace:F,fontSize:12,bold:true,color:'FFFFFF',align:'right',charSpacing:4,margin:0,isTextBox:true});};
+  const pct=v=>v===null?'—':Math.round(v)+'%';
+  // 1 portada
+  let s=pres.addSlide();s.background={color:V};
+  s.addShape(pres.shapes.RECTANGLE,{x:0,y:0,w:0.9,h:7.5,fill:{color:V2},line:{color:V2}});
+  s.addShape(pres.shapes.RECTANGLE,{x:W-0.9,y:0,w:0.9,h:7.5,fill:{color:V2},line:{color:V2}});
+  s.addText('FLOTA LLANOS',{x:1.5,y:1.6,w:10,h:0.5,fontFace:F,fontSize:18,color:'D6EBDD',charSpacing:8,margin:0,isTextBox:true});
+  s.addText('Informe de calibraciones',{x:1.5,y:2.2,w:10.5,h:1.1,fontFace:F,fontSize:48,bold:true,color:'FFFFFF',margin:0,isTextBox:true});
+  s.addText(`${D.sede} · ${D.anio}`,{x:1.5,y:3.35,w:10,h:0.6,fontFace:F,fontSize:26,color:'FFFFFF',margin:0,isTextBox:true});
+  s.addText(`Generado el ${D.generado} por ${D.por}`,{x:1.5,y:5.9,w:10,h:0.4,fontFace:F,fontSize:13,color:'D6EBDD',margin:0,isTextBox:true});
+  // 2 indicadores + gráfica apilada
+  s=pres.addSlide();cab(s,'Cómo vamos mes a mes');
+  const T=k=>S.reduce((a,x)=>a+x[k],0);
+  const kp=[[T('n'),'Calibraciones registradas',V],[T('comp'),'Completas (dos calibraciones)',OK],[T('inc'),'Incompletas (solo una)',RO],[pct(D.acu),D.acu===null?'Cumplimiento acumulado (sin lista de placas)':'Cumplimiento acumulado'+(D.hastaTxt?' a '+D.hastaTxt:''),V]];
+  kp.forEach(([v,l,c],i)=>{const x=0.5+i*3.13;
+    s.addShape(pres.shapes.RECTANGLE,{x,y:1.25,w:2.95,h:1.2,fill:{color:'FFFFFF'},line:{color:'D2E2D6',width:1}});
+    s.addShape(pres.shapes.RECTANGLE,{x,y:1.25,w:0.08,h:1.2,fill:{color:c},line:{color:c}});
+    s.addText(String(v),{x:x+0.25,y:1.33,w:2.6,h:0.6,fontFace:F,fontSize:30,bold:true,color:c,margin:0,isTextBox:true});
+    s.addText(l,{x:x+0.25,y:1.93,w:2.6,h:0.45,fontFace:F,fontSize:11,color:MU,margin:0,isTextBox:true});});
+  s.addChart(pres.charts.BAR,[{name:'Completas',labels:M.map(m=>m.slice(0,3)),values:S.map(x=>x.comp)},{name:'Incompletas',labels:M.map(m=>m.slice(0,3)),values:S.map(x=>x.inc)}],
+    {x:0.5,y:2.7,w:W-1,h:4.5,barDir:'col',barGrouping:'stacked',chartColors:[OK,RO],showLegend:true,legendPos:'b',legendFontSize:11,legendColor:MU,
+     showValue:true,dataLabelPosition:'ctr',dataLabelColor:'FFFFFF',dataLabelFontSize:10,dataLabelFormatCode:'#,##0;;',
+     catAxisLabelColor:MU,valAxisLabelColor:MU,catAxisLabelFontSize:11,valAxisLabelFontSize:10,valGridLine:{color:'E3E8E4',size:0.5},catGridLine:{style:'none'},
+     showTitle:true,title:'Registros completos e incompletos por mes',titleFontSize:14,titleColor:TX,barGapWidthPct:60});
+  // 3 cumplimiento por mes
+  s=pres.addSlide();cab(s,'Cumplimiento por mes',`${D.sede} · ${D.anio} · ${D.nPlacas?D.nPlacas+' placas en la lista':'Sin lista de placas cargada'}`);
+  s.addChart(pres.charts.BAR,[{name:'Cumplimiento',labels:M.map(m=>m.slice(0,3)),values:S.map(x=>x.mt?+(x.ok/x.mt).toFixed(4):0)}],
+    {x:0.4,y:1.2,w:7.4,h:5.9,barDir:'col',chartColors:[V2],showLegend:false,showValue:true,dataLabelPosition:'outEnd',dataLabelFormatCode:'0%',dataLabelColor:TX,dataLabelFontSize:10,
+     valAxisMaxVal:1,valAxisMinVal:0,valAxisLabelFormatCode:'0%',catAxisLabelColor:MU,valAxisLabelColor:MU,valGridLine:{color:'E3E8E4',size:0.5},catGridLine:{style:'none'},
+     showTitle:true,title:'% de placas con sus dos calibraciones',titleFontSize:14,titleColor:TX,barGapWidthPct:50});
+  const hc=t=>({text:t,options:{bold:true,color:'FFFFFF',fill:{color:V},align:'center'}});
+  const filas=[[hc('Mes'),hc('Placas'),hc('Cumplen'),hc('Incompl.'),hc('Cumplimiento')]].concat(S.map((x,i)=>{const p=x.mt?x.ok/x.mt*100:null;return [
+    {text:M[i]},{text:String(x.mt||'—'),options:{align:'center'}},{text:String(x.ok),options:{align:'center',color:OK,bold:true}},
+    {text:String(x.inc),options:{align:'center',color:x.inc?RO:TX,bold:!!x.inc}},
+    {text:pct(p),options:{align:'center',bold:true,color:'FFFFFF',fill:{color:p===null?'9AA3A9':hueHex(p)}}}]}));
+  s.addTable(filas,{x:8.1,y:1.25,w:4.8,colW:[1.25,0.75,0.8,0.8,1.2],fontFace:F,fontSize:11,color:TX,border:{type:'solid',pt:0.5,color:'D2E2D6'},fill:{color:'FFFFFF'},rowH:0.4});
+  // tablas paginadas
+  const paginar=(titulo,sub,enc,colW,filasT,porPag)=>{
+    if(!filasT.length){const sl=pres.addSlide();cab(sl,titulo,sub);sl.addText('Sin datos para mostrar.',{x:0.5,y:3.2,w:W-1,h:0.6,fontFace:F,fontSize:18,color:MU,align:'center',isTextBox:true});return}
+    const pags=Math.ceil(filasT.length/porPag);
+    for(let p=0;p<pags;p++){const sl=pres.addSlide();cab(sl,titulo+(pags>1?` (${p+1} de ${pags})`:''),sub);
+      sl.addTable([enc.map(hc)].concat(filasT.slice(p*porPag,(p+1)*porPag)),{x:0.5,y:1.2,w:colW.reduce((a,b)=>a+b,0),colW,fontFace:F,fontSize:10.5,color:TX,border:{type:'solid',pt:0.5,color:'D2E2D6'},fill:{color:'FFFFFF'},rowH:0.33,autoPage:false})}};
+  const est=b=>({text:b?'Completa':'Incompleta',options:{align:'center',bold:true,color:b?OK:RO,fill:{color:b?'DCF1E5':ROC}}});
+  // 4 placas incompletas
+  const incs=D.registros.filter(c=>!(c.f1&&c.f2));
+  paginar('Placas incompletas','Tienen solo la primera calibración',['Placa','Mes','Primera calibración','Reportado por'],[2.2,2.2,2.6,5.3],
+    incs.map(c=>[{text:c.placa,options:{bold:true,color:RO}},{text:M[c.mes-1]},{text:D.fd(c.f1),options:{align:'center'}},{text:c.por||'—'}]),16);
+  // 5 cumplimiento por placa
+  if(D.matriz.length)paginar('Cumplimiento por placa',`${D.sede} · ${D.anio} · ✓ = tiene sus dos calibraciones en el mes`,['Placa',...M.map(m=>m.slice(0,3)),'Total'],[1.5,...M.map(()=>0.8),1.1],
+    D.matriz.map(p=>[{text:p.placa,options:{bold:true}},...p.meses.map(b=>({text:b?'✓':'✗',options:{align:'center',bold:true,color:b?OK:RO,fill:{color:b?'DCF1E5':ROC}}})),{text:String(p.meses.filter(Boolean).length),options:{align:'center',bold:true}}]),16);
+  // 6 base de datos
+  paginar('Registros de calibración','Base de datos completa',['Placa','Mes','Primera calibración','Segunda calibración','Estado','Reportado por','Última edición'],[1.5,1.5,1.9,1.9,1.4,2.05,2.05],
+    D.registros.map(c=>{const ok=c.f1&&c.f2;return [{text:c.placa,options:{bold:true}},{text:M[c.mes-1]},{text:D.fd(c.f1),options:{align:'center'}},{text:c.f2?D.fd(c.f2):'Pendiente',options:{align:'center',color:c.f2?TX:RO}},est(ok),{text:c.por||'—'},{text:c.editadoPor||'—'}]}),16);
+  return pres;
+}
+
+function cargarScript(urls,glob){
+  if(window[glob])return Promise.resolve(window[glob]);
+  return urls.reduce((p,u)=>p.catch(()=>new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=u;
+    sc.onload=()=>window[glob]?res(window[glob]):rej();sc.onerror=()=>{sc.remove();rej()};document.head.appendChild(sc)})),Promise.reject());
+}
+function datosCal(){
+  const {del,lista,S}=calcCal();
+  const hasta=canio<hoyD.getFullYear()?12:canio>hoyD.getFullYear()?0:hoyD.getMonth()+1;
+  const conMeta=S.filter(s=>s.m<=hasta&&s.mt),acu=conMeta.length?conMeta.reduce((a,s)=>a+s.ok,0)/conMeta.reduce((a,s)=>a+s.mt,0)*100:null;
+  const registros=del.map(c=>({placa:normP(c.placa)||c.placa,mes:c.mes,f1:c.f1||'',f2:c.f2||'',por:c.por||'',editadoPor:c.editadoPor||'',nfotos:c.fotos?Object.values(c.fotos).filter(Boolean).length:0}))
+    .sort((a,b)=>cmpP(a.placa,b.placa)||a.mes-b.mes);
+  const matriz=lista.map(p=>({placa:p,meses:MESES.map((_,k)=>registros.some(c=>c.placa===p&&c.mes===k+1&&c.f1&&c.f2))}));
+  return {sede,anio:canio,generado:new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}),por:cur.nombre,meses:MESES,S,registros,matriz,acu,
+    hastaTxt:hasta&&hasta<12?MESES[hasta-1].toLowerCase():'',nPlacas:lista.length,fd};
+}
+async function descargarCal(tipo,btn){
+  if(!cur||cur.rol!=='admin')return;
+  const t=btn.textContent,nom=`calibraciones_${sede}_${canio}`;btn.disabled=true;btn.textContent='Preparando…';$('xcerr').textContent='';
+  try{
+    const D=datosCal();
+    if(tipo==='xlsx'){
+      const JSZip=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js'],'JSZip');
+      const z=await construirXlsxCal(JSZip,D);
+      const blob=await z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nom+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+    }else{
+      const P=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js','https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js'],'PptxGenJS');
+      await construirPptCal(P,D).writeFile({fileName:nom+'.pptx'});
+    }
+  }catch(x){console.error(x);$('xcerr').textContent='No se pudo generar el archivo. Revisa tu conexión a internet e inténtalo de nuevo.'}
+  btn.disabled=false;btn.textContent=t;
 }
 function resumenCal(S,del){
   const tot=S.reduce((a,s)=>a+s.n,0),ok=S.reduce((a,s)=>a+s.comp,0),inc=tot-ok;
@@ -692,9 +949,15 @@ function resumenCal(S,del){
   <div class="dc"><h2>Placas incompletas</h2><small>Tienen solo la primera calibración. Toca una para ir a su mes.</small>
     ${incs.length?`<div class="chips">${incs.map(c=>`<button type="button" class="chip" data-mes="${c.mes}"><b>${esc(c.placa)}</b> · ${MESES[c.mes-1].slice(0,3)} · 1ª ${fd(c.f1)}</button>`).join('')}</div>`
       :`<p class="empty" style="margin:0">${tot?'Todas las placas registradas tienen sus dos calibraciones.':'Aún no hay calibraciones registradas en '+canio+'.'}</p>`}
-  </div>`;
+  </div>
+  ${cur.rol==='admin'?`<div class="xl"><p><b>Descargar información de calibraciones</b>Gráficas, cumplimiento por mes y por placa, placas incompletas y la base de datos de registros de ${esc(sede)} ${canio}.</p>
+    <div class="hb"><button type="button" class="btn" id="xcal">Descargar Excel</button><button type="button" class="btn ppt" id="pcal">Descargar PowerPoint</button></div>
+    <p class="err" id="xcerr" role="alert" style="width:100%;margin:0"></p></div>`:''}`;
 }
-$('cres').onclick=e=>{const b=e.target.closest('[data-mes]');if(b){cmes=Number(b.dataset.mes);renderCal();$('cmesv').scrollIntoView({behavior:'smooth',block:'start'})}};
+$('cres').onclick=e=>{
+  if(e.target.closest('#xcal')){descargarCal('xlsx',e.target.closest('#xcal'));return}
+  if(e.target.closest('#pcal')){descargarCal('pptx',e.target.closest('#pcal'));return}
+  const b=e.target.closest('[data-mes]');if(b){cmes=Number(b.dataset.mes);renderCal();$('cmesv').scrollIntoView({behavior:'smooth',block:'start'})}};
 $('cback').onclick=()=>{cmes=0;renderCal()};
 let plist=[];
 function pintarPlacas(){
