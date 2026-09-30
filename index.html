@@ -86,6 +86,21 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 #vmapf{width:100%;height:190px;border:1px solid var(--line);border-radius:10px;margin-top:8px}
 .vbody>div{flex:1;min-width:220px}
 .vubok{font-size:.85rem;color:var(--ok);font-weight:600}
+.vtabdash{margin-left:auto}
+.vdbar{display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin-bottom:12px}.vdbar label{margin:0}.vdbar select{width:auto}.vdbar small{color:var(--mut)}
+.pie{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.pie svg{width:170px;height:170px;flex:none}
+.pleg{display:grid;gap:7px;font-size:.9rem;flex:1;min-width:160px}.pleg div{display:grid;grid-template-columns:14px 1fr auto;gap:8px;align-items:center}.pleg i{width:14px;height:14px;border-radius:3px}.pleg b{font-variant-numeric:tabular-nums}
+.vcols{display:flex;align-items:flex-end;justify-content:space-around;gap:14px;height:190px;border-bottom:1px solid var(--line);padding-top:20px}
+.vcols div{flex:1;max-width:120px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;font-weight:700;font-size:.9rem}
+.vcols i{display:block;width:100%;border-radius:6px 6px 0 0;background:var(--acc);margin-top:4px;min-height:3px}
+.vcl{display:flex;justify-content:space-around;gap:14px}.vcl span{flex:1;max-width:120px;text-align:center;font-size:.8rem;color:var(--mut);padding-top:5px;overflow-wrap:anywhere}
+.tcomp{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:8px}
+.tcomp h3{font-size:.92rem;margin:0 0 4px}
+.tcomp .bar{grid-template-columns:minmax(80px,32%) 1fr auto}
+.tcomp .r .bar i{background:var(--bad)}.tcomp .g .bar i{background:var(--ok)}
+.tres{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}.tres div{flex:1;min-width:150px;border-radius:8px;padding:10px 12px;background:var(--soft)}
+.tres b{display:block;font-size:1.25rem}.tres .r b{color:var(--bad)}.tres .g b{color:var(--ok)}.tres span{font-size:.8rem;color:var(--mut)}
+.semsvg{width:100%;height:auto;display:block}
 .vubok.no{color:var(--mut);font-weight:400}
 .vayuda{margin:8px 0 4px;font-size:.88rem;background:var(--soft);border-radius:8px;padding:8px 12px}
 .vayuda summary{cursor:pointer;font-weight:600}
@@ -488,8 +503,22 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <button class="tab" data-vf="todas" aria-pressed="true">Todas</button>
     <button class="tab" data-vf="varado" aria-pressed="false">Varados ahora</button>
     <button class="tab" data-vf="operativo" aria-pressed="false">Operativos</button>
+    <button class="tab vtabdash" data-vf="dash" aria-pressed="false" id="vdashb" hidden>Dashboard</button>
   </div>
   <div id="vlist"></div>
+  <div id="vdash" hidden>
+    <div class="vdbar"><label>Periodo<select id="vper"><option value="30">Últimos 30 días</option><option value="90">Últimos 90 días</option><option value="anio">Este año</option><option value="todo" selected>Todo</option></select></label><small id="vdsub"></small></div>
+    <div class="dgrid">
+      <div class="dc"><h2>Sistemas más afectados</h2><small>Los 5 sistemas con más varadas</small><div id="vd-sis"></div></div>
+      <div class="dc"><h2>Placas más varadas</h2><small>Las 5 placas con más varadas</small><div id="vd-pla"></div></div>
+    </div>
+    <div class="dgrid">
+      <div class="dc"><h2>Conductores con más varadas</h2><small>Los 3 conductores con más varadas reportadas</small><div id="vd-con"></div></div>
+      <div class="dc"><h2>Varadas por día de la semana</h2><small>En qué días se presentan más varadas</small><div id="vd-dia"></div></div>
+    </div>
+    <div class="dc" style="margin-bottom:14px"><h2>Comportamiento por semana</h2><small>Varadas reportadas y solucionadas en las últimas 12 semanas</small><div id="vd-sem"></div></div>
+    <div class="dc"><h2>Tiempos más altos: reportadas vs. solucionadas</h2><small>Las 5 varadas que llevan más tiempo sin solucionar frente a las 5 solucionadas que más tiempo estuvieron fuera de servicio</small><div id="vd-tie"></div></div>
+  </div>
 </section>
 <section id="calv" hidden aria-label="Calibraciones">
   <div class="cbar">
@@ -637,6 +666,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <small class="mnota">Déjalo vacío mientras siga varado. Puedes agregarlo después con «Editar».</small>
     <fieldset class="vsn"><legend>¿Se llevó el vehículo al taller?</legend>
       <label><input type="radio" name="vtal" value="si"> Sí</label><label><input type="radio" name="vtal" value="no" checked> No</label></fieldset>
+    <div class="row">
+      <label>Sistema afectado<select id="vsis" required><option value="">Elige el sistema…</option></select></label>
+      <label>Nombre del conductor<input id="vcon" maxlength="80" autocomplete="off" list="vconlist"></label>
+    </div>
+    <datalist id="vconlist"></datalist>
     <label>Descripción de la falla (opcional)<textarea id="vdesc" rows="2" maxlength="500"></textarea></label>
     <div class="err" id="verr" role="alert"></div>
     <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="vsave">Guardar varada</button></div>
@@ -746,9 +780,9 @@ function buildFotos(){
 $('fotos').onclick=e=>{const b=e.target.closest('[data-k]');if(b)$((b.dataset.m)+'-'+b.dataset.k).click()};
 $('list').addEventListener('click',e=>{const im=e.target.closest('.thumbs img');if(im){$('bigimg').src=im.src;$('big').showModal()}});
 function bars(rows){if(!rows.length)return '<p class="empty">Sin datos.</p>';const m=Math.max(...rows.map(r=>r.n));return rows.map(r=>`<div class="bar"><span>${esc(r.l)}</span><i style="width:${Math.max(4,r.n/m*100)}%"></i><span>${r.t}</span></div>`).join('')}
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+document.querySelectorAll('#listv .tab[data-f]').forEach(b=>b.onclick=()=>{
   filtro=b.dataset.f;
-  document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  document.querySelectorAll('#listv .tab[data-f]').forEach(x=>x.setAttribute('aria-pressed',x===b));
   render();
 });
 $('list').onclick=e=>{
@@ -1623,6 +1657,9 @@ function renderVar(){
   const mes=new Date().getMonth(),anio=new Date().getFullYear(),delMes=del.filter(v=>{const d=new Date(dtMs(v.fv));return d.getMonth()===mes&&d.getFullYear()===anio});
   $('vkpi').innerHTML=[[abiertas.length,'Varados ahora','badc'],[delMes.length,'Varadas este mes',''],[durs.length?durTxt(durs.reduce((a,b)=>a+b,0)/durs.length):'—','Tiempo promedio fuera de servicio',''],[del.filter(v=>v.taller==='si').length,'Llevados al taller','']]
     .map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
+  $('vdashb').hidden=cur.rol!=='admin';if(vfiltro==='dash'&&cur.rol!=='admin')vfiltro='todas';
+  $('vlist').hidden=vfiltro==='dash';$('vdash').hidden=vfiltro!=='dash';
+  if(vfiltro==='dash'){dashVar(del);return}
   const vis=del.filter(v=>vfiltro==='todas'||(vfiltro==='varado'?!v.fo:!!v.fo)).sort((a,b)=>dtMs(b.fv)-dtMs(a.fv));
   if(!vis.length){$('vlist').innerHTML=`<div class="empty">No hay varadas ${vfiltro==='varado'?'abiertas ':vfiltro==='operativo'?'cerradas ':''}en ${esc(sede)}.${canEdit()?' Usa «Reportar varada» para registrar una.':''}</div>`;return}
   $('vlist').innerHTML=vis.map(v=>{const op=!!v.fo,t=op?dtMs(v.fo)-dtMs(v.fv):ahora-dtMs(v.fv),mu=mapsUrl(v.ubic);return `<article class="vcard ${op?'ok':''}">
@@ -1633,6 +1670,8 @@ function renderVar(){
       <div><dt>Operativo nuevamente</dt><dd>${op?dtTxt(v.fo):'<span style="color:var(--bad)">Sigue varado</span>'}</dd></div>
       <div><dt>${op?'Tiempo fuera de servicio':'Lleva varado'}</dt><dd style="color:${op?'inherit':'var(--bad)'}"${op?'':` data-vdur="${esc(v.fv)}"`}>${durTxt(t)}</dd></div>
       <div><dt>¿Se llevó al taller?</dt><dd>${v.taller==='si'?'Sí':'No'}</dd></div>
+      <div><dt>Sistema afectado</dt><dd>${esc(sistemaDe(v))}</dd></div>
+      <div><dt>Conductor</dt><dd>${esc(v.conductor||'—')}</dd></div>
       ${v.desc?`<div style="grid-column:1/-1"><dt>Descripción</dt><dd style="font-weight:400">${esc(v.desc)}</dd></div>`:''}
     </dl>${v.foto?`<img class="vfot" src="${v.foto}" alt="Foto del vehículo ${esc(v.placa)}" style="margin-top:12px">`:''}</div>
     <div class="vmap"><b class="vmapt">Ubicación del vehículo</b>${tieneCoord(v.ubic)
@@ -1641,6 +1680,65 @@ function renderVar(){
       ${mu?`<div class="hb"><a class="btn ghost" href="${esc(mu)}" target="_blank" rel="noopener">Abrir en Google Maps</a>${tieneCoord(v.ubic)?`<button type="button" class="btn ghost" data-vmap="${v.id}">Ampliar</button>`:''}</div>`:''}
     </div></div></article>`}).join('');
 }
+
+/* ---------- Dashboard de varadas ---------- */
+const SISTEMAS=['Motor','Frenos','Suspensión','Sistema eléctrico','Transmisión / caja','Llantas','Dirección','Refrigeración','Combustible','Embrague','Carrocería','Otro'];
+$('vsis').insertAdjacentHTML('beforeend',SISTEMAS.map(x=>`<option>${x}</option>`).join(''));
+const sinTilde=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+function sistemaDe(v){if(v.sistema)return v.sistema;const d=sinTilde(v.desc);if(!d)return 'Sin clasificar';
+  const M=[['Motor',['motor']],['Frenos',['fren']],['Suspensión',['suspens','amortig','muelle']],['Sistema eléctrico',['electr','bateri','alternador','arranque']],['Transmisión / caja',['caja','transmis','cardan','diferencial']],
+    ['Llantas',['llanta','pinch','neumat']],['Dirección',['direcc']],['Refrigeración',['refriger','radiador','recalent','temperatura']],['Combustible',['combust','acpm','gasolin','inyector']],['Embrague',['embrag','clutch']],['Carrocería',['carrocer','vidrio','puerta']]];
+  for(const[n,ks]of M)if(ks.some(k=>d.includes(k)))return n;return 'Otro'}
+const nomProp=t=>String(t||'').trim().toLowerCase().replace(/(^|\s)\S/g,m=>m.toUpperCase());
+const PAL=['#b45309','#2563eb','#15803d','#9333ea','#dc2626','#6b7280'];
+const cuenta=(arr,f)=>{const m={};arr.forEach(x=>{const k=f(x);if(k)m[k]=(m[k]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))};
+function tortaSVG(items){
+  const tot=items.reduce((a,x)=>a+x.n,0);if(!tot)return '<p class="empty">Sin datos.</p>';
+  let a0=-Math.PI/2;const R=80,cx=85,cy=85;
+  const sl=items.map((x,i)=>{const f=x.n/tot;if(f>=.9999)return `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${PAL[i]}"/>`;
+    const a1=a0+f*2*Math.PI,l=f>.5?1:0,p=`M${cx},${cy}L${(cx+R*Math.cos(a0)).toFixed(2)},${(cy+R*Math.sin(a0)).toFixed(2)}A${R},${R} 0 ${l} 1 ${(cx+R*Math.cos(a1)).toFixed(2)},${(cy+R*Math.sin(a1)).toFixed(2)}Z`;a0=a1;
+    return `<path d="${p}" fill="${PAL[i]}" stroke="var(--card)" stroke-width="2"><title>${esc(x.l)}: ${x.n}</title></path>`}).join('');
+  return `<div class="pie"><svg viewBox="0 0 170 170" role="img" aria-label="Sistemas más afectados">${sl}</svg><div class="pleg">${items.map((x,i)=>`<div><i style="background:${PAL[i]}"></i><span>${esc(x.l)}</span><b>${x.n} · ${Math.round(x.n/tot*100)}%</b></div>`).join('')}</div></div>`;
+}
+function semanaDe(ms){const d=new Date(ms);d.setHours(0,0,0,0);const w=(d.getDay()+6)%7;d.setDate(d.getDate()-w);return d.getTime()}
+function dashVar(delTodo){
+  const per=$('vper').value,now=Date.now(),hoyD0=new Date();
+  const desde=per==='30'?now-30*864e5:per==='90'?now-90*864e5:per==='anio'?new Date(hoyD0.getFullYear(),0,1).getTime():-Infinity;
+  const del=delTodo.filter(v=>dtMs(v.fv)>=desde);
+  $('vdsub').textContent=`${del.length} varada${del.length===1?'':'s'} en ${sede}`;
+  if(!del.length){['vd-sis','vd-pla','vd-con','vd-dia','vd-sem','vd-tie'].forEach(k=>$(k).innerHTML='<p class="empty">No hay varadas en este periodo.</p>');return}
+  // sistemas (torta)
+  const cs=cuenta(del,sistemaDe);let top=cs.slice(0,5).map(([l,n])=>({l,n}));const resto=cs.slice(5).reduce((a,x)=>a+x[1],0);if(resto)top.push({l:'Otros',n:resto});
+  $('vd-sis').innerHTML=tortaSVG(top);
+  // placas (barras horizontales)
+  $('vd-pla').innerHTML=bars(cuenta(del,v=>normP(v.placa)).slice(0,5).map(([l,n])=>({l,n,t:`${n} varada${n>1?'s':''}`})));
+  // conductores (barras verticales)
+  const cc=cuenta(del,v=>v.conductor?nomProp(v.conductor):'').slice(0,3),mx=Math.max(1,...cc.map(x=>x[1])),sinC=del.filter(v=>!v.conductor).length;
+  $('vd-con').innerHTML=cc.length?`<div class="vcols">${cc.map(([l,n])=>`<div>${n}<i style="height:${n/mx*100}%"></i></div>`).join('')}</div><div class="vcl">${cc.map(([l])=>`<span>${esc(l)}</span>`).join('')}</div>${sinC?`<small style="color:var(--mut);display:block;margin-top:8px">${sinC} varada${sinC>1?'s':''} sin conductor registrado.</small>`:''}`
+    :'<p class="empty">Aún no hay varadas con el nombre del conductor. Agrégalo en «Reportar varada» o con «Editar».</p>';
+  // días de la semana
+  const DIAS=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'],cd=DIAS.map(()=>0);del.forEach(v=>{const d=new Date(dtMs(v.fv));cd[(d.getDay()+6)%7]++});const md=Math.max(1,...cd);
+  $('vd-dia').innerHTML=`<div class="vcols" style="height:170px">${cd.map(n=>`<div>${n||''}<i style="height:${n/md*100}%;background:var(--acc2)"></i></div>`).join('')}</div><div class="vcl">${DIAS.map(d=>`<span>${d}</span>`).join('')}</div>`;
+  // semanas
+  const s0=semanaDe(now),sem=Array.from({length:12},(_,k)=>s0-(11-k)*7*864e5);
+  const rep=sem.map(w=>delTodo.filter(v=>semanaDe(dtMs(v.fv))===w).length),sol=sem.map(w=>delTodo.filter(v=>v.fo&&semanaDe(dtMs(v.fo))===w).length);
+  const W=720,H=230,L=34,B=34,T=18,mxs=Math.max(1,...rep,...sol),px=i=>L+(W-L-12)*(i+.5)/12,py=n=>T+(H-T-B)*(1-n/mxs);
+  const grid=[0,.5,1].map(f=>{const n=Math.round(mxs*f),y=py(n);return `<line x1="${L}" x2="${W-6}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${L-6}" y="${y+4}" text-anchor="end" font-size="11" fill="var(--mut)">${n}</text>`}).join('');
+  const bw=(W-L-12)/12*.34;
+  const cols=sem.map((w,i)=>`<rect x="${px(i)-bw-1}" y="${py(rep[i])}" width="${bw}" height="${H-B-py(rep[i])}" rx="2" fill="var(--bad)"><title>Semana del ${new Date(w).toLocaleDateString('es-CO')}: ${rep[i]} reportadas</title></rect><rect x="${px(i)+1}" y="${py(sol[i])}" width="${bw}" height="${H-B-py(sol[i])}" rx="2" fill="var(--ok)"><title>${sol[i]} solucionadas</title></rect>`).join('');
+  const labs=sem.map((w,i)=>{const d=new Date(w);return `<text x="${px(i)}" y="${H-B+16}" text-anchor="middle" font-size="10.5" fill="var(--mut)">${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</text>`}).join('');
+  const nums=sem.map((w,i)=>(rep[i]?`<text x="${px(i)-bw/2-1}" y="${py(rep[i])-4}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ink)">${rep[i]}</text>`:'')+(sol[i]?`<text x="${px(i)+bw/2+1}" y="${py(sol[i])-4}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ink)">${sol[i]}</text>`:'')).join('');
+  $('vd-sem').innerHTML=`<div class="tscroll"><svg class="semsvg" viewBox="0 0 ${W} ${H}" style="min-width:520px" role="img" aria-label="Varadas por semana">${grid}${cols}${nums}${labs}<line x1="${L}" x2="${W-6}" y1="${H-B}" y2="${H-B}" stroke="var(--mut)"/></svg></div>
+    <div class="cleg"><span><i style="background:var(--bad)"></i>Reportadas</span><span><i style="background:var(--ok)"></i>Solucionadas</span><span>Cada columna es una semana, de lunes a domingo (fecha del lunes)</span></div>`;
+  // tiempos
+  const ab=del.filter(v=>!v.fo).map(v=>({v,t:now-dtMs(v.fv)})).sort((a,b)=>b.t-a.t),so=del.filter(v=>v.fo).map(v=>({v,t:dtMs(v.fo)-dtMs(v.fv)})).filter(x=>x.t>=0).sort((a,b)=>b.t-a.t);
+  const prom=a=>a.length?a.reduce((s,x)=>s+x.t,0)/a.length:null;
+  const lista=(a,c)=>a.length?`<div class="${c}">${bars(a.slice(0,5).map(x=>({l:`${normP(x.v.placa)} · ${dtTxt(x.v.fv).slice(0,5)}`,n:x.t,t:durTxt(x.t)})))}</div>`:'<p class="empty" style="margin:0">Sin datos.</p>';
+  $('vd-tie').innerHTML=`<div class="tres"><div class="r"><b>${ab.length}</b><span>Varadas reportadas sin solucionar</span></div><div class="r"><b>${ab.length?durTxt(prom(ab)):'—'}</b><span>Tiempo promedio sin solucionar</span></div>
+      <div class="g"><b>${so.length}</b><span>Varadas solucionadas</span></div><div class="g"><b>${so.length?durTxt(prom(so)):'—'}</b><span>Tiempo promedio hasta solucionar</span></div></div>
+    <div class="tcomp"><div><h3 style="color:var(--bad)">Reportadas: más tiempo sin solucionar</h3>${lista(ab,'r')}</div><div><h3 style="color:var(--ok)">Solucionadas: más tiempo fuera de servicio</h3>${lista(so,'g')}</div></div>`;
+}
+$('vper').onchange=()=>renderVar();
 setInterval(()=>{if($('varv').hidden||document.hidden)return;const a=Date.now();document.querySelectorAll('#vlist [data-vdur]').forEach(d=>d.textContent=durTxt(a-dtMs(d.dataset.vdur)))},60000);
 $('vtabs').onclick=e=>{const b=e.target.closest('[data-vf]');if(!b)return;vfiltro=b.dataset.vf;$('vtabs').querySelectorAll('[data-vf]').forEach(x=>x.setAttribute('aria-pressed',x===b));renderVar()};
 function vUbiEstado(){const c=coordsDe($('vubi').value),t=$('vubi').value.trim();vcoords=c;
@@ -1680,6 +1778,8 @@ function abrirVar(v){
   vedit=v||null;$('vfrm').reset();$('verr').textContent='';
   $('vdlgt').textContent=v?`Editar varada · ${v.placa}`:`Reportar varada · ${sede}`;
   $('vplaca').value=v?v.placa:'';$('vfv').value=v?v.fv:ahoraDT();$('vfo').value=v?v.fo||'':'';
+  $('vsis').value=v?sistemaDe(v):'';if(v&&$('vsis').value==='Sin clasificar')$('vsis').value='';$('vcon').value=v?v.conductor||'':'';
+  $('vconlist').innerHTML=[...new Set(varadas.map(x=>x.conductor).filter(Boolean))].sort().map(n=>`<option value="${esc(n)}">`).join('');
   $('vubi').value=v&&v.ubic?(v.ubic.texto||''):'';$('vdesc').value=v?v.desc||'':'';
   document.querySelector(`input[name="vtal"][value="${v&&v.taller==='si'?'si':'no'}"]`).checked=true;
   vfotoD=v?v.foto||'':'';vfotoMarca=v?!!v.marca:false;vPintarFoto();vUbiEstado();$('vdlg').showModal();
@@ -1691,7 +1791,9 @@ $('vfrm').onsubmit=async e=>{
   if(!placa||!fv){$('verr').textContent='Escribe la placa y la fecha y hora de la varada.';return}
   if(fo&&dtMs(fo)<dtMs(fv)){$('verr').textContent='La fecha en que quedó operativo no puede ser anterior a la varada.';return}
   const t=$('vubi').value.trim().slice(0,500),c=coordsDe(t),ubic={texto:t,lat:c?c.lat:null,lng:c?c.lng:null};
-  const data={placa,fv,fo,taller,ubic,foto:vfotoD,marca:vfotoMarca,desc:$('vdesc').value.trim()};
+  const sistema=$('vsis').value,conductor=$('vcon').value.trim().replace(/\s+/g,' ');
+  if(!sistema){$('verr').textContent='Elige el sistema afectado.';return}
+  const data={placa,fv,fo,taller,ubic,foto:vfotoD,marca:vfotoMarca,desc:$('vdesc').value.trim(),sistema,conductor};
   if(JSON.stringify(data).length>950000){$('verr').textContent='La foto pesa demasiado. Quita la foto e inténtalo de nuevo.';return}
   $('vsave').disabled=true;$('verr').textContent='';
   try{if(vedit)await updateDoc(doc(db,'varadas',vedit.id),{...data,editadoPor:cur.nombre,editado:serverTimestamp()});
