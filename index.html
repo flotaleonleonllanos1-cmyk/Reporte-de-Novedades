@@ -107,6 +107,8 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .kmt tr.al td{background:color-mix(in srgb,var(--wipbg) 45%,transparent)}
 .kmt tr.alr td{background:color-mix(in srgb,var(--badbg) 55%,transparent)}
 .kmsaved{color:var(--mut);font-size:.78rem;display:block}
+.kmaviso{background:var(--soft);border-radius:8px;padding:9px 14px;font-size:.9rem;margin-bottom:12px}
+.kmin .del{margin-left:4px}
 #khdlg{width:min(820px,96vw);max-width:none}
 .vdbar{display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin-bottom:12px}.vdbar label{margin:0}.vdbar select{width:auto}.vdbar small{color:var(--mut)}
 .pie{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.pie svg{width:170px;height:170px;flex:none}
@@ -541,7 +543,10 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <button class="tab" data-kf="pend" aria-pressed="false">Pendientes</button>
     <button class="tab" data-kf="alerta" aria-pressed="false">Con alerta</button>
   </div>
+  <div class="kmaviso" id="kmaviso" hidden></div>
   <div id="kmlist"></div>
+  <div class="xl" id="kmxl" hidden><p><b>Descargar kilometrajes en Excel</b>Gráficas de recorrido, registro y alertas de las últimas 12 semanas hasta la semana elegida, cuadro de kilometraje por placa y semana, y la base de datos completa de la sede.</p>
+    <div class="hb"><button type="button" class="btn" id="kmxlsb">Descargar Excel</button></div><p class="err" id="kmxerr" role="alert" style="width:100%;margin:0"></p></div>
 </section>
 <section id="varv" hidden aria-label="Varadas">
   <div class="kpis" id="vkpi"></div>
@@ -1853,6 +1858,7 @@ function evaluarKm(pl,sem,km){
 }
 function renderKm(){
   if(!cur||$('kmv').hidden)return;
+  $('kmxl').hidden=cur.rol!=='admin';
   if(!kmSem)kmSem=semISO(Date.now());
   const act=semISO(Date.now()),fin=new Date(semMs(kmSem));fin.setDate(fin.getDate()+6);
   $('kmsemt').textContent=`Semana del ${fCorta(kmSem)} al ${fCorta(fISO(fin.getTime()))}`;
@@ -1866,13 +1872,17 @@ function renderKm(){
     .map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
   const vis=filas.filter(f=>kmFiltro==='todos'||(kmFiltro==='pend'?!f.l:f.ev&&(f.ev.nivel==='r'||f.ev.nivel==='a')));
   if(!vis.length){$('kmlist').innerHTML=`<div class="empty">${kmFiltro==='pend'?'Todos los vehículos tienen el kilometraje de esta semana.':'No hay alertas esta semana.'}</div>`;return}
-  const fut=kmSem>act,borr={};
+  const fut=kmSem>act,adm=cur.rol==='admin',edit=!fut&&(adm||kmSem===act),borr={};
+  const cierre=new Date(semMs(act));cierre.setDate(cierre.getDate()+6);
+  $('kmaviso').hidden=false;
+  $('kmaviso').textContent=fut?'Esta semana aún no ha comenzado.':kmSem===act?`Los kilometrajes de esta semana se pueden registrar y corregir hasta el domingo ${fCorta(fISO(cierre.getTime()))} a las 11:59 p. m.${adm?'':' Después, solo el administrador podrá modificarlos.'}`
+    :adm?'Semana anterior: como administrador puedes registrar, corregir o eliminar estos kilometrajes.':'Semana anterior: solo el administrador puede modificar o eliminar estos kilometrajes.';
   $('kmlist').querySelectorAll('[data-kin][data-dirty]').forEach(i=>borr[i.dataset.kin]=i.value);
   $('kmlist').innerHTML=`<div class="tscroll"><table class="kmt"><thead><tr><th>Placa</th><th class="num">Lectura anterior</th><th>Kilometraje de esta semana</th><th class="num">Recorrido</th><th>Alerta</th></tr></thead><tbody>
   ${vis.map(f=>{const niv=f.ev?f.ev.nivel:'';return `<tr class="${niv==='r'?'alr':niv==='a'?'al':''}" data-pl="${esc(f.pl)}">
     <td><button type="button" class="kpl" data-kh="${esc(f.pl)}" title="Ver historial">${esc(f.pl)}</button></td>
     <td class="num">${f.ant?`${kmN(f.ant.km)}<span class="kmsaved">Semana del ${fCorta(f.ant.semana)}</span>`:'—'}</td>
-    <td><div class="kmin"><input type="number" min="0" step="1" inputmode="numeric" aria-label="Kilometraje de ${esc(f.pl)}" value="${f.l?f.l.km:''}" data-kin="${esc(f.pl)}" ${fut?'disabled':''}><button type="button" class="btn" data-ks="${esc(f.pl)}" ${fut?'disabled':''}>${f.l?'Actualizar':'Guardar'}</button></div>
+    <td><div class="kmin"><input type="number" min="0" step="1" inputmode="numeric" aria-label="Kilometraje de ${esc(f.pl)}" value="${f.l?f.l.km:''}" data-kin="${esc(f.pl)}" ${edit?'':'disabled'}>${edit?`<button type="button" class="btn" data-ks="${esc(f.pl)}">${f.l?'Actualizar':'Guardar'}</button>`:''}${adm&&f.l?`<button type="button" class="del" data-kdel="${esc(f.pl)}">Eliminar</button>`:''}</div>
       ${f.l?`<span class="kmsaved">Registrado por ${esc(f.l.por||'—')}${f.l.editadoPor?` · editado por ${esc(f.l.editadoPor)}`:''}</span>`:''}</td>
     <td class="num">${f.ev&&f.ev.rec!==undefined?kmN(f.ev.rec):'—'}</td>
     <td data-kal="${esc(f.pl)}">${f.ev?`<span class="kmal ${niv}">${esc(f.ev.txt)}</span>`:'<span class="kmal n">Pendiente</span>'}</td></tr>`}).join('')}
@@ -1880,6 +1890,84 @@ function renderKm(){
   Object.entries(borr).forEach(([pl,v])=>{const i=$('kmlist').querySelector(`[data-kin="${CSS.escape(pl)}"]`);if(i){i.value=v;i.dataset.dirty='1';i.dispatchEvent(new Event('input',{bubbles:true}))}});
 }
 const kmLimpiar=()=>$('kmlist').querySelectorAll('[data-dirty]').forEach(i=>delete i.dataset.dirty);
+
+/* ---------- Excel de kilometrajes ---------- */
+function datosKm(){
+  const pls=kmPlacas(),sems=Array.from({length:12},(_,k)=>semMas(kmSem,k-11)),todos=kms.filter(k=>(k.sede||SEDES[0])===sede);
+  const ev=(pl,sem)=>{const l=lectura(pl,sem);return l?{l,e:evaluarKm(pl,sem,l.km)}:null};
+  const semanas=sems.map(w=>{let rec=0,regs=0,al=0;pls.forEach(pl=>{const x=ev(pl,w);if(x){regs++;if(x.e.rec>0)rec+=x.e.rec;if(x.e.nivel==='r'||x.e.nivel==='a')al++}});return{w,rec,regs,pend:pls.length-regs,al}});
+  const porPlaca=pls.map(pl=>{const rs=sems.map(w=>{const x=ev(pl,w);return x&&x.e.rec!==undefined?x.e.rec:null});const v=rs.filter(x=>x!==null&&x>=0);
+    return{pl,rs,odo:sems.map(w=>{const l=lectura(pl,w);return l?l.km:null}),alertas:sems.map(w=>{const x=ev(pl,w);return x?x.e.nivel:''}),tot:v.reduce((a,b)=>a+b,0),prom:v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):0}});
+  const base=todos.slice().sort((a,b)=>b.semana.localeCompare(a.semana)||cmpP(a.placa,b.placa)).map(k=>{const e=evaluarKm(k.placa,k.semana,k.km);
+    return{sem:k.semana,pl:k.placa,km:k.km,ant:e.ant?e.ant.km:'',antSem:e.ant?e.ant.semana:'',rec:e.rec!==undefined?e.rec:'',nivel:e.nivel,txt:e.txt,por:k.por||'',ed:k.editadoPor||'',enLista:pls.includes(k.placa)}});
+  return{sede,pls,sems,semanas,porPlaca,base,tol:kmTol(),por:cur.nombre,generado:new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'})};
+}
+async function construirXlsxKm(JSZip,D){
+  const h=t=>({v:t,s:1}),C=(v,s=4)=>({v,s}),L=w=>fCorta(w).slice(0,5);
+  const est=ESTILOS.replace('<cellXfs count="12">','<cellXfs count="14">').replace('</cellXfs>','<xf numFmtId="3" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1"/>\n<xf numFmtId="3" fontId="1" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/>\n</cellXfs>');
+  const N=v=>v===null||v===''?C(''):{v,s:12},NT=v=>({v,s:13});
+  // Resumen por semana (A:E) y por placa (G:J)
+  const R=[[h('Semana (lunes)'),h('Recorrido total (km)'),h('Registrados'),h('Pendientes'),h('Con alerta'),C(''),h('Placa'),h('Recorrido 12 semanas (km)'),h('Promedio semanal (km)'),h('Semanas con alerta')]];
+  const n=Math.max(D.semanas.length,D.porPlaca.length);
+  for(let i=0;i<n;i++){const w=D.semanas[i],p=D.porPlaca[i];R.push([...(w?[C(fCorta(w.w),11),N(w.rec),C(w.regs),C(w.pend,w.pend?6:4),C(w.al,w.al?6:4)]:[C(''),C(''),C(''),C(''),C('')]),C(''),...(p?[C(p.pl,11),N(p.tot),N(p.prom),C(p.alertas.filter(a=>a==='r'||a==='a').length)]:[])])}
+  R.push([C('Total',8),{f:`SUM(B2:B${D.semanas.length+1})`,v:D.semanas.reduce((a,w)=>a+w.rec,0),s:13}]);
+  R.push([]);R.push([{v:`Tolerancia de la alerta de recorrido: ${D.tol}%. Alerta roja: kilometraje menor que la lectura anterior. Alerta amarilla: igual a la anterior o recorrido diferente al de la semana anterior por encima de la tolerancia.`,s:10}]);
+  // Cuadro recorrido por placa x semana
+  const hdrS=[h('Placa'),...D.sems.map(w=>h(fCorta(w))),h('Total')];
+  const M=[hdrS];D.porPlaca.forEach((p,i)=>{const r=i+2;M.push([C(p.pl,11),...p.rs.map((v,k)=>v===null?C('',p.alertas[k]?4:6):{v,s:p.alertas[k]==='r'?6:p.alertas[k]==='a'?6:12}),{f:`SUM(B${r}:M${r})`,v:p.tot,s:13}])});
+  M.push([]);M.push([{v:'Las celdas en rojo tienen alerta o no tienen registro de la semana.',s:10}]);
+  const O=[[h('Placa'),...D.sems.map(w=>h(fCorta(w)))]];D.porPlaca.forEach(p=>O.push([C(p.pl,11),...p.odo.map(v=>v===null?C('',6):N(v))]));
+  // Base de datos
+  const B=[[h('Semana (lunes)'),h('Placa'),h('Kilometraje'),h('Lectura anterior'),h('Semana lectura anterior'),h('Recorrido (km)'),h('Estado'),h('Detalle de la alerta'),h('Registrado por'),h('Editado por'),h('En la lista actual')]];
+  D.base.forEach(b=>B.push([{d:b.sem,s:2},C(b.pl,11),N(b.km),N(b.ant),b.antSem?{d:b.antSem,s:2}:C(''),N(b.rec),C(b.nivel==='r'?'Alerta roja':b.nivel==='a'?'Alerta':b.nivel==='o'?'Normal':'Primera lectura',b.nivel==='r'||b.nivel==='a'?6:b.nivel==='o'?5:4),C(b.txt),C(b.por),C(b.ed),C(b.enLista?'Sí':'No')]));
+  const graf=[[{v:`Kilometrajes · ${D.sede} · 12 semanas hasta la del ${fCorta(D.sems[11])}`,s:7}],[{v:`Generado el ${D.generado} por ${D.por}. Los datos de las gráficas están en la hoja «Resumen».`,s:10}]];
+  const hojas=[['Gráficas',hojaXML(graf,{cols:[16],dibujo:true})],['Resumen',hojaXML(R,{cols:[15,18,12,12,11,3,12,22,20,18],congelar:true})],
+    ['Recorrido por semana',hojaXML(M,{cols:[12,...D.sems.map(()=>11),13],congelar:true})],['Kilometraje por semana',hojaXML(O,{cols:[12,...D.sems.map(()=>12)],congelar:true})],
+    ['Base de datos',hojaXML(B,{cols:[15,11,13,15,20,14,14,60,22,22,11],congelar:true,filtro:`A1:K${Math.max(2,B.length)}`})]];
+  const ns=D.semanas.length,np=D.porPlaca.length,cat=`'Resumen'!$A$2:$A$${ns+1}`,cats=D.semanas.map(w=>fCorta(w.w));
+  const top=D.porPlaca.slice().sort((a,b)=>b.tot-a.tot);
+  const g=[
+    graficaV({titulo:'Recorrido total por semana (km)',tipo:'col',cats,colores:['1D4ED8'],series:[{nombre:'Recorrido total (km)',nombreRef:"'Resumen'!$B$1",catRef:cat,valRef:`'Resumen'!$B$2:$B$${ns+1}`,valores:D.semanas.map(w=>w.rec)}]}),
+    graficaV({titulo:'Registro semanal: registrados vs. pendientes',tipo:'col',cats,colores:['15803D','DC2626'],series:[
+      {nombre:'Registrados',nombreRef:"'Resumen'!$C$1",catRef:cat,valRef:`'Resumen'!$C$2:$C$${ns+1}`,valores:D.semanas.map(w=>w.regs)},
+      {nombre:'Pendientes',nombreRef:"'Resumen'!$D$1",catRef:cat,valRef:`'Resumen'!$D$2:$D$${ns+1}`,valores:D.semanas.map(w=>w.pend)}]}),
+    graficaV({titulo:'Alertas por semana',tipo:'col',cats,colores:['D97706'],series:[{nombre:'Con alerta',nombreRef:"'Resumen'!$E$1",catRef:cat,valRef:`'Resumen'!$E$2:$E$${ns+1}`,valores:D.semanas.map(w=>w.al)}]}),
+    graficaV({titulo:'Recorrido por placa en 12 semanas (km)',tipo:'bar',cats:D.porPlaca.map(p=>p.pl),colores:['1D4ED8'],coloresPunto:D.porPlaca.map(p=>p.tot===top[0]?.tot&&p.tot>0?'1E3A8A':'3B82F6'),series:[{nombre:'Recorrido (km)',nombreRef:"'Resumen'!$H$1",catRef:`'Resumen'!$G$2:$G$${np+1}`,valRef:`'Resumen'!$H$2:$H$${np+1}`,valores:D.porPlaca.map(p=>p.tot)}]}),
+    graficaV({titulo:'Promedio de recorrido semanal por placa (km)',tipo:'bar',cats:D.porPlaca.map(p=>p.pl),colores:['0891B2'],series:[{nombre:'Promedio semanal (km)',nombreRef:"'Resumen'!$I$1",catRef:`'Resumen'!$G$2:$G$${np+1}`,valRef:`'Resumen'!$I$2:$I$${np+1}`,valores:D.porPlaca.map(p=>p.prom)}]}),
+    graficaV({titulo:'Semanas con alerta por placa',tipo:'col',cats:D.porPlaca.map(p=>p.pl),colores:['DC2626'],series:[{nombre:'Semanas con alerta',nombreRef:"'Resumen'!$J$1",catRef:`'Resumen'!$G$2:$G$${np+1}`,valRef:`'Resumen'!$J$2:$J$${np+1}`,valores:D.porPlaca.map(p=>p.alertas.filter(a=>a==='r'||a==='a').length)}]})];
+  const z=new JSZip();
+  z.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${hojas.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}
+<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>
+${g.map((_,i)=>`<Override PartName="/xl/charts/chart${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>`).join('')}</Types>`);
+  z.file('_rels/.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
+  z.file('xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>${hojas.map(([n],i)=>`<sheet name="${XE(n)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets>
+<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="4" hidden="1">'Base de datos'!$A$1:$K$${Math.max(2,B.length)}</definedName></definedNames><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
+  z.file('xl/_rels/workbook.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hojas.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${hojas.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
+  z.file('xl/styles.xml',est);hojas.forEach(([,x],i)=>z.file(`xl/worksheets/sheet${i+1}.xml`,x));
+  z.file('xl/worksheets/_rels/sheet1.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/></Relationships>`);
+  const anc=id=>{const c0=((id-1)%2)*9,r0=3+Math.floor((id-1)/2)*20;return `<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>${c0}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${r0}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>${c0+8}</xdr:col><xdr:colOff>400000</xdr:colOff><xdr:row>${r0+18}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="${id+1}" name="Gráfico ${id}"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr><xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" r:id="rId${id}"/></a:graphicData></a:graphic></xdr:graphicFrame><xdr:clientData/></xdr:twoCellAnchor>`};
+  z.file('xl/drawings/drawing1.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${g.map((_,i)=>anc(i+1)).join('')}</xdr:wsDr>`);
+  z.file('xl/drawings/_rels/drawing1.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${g.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart${i+1}.xml"/>`).join('')}</Relationships>`);
+  g.forEach((x,i)=>z.file(`xl/charts/chart${i+1}.xml`,x));
+  return z;
+}
+$('kmxlsb').onclick=async()=>{
+  if(!cur||cur.rol!=='admin')return;const b=$('kmxlsb'),t=b.textContent;b.disabled=true;b.textContent='Preparando…';$('kmxerr').textContent='';
+  try{const D=datosKm();if(!D.pls.length&&!D.base.length){$('kmxerr').textContent='No hay vehículos ni kilometrajes para descargar.';throw 0}
+    const JSZip=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js'],'JSZip');
+    const z=await construirXlsxKm(JSZip,D),blob=await z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`kilometrajes_${sede}_${kmSem}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  }catch(x){if(x!==0){console.error(x);$('kmxerr').textContent='No se pudo generar el archivo. Revisa tu conexión a internet e inténtalo de nuevo.'}}
+  b.disabled=false;b.textContent=t;
+};
 $('kmprev').onclick=()=>{kmLimpiar();kmSem=semMas(kmSem,-1);renderKm()};
 $('kmnext').onclick=()=>{const a=semISO(Date.now());if(kmSem<a){kmLimpiar();kmSem=semMas(kmSem,1);renderKm()}};
 $('kmhoy').onclick=()=>{kmLimpiar();kmSem=semISO(Date.now());renderKm()};
@@ -1887,6 +1975,7 @@ $('kmtabs').onclick=e=>{const b=e.target.closest('[data-kf]');if(!b)return;kmFil
 $('kmlist').addEventListener('input',e=>{const i=e.target.closest('[data-kin]');if(!i)return;if(e.isTrusted)i.dataset.dirty='1';const pl=i.dataset.kin,td=$('kmlist').querySelector(`[data-kal="${CSS.escape(pl)}"]`);
   if(i.value===''){td.innerHTML='<span class="kmal n">Pendiente</span>';return}const ev=evaluarKm(pl,kmSem,Math.round(Number(i.value)));td.innerHTML=`<span class="kmal ${ev.nivel}">${esc(ev.txt)}</span>`});
 async function guardarKm(pl,btn){
+  const actS=semISO(Date.now());if(cur.rol!=='admin'&&kmSem!==actS){alert('Solo el administrador puede modificar kilometrajes de semanas anteriores.');renderKm();return}
   const i=$('kmlist').querySelector(`[data-kin="${CSS.escape(pl)}"]`),v=i.value.trim();
   if(v===''||!(Number(v)>=0)){i.focus();alert('Escribe el kilometraje del vehículo.');return}
   const km=Math.round(Number(v)),ev=evaluarKm(pl,kmSem,km);
@@ -1897,6 +1986,7 @@ async function guardarKm(pl,btn){
   catch(x){alert(ERR(x.code));btn.disabled=false;i.dataset.dirty='1'}
 }
 $('kmlist').addEventListener('click',e=>{const s=e.target.closest('[data-ks]');if(s){guardarKm(s.dataset.ks,s);return}
+  const d=e.target.closest('[data-kdel]');if(d&&cur.rol==='admin'){const pl=d.dataset.kdel,l=lectura(pl,kmSem);if(l&&confirm(`¿Eliminar el kilometraje de ${pl} (${kmN(l.km)}) de la semana del ${fCorta(kmSem)}?`))deleteDoc(doc(db,'kilometrajes',kmId(pl,kmSem))).catch(x=>alert(ERR(x.code)));return}
   const h=e.target.closest('[data-kh]');if(h)historialKm(h.dataset.kh)});
 $('kmlist').addEventListener('keydown',e=>{const i=e.target.closest('[data-kin]');if(i&&e.key==='Enter'){e.preventDefault();guardarKm(i.dataset.kin,$('kmlist').querySelector(`[data-ks="${CSS.escape(i.dataset.kin)}"]`))}});
 function historialKm(pl){
