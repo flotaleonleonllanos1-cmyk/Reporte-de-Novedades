@@ -93,6 +93,9 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .vbody>div{flex:1;min-width:220px}
 .vubok{font-size:.85rem;color:var(--ok);font-weight:600}
 .vtabdash{margin-left:auto}
+.vdh{font-size:.92rem;margin:0 0 4px}
+.vcols.t div{flex:1 1 0;min-width:68px;max-width:96px;font-size:.8rem;white-space:nowrap}.vcl.t span{flex:1 1 0;min-width:68px;max-width:96px;font-size:.74rem;overflow-wrap:break-word}.vcl.t,.vcols.t{gap:8px;justify-content:flex-start}
+.vcols small{font-weight:600;font-size:.72rem;color:var(--mut)}
 .kmsem{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .kmsem>div{display:grid;min-width:210px;text-align:center}.kmsem b{font-size:1.05rem}.kmsem small{color:var(--mut)}
 .kmsem .btn{padding:8px 14px}
@@ -567,6 +570,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       <div class="dc"><h2>Varadas por día de la semana</h2><small>En qué días se presentan más varadas</small><div id="vd-dia"></div></div>
     </div>
     <div class="dc" style="margin-bottom:14px"><h2>Comportamiento por semana</h2><small>Varadas reportadas y solucionadas en las últimas 12 semanas</small><div id="vd-sem"></div></div>
+    <div class="dc" style="margin-bottom:14px"><h2>Talleres</h2><small>Asistencias por taller y tiempo promedio que tardó cada taller en solucionar las varadas (desde la varada hasta que el vehículo quedó operativo)</small>
+      <div class="dgrid" style="margin:10px 0 0"><div><h3 class="vdh">Talleres con más asistencias</h3><div id="vd-tal"></div></div><div><h3 class="vdh">Talleres con más tiempo en solucionar</h3><div id="vd-talt"></div></div></div></div>
     <div class="dc"><h2>Tiempos más altos: reportadas vs. solucionadas</h2><small>Las 5 varadas que llevan más tiempo sin solucionar frente a las 5 solucionadas que más tiempo estuvieron fuera de servicio</small><div id="vd-tie"></div></div>
     <div class="xl"><p><b>Descargar datos y gráficas de varadas</b>Excel con las gráficas del dashboard, las tablas de resumen y la base de datos completa de varadas del periodo elegido.</p>
       <div class="hb"><button type="button" class="btn" id="vxls">Descargar Excel</button></div><p class="err" id="vxerr" role="alert" style="width:100%;margin:0"></p></div>
@@ -718,6 +723,10 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <small class="mnota">Déjalo vacío mientras siga varado. Puedes agregarlo después con «Editar».</small>
     <fieldset class="vsn"><legend>¿Se llevó el vehículo al taller?</legend>
       <label><input type="radio" name="vtal" value="si"> Sí</label><label><input type="radio" name="vtal" value="no" checked> No</label></fieldset>
+    <div class="row">
+      <label>Talleres<select id="vtn"><option value="">Elige el taller…</option></select></label>
+      <label id="vtnow" hidden>¿Cuál taller?<input id="vtno" maxlength="60" autocomplete="off" placeholder="Escribe el nombre del taller"></label>
+    </div>
     <div class="row">
       <label>Sistema afectado<select id="vsis" required><option value="">Elige el sistema…</option></select></label>
       <label>Conductor<select id="vcon"><option value="">Elige el conductor…</option></select></label>
@@ -1762,6 +1771,7 @@ function renderVar(){
       <div><dt>Operativo nuevamente</dt><dd>${op?dtTxt(v.fo):'<span style="color:var(--bad)">Sigue varado</span>'}</dd></div>
       <div><dt>${op?'Tiempo fuera de servicio':'Lleva varado'}</dt><dd style="color:${op?'inherit':'var(--bad)'}"${op?'':` data-vdur="${esc(v.fv)}"`}>${durTxt(t)}</dd></div>
       <div><dt>¿Se llevó al taller?</dt><dd>${v.taller==='si'?'Sí':'No'}</dd></div>
+      <div><dt>Taller</dt><dd>${esc(v.tallerNombre||'—')}</dd></div>
       <div><dt>Sistema afectado</dt><dd>${esc(sistemaDe(v))}</dd></div>
       <div><dt>Conductor</dt><dd>${esc(v.conductor||'—')}</dd></div>
       ${v.desc?`<div style="grid-column:1/-1"><dt>Descripción</dt><dd style="font-weight:400">${esc(v.desc)}</dd></div>`:''}
@@ -1774,6 +1784,13 @@ function renderVar(){
 }
 
 /* ---------- Dashboard de varadas ---------- */
+const TALLERES=['Mk Automotriz','Industria Canada','Jarautoz','Daf','Navitrans','Grúa','Montallantas','Otro'];
+$('vtn').insertAdjacentHTML('beforeend',TALLERES.map(x=>`<option>${x}</option>`).join(''));
+function vTallerOtro(){const o=$('vtn').value==='Otro';$('vtnow').hidden=!o;$('vtno').required=o;if(o&&!$('vtno').value)setTimeout(()=>$('vtno').focus(),0)}
+$('vtn').onchange=vTallerOtro;
+function talleresStats(del,now){const m={};del.forEach(v=>{const t=v.tallerNombre;if(!t)return;const x=m[t]=m[t]||{n:0,sol:0,ms:0};x.n++;if(v.fo){const d=dtMs(v.fo)-dtMs(v.fv);if(d>=0){x.sol++;x.ms+=d}}});
+  const asis=Object.entries(m).map(([l,x])=>({l,n:x.n})).sort((a,b)=>b.n-a.n||a.l.localeCompare(b.l));
+  const tiem=Object.entries(m).filter(([,x])=>x.sol).map(([l,x])=>({l,ms:x.ms/x.sol,sol:x.sol})).sort((a,b)=>b.ms-a.ms);return{asis,tiem}}
 const SISTEMAS=['Motor','Frenos','Suspensión','Sistema eléctrico','Transmisión / caja','Llantas','Dirección','Refrigeración','Combustible','Embrague','Carrocería','Vidrios / Espejos','Cinturones','Sillas','Otro'];
 $('vsis').insertAdjacentHTML('beforeend',SISTEMAS.map(x=>`<option>${x}</option>`).join(''));
 const sinTilde=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -1822,6 +1839,13 @@ function dashVar(delTodo){
   const nums=sem.map((w,i)=>(rep[i]?`<text x="${px(i)-bw/2-1}" y="${py(rep[i])-4}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ink)">${rep[i]}</text>`:'')+(sol[i]?`<text x="${px(i)+bw/2+1}" y="${py(sol[i])-4}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ink)">${sol[i]}</text>`:'')).join('');
   $('vd-sem').innerHTML=`<div class="tscroll"><svg class="semsvg" viewBox="0 0 ${W} ${H}" style="min-width:520px" role="img" aria-label="Varadas por semana">${grid}${cols}${nums}${labs}<line x1="${L}" x2="${W-6}" y1="${H-B}" y2="${H-B}" stroke="var(--mut)"/></svg></div>
     <div class="cleg"><span><i style="background:var(--bad)"></i>Reportadas</span><span><i style="background:var(--ok)"></i>Solucionadas</span><span>Cada columna es una semana, de lunes a domingo (fecha del lunes)</span></div>`;
+  // talleres
+  const TS=talleresStats(del,now),col=(arr,val,lab,color,sub)=>{const mx=Math.max(1,...arr.map(val));return `<div class="tscroll"><div style="min-width:${arr.length*76}px"><div class="vcols t" style="height:200px">${arr.map(x=>`<div>${lab(x)}<i style="height:${val(x)/mx*100}%;background:${color}"></i></div>`).join('')}</div><div class="vcl t">${arr.map(x=>`<span>${esc(x.l)}${sub?`<br><small>${sub(x)}</small>`:''}</span>`).join('')}</div></div></div>`};
+  const sinT=del.filter(v=>!v.tallerNombre).length;
+  $('vd-tal').innerHTML=TS.asis.length?col(TS.asis.slice(0,8),x=>x.n,x=>x.n,'var(--acc)')+(sinT?`<small style="color:var(--mut);display:block;margin-top:8px">${sinT} varada${sinT>1?'s':''} sin taller registrado.</small>`:'')
+    :'<p class="empty">Aún no hay varadas con taller registrado. Elígelo en «Reportar varada» o con «Editar».</p>';
+  $('vd-talt').innerHTML=TS.tiem.length?col(TS.tiem.slice(0,8),x=>x.ms,x=>durTxt(x.ms).replace(/ (d|h|min)\b/g,'$1'),'var(--bad)',x=>`${x.sol} solucionada${x.sol>1?'s':''}`)
+    :'<p class="empty">Aún no hay varadas solucionadas con taller registrado.</p>';
   // tiempos
   const ab=del.filter(v=>!v.fo).map(v=>({v,t:now-dtMs(v.fv)})).sort((a,b)=>b.t-a.t),so=del.filter(v=>v.fo).map(v=>({v,t:dtMs(v.fo)-dtMs(v.fv)})).filter(x=>x.t>=0).sort((a,b)=>b.t-a.t);
   const prom=a=>a.length?a.reduce((s,x)=>s+x.t,0)/a.length:null;
@@ -2085,18 +2109,20 @@ async function construirXlsxVar(JSZip,D){
   bloque(6,['Conductor','Varadas'],D.conductores.map(([l,n])=>[C(l,11),C(n)]));
   bloque(9,['Día','Varadas'],D.dias.map(([l,n])=>[C(l,11),C(n)]));
   bloque(12,['Semana (lunes)','Reportadas','Solucionadas'],D.semanas.map(w=>[C(w.l,11),C(w.rep),C(w.sol)]));
+  bloque(20,['Taller','Asistencias'],D.talleres.asis.map(x=>[C(x.l,11),C(x.n)]));
+  bloque(23,['Taller','Promedio horas hasta solucionar','Varadas solucionadas'],D.talleres.tiem.map(x=>[C(x.l,11),C(Math.round(x.ms/36e5*10)/10),C(x.sol)]));
   bloque(16,['Varada (placa · fecha)','Horas','Estado'],D.tiempos.map(t=>[C(t.l,11),C(t.h),C(t.estado,t.estado==='Sin solucionar'?6:5)]));
   const filasR=Array.from({length:Math.max(...R.map((_,i)=>i))+1},(_,i)=>R[i]||[]);
   const ult=n=>n+1;// última fila de datos (1-based): n filas + encabezado
   // Gráficas
   const graf=[[{v:`Varadas · ${D.sede} · ${D.periodo}`,s:7}],[{v:`Generado el ${D.generado} por ${D.por}. Los datos de las gráficas están en la hoja «Resumen».`,s:10}]];
   // Base de datos
-  const reg=[[h('Placa'),h('Sede'),h('Fecha y hora de la varada'),h('Operativo nuevamente'),h('Estado'),h('Horas fuera de servicio'),h('Tiempo fuera de servicio'),h('Sistema afectado'),h('Conductor'),h('¿Se llevó al taller?'),h('Ubicación'),h('Coordenadas'),h('Descripción'),h('Reportado por'),h('Última edición'),h('Foto')]];
+  const reg=[[h('Placa'),h('Sede'),h('Fecha y hora de la varada'),h('Operativo nuevamente'),h('Estado'),h('Horas fuera de servicio'),h('Tiempo fuera de servicio'),h('Sistema afectado'),h('Conductor'),h('¿Se llevó al taller?'),h('Taller'),h('Ubicación'),h('Coordenadas'),h('Descripción'),h('Reportado por'),h('Última edición'),h('Foto')]];
   D.registros.forEach(v=>{const op=!!v.fo,hrs=v.horas,url=v.url;
-    reg.push([C(v.placa,11),C(D.sede),v.fvS!==null?{v:v.fvS,s:12}:C(v.fv),op&&v.foS!==null?{v:v.foS,s:12}:C(op?v.fo:'Sigue varado',op?4:6),C(op?'Operativo':'Varado',op?5:6),C(hrs),C(v.durTxt),C(v.sistema),C(v.conductor||''),C(v.taller==='si'?'Sí':'No'),
+    reg.push([C(v.placa,11),C(D.sede),v.fvS!==null?{v:v.fvS,s:12}:C(v.fv),op&&v.foS!==null?{v:v.foS,s:12}:C(op?v.fo:'Sigue varado',op?4:6),C(op?'Operativo':'Varado',op?5:6),C(hrs),C(v.durTxt),C(v.sistema),C(v.conductor||''),C(v.taller==='si'?'Sí':'No'),C(v.tallerNombre||''),
       url?{f:`HYPERLINK("${url.replace(/"/g,'%22')}","Abrir en Google Maps")`,v:'Abrir en Google Maps',s:4}:C(''),C(v.coord||''),C(v.desc||''),C(v.por||''),C(v.editadoPor||''),C(v.foto?'Sí':'No')])});
-  const hojas=[['Gráficas',hojaXML(graf,{cols:[16],dibujo:true})],['Resumen',hojaXML(filasR,{cols:[20,9,3,12,9,3,24,9,3,8,9,3,15,12,13,3,26,9,15],congelar:true})],
-    ['Varadas',hojaXML(reg,{cols:[11,14,20,20,12,12,16,20,24,12,22,20,34,22,22,7],congelar:true,filtro:`A1:P${Math.max(2,reg.length)}`})]];
+  const hojas=[['Gráficas',hojaXML(graf,{cols:[16],dibujo:true})],['Resumen',hojaXML(filasR,{cols:[20,9,3,12,9,3,24,9,3,8,9,3,15,12,13,3,26,9,15,3,20,12,3,20,18,14],congelar:true})],
+    ['Varadas',hojaXML(reg,{cols:[11,14,20,20,12,12,16,20,24,12,20,22,20,34,22,22,7],congelar:true,filtro:`A1:Q${Math.max(2,reg.length)}`})]];
   const est=ESTILOS.replace('<numFmts count="1"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/></numFmts>','<numFmts count="2"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/><numFmt numFmtId="165" formatCode="dd/mm/yyyy hh:mm"/></numFmts>')
     .replace('<cellXfs count="12">','<cellXfs count="13">').replace('</cellXfs>','<xf numFmtId="165" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf>\n</cellXfs>');
   const g=[];const col=(c,n)=>`'Resumen'!$${colL(c)}$2:$${colL(c)}$${Math.max(2,ult(n))}`,hd=c=>`'Resumen'!$${colL(c)}$1`;
@@ -2108,6 +2134,9 @@ async function construirXlsxVar(JSZip,D){
   g.push(graficaV({titulo:'Varadas por día de la semana',tipo:'col',cats:D.dias.map(x=>x[0]),colores:['D97706'],series:[{nombre:'Varadas',nombreRef:hd(10),catRef:col(9,7),valRef:col(10,7),valores:D.dias.map(x=>x[1])}]}));
   g.push(graficaV({titulo:'Comportamiento por semana',tipo:'col',cats:D.semanas.map(x=>x.l),colores:['C0392B','1F7A4D'],series:[
     {nombre:'Reportadas',nombreRef:hd(13),catRef:col(12,n5),valRef:col(13,n5),valores:D.semanas.map(x=>x.rep)},{nombre:'Solucionadas',nombreRef:hd(14),catRef:col(12,n5),valRef:col(14,n5),valores:D.semanas.map(x=>x.sol)}]}));
+  const nt1=D.talleres.asis.length,nt2=D.talleres.tiem.length;
+  if(nt1)g.push(graficaV({titulo:'Talleres con más asistencias',tipo:'col',cats:D.talleres.asis.map(x=>x.l),colores:['B45309'],series:[{nombre:'Asistencias',nombreRef:hd(21),catRef:col(20,nt1),valRef:col(21,nt1),valores:D.talleres.asis.map(x=>x.n)}]}));
+  if(nt2)g.push(graficaV({titulo:'Talleres con más tiempo en solucionar (horas promedio)',tipo:'col',lbl:'#,##0.0;;',cats:D.talleres.tiem.map(x=>x.l),colores:['C0392B'],series:[{nombre:'Promedio horas hasta solucionar',nombreRef:hd(24),catRef:col(23,nt2),valRef:col(24,nt2),valores:D.talleres.tiem.map(x=>Math.round(x.ms/36e5*10)/10)}]}));
   g.push(graficaV({titulo:'Tiempos más altos (horas): sin solucionar vs. solucionadas',tipo:'bar',lbl:'#,##0.0;;',cats:D.tiempos.map(x=>x.l),colores:['C0392B'],coloresPunto:D.tiempos.map(t=>t.estado==='Sin solucionar'?'C0392B':'1F7A4D'),series:[{nombre:'Horas',nombreRef:hd(17),catRef:col(16,n6),valRef:col(17,n6),valores:D.tiempos.map(x=>x.h)}]}));
   const z=new JSZip();
   z.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -2119,7 +2148,7 @@ ${g.map((_,i)=>`<Override PartName="/xl/charts/chart${i+1}.xml" ContentType="app
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
   z.file('xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>${hojas.map(([n],i)=>`<sheet name="${XE(n)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets>
-<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">'Varadas'!$A$1:$P$${Math.max(2,reg.length)}</definedName></definedNames><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
+<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">'Varadas'!$A$1:$Q$${Math.max(2,reg.length)}</definedName></definedNames><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
   z.file('xl/_rels/workbook.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hojas.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${hojas.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
   z.file('xl/styles.xml',est);
@@ -2144,12 +2173,13 @@ function datosVar(){
   const so=del.filter(v=>v.fo).map(v=>({v,t:dtMs(v.fo)-dtMs(v.fv),e:'Solucionada'})).filter(x=>x.t>=0).sort((a,b)=>b.t-a.t).slice(0,5);
   const hrs=ms=>Math.round(ms/36e5*10)/10;
   return{sede,por:cur.nombre,generado:new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}),periodo:$('vper').selectedOptions[0].textContent,
+    talleres:talleresStats(del,now),
     sistemas:cuenta(del,sistemaDe),placas:cuenta(del,v=>normP(v.placa)).slice(0,5),conductores:cuenta(del,v=>v.conductor?nomProp(v.conductor):'').slice(0,3),
     dias:DIAS.map((d,i)=>[d,cd[i]]),
     semanas:sem.map(w=>{const d=new Date(w);return{l:`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`,rep:todo.filter(v=>semanaDe(dtMs(v.fv))===w).length,sol:todo.filter(v=>v.fo&&semanaDe(dtMs(v.fo))===w).length}}),
     tiempos:[...ab,...so].map(x=>({l:`${normP(x.v.placa)} · ${dtTxt(x.v.fv).slice(0,10)}`,h:hrs(x.t),estado:x.e})),
     registros:del.slice().sort((a,b)=>dtMs(b.fv)-dtMs(a.fv)).map(v=>{const op=!!v.fo,t=op?dtMs(v.fo)-dtMs(v.fv):now-dtMs(v.fv),u=v.ubic||{};
-      return{placa:normP(v.placa),fv:dtTxt(v.fv),fo:dtTxt(v.fo),fvS:serialDT(v.fv),foS:serialDT(v.fo),horas:t>=0?hrs(t):'',durTxt:t>=0?durTxt(t):'',sistema:sistemaDe(v),conductor:v.conductor?nomProp(v.conductor):'',taller:v.taller,
+      return{placa:normP(v.placa),fv:dtTxt(v.fv),fo:dtTxt(v.fo),fvS:serialDT(v.fv),foS:serialDT(v.fo),horas:t>=0?hrs(t):'',durTxt:t>=0?durTxt(t):'',sistema:sistemaDe(v),conductor:v.conductor?nomProp(v.conductor):'',taller:v.taller,tallerNombre:v.tallerNombre||'',
         url:mapsUrl(u)||'',coord:tieneCoord(u)?`${u.lat.toFixed(6)}, ${u.lng.toFixed(6)}`:'',desc:v.desc||'',por:v.por||'',editadoPor:v.editadoPor||'',foto:!!v.foto}})};
 }
 $('vxls').onclick=async()=>{
@@ -2208,6 +2238,8 @@ function abrirVar(v){
   vSisOtro();llenarConductores(v?v.conductor||'':'');
   $('vubi').value=v&&v.ubic?(v.ubic.texto||''):'';$('vdesc').value=v?v.desc||'':'';
   document.querySelector(`input[name="vtal"][value="${v&&v.taller==='si'?'si':'no'}"]`).checked=true;
+  const tn=v?v.tallerNombre||'':'';if(!tn){$('vtn').value='';$('vtno').value=''}else if(TALLERES.includes(tn)&&tn!=='Otro'){$('vtn').value=tn;$('vtno').value=''}else{$('vtn').value='Otro';$('vtno').value=tn}
+  vTallerOtro();
   vfotoD=v?v.foto||'':'';vfotoMarca=v?!!v.marca:false;vPintarFoto();vUbiEstado();$('vdlg').showModal();
 }
 $('vadd').onclick=()=>{if(canEdit())abrirVar()};
@@ -2220,7 +2252,10 @@ $('vfrm').onsubmit=async e=>{
   let sistema=$('vsis').value;const conductor=$('vcon').value.trim();
   if(!sistema){$('verr').textContent='Elige el sistema afectado.';return}
   if(sistema==='Otro'){sistema=$('vsiso').value.trim().replace(/\s+/g,' ');if(!sistema){$('verr').textContent='Escribe cuál es el sistema afectado.';return}sistema=sistema.charAt(0).toUpperCase()+sistema.slice(1)}
-  const data={placa,fv,fo,taller,ubic,foto:vfotoD,marca:vfotoMarca,desc:$('vdesc').value.trim(),sistema,conductor};
+  let tallerNombre=$('vtn').value;
+  if(tallerNombre==='Otro'){tallerNombre=$('vtno').value.trim().replace(/\s+/g,' ');if(!tallerNombre){$('verr').textContent='Escribe el nombre del taller.';return}tallerNombre=tallerNombre.charAt(0).toUpperCase()+tallerNombre.slice(1)}
+  if(taller==='si'&&!tallerNombre){$('verr').textContent='Elige a qué taller se llevó el vehículo.';return}
+  const data={placa,fv,fo,taller,ubic,foto:vfotoD,marca:vfotoMarca,desc:$('vdesc').value.trim(),sistema,conductor,tallerNombre};
   if(JSON.stringify(data).length>950000){$('verr').textContent='La foto pesa demasiado. Quita la foto e inténtalo de nuevo.';return}
   $('vsave').disabled=true;$('verr').textContent='';
   try{if(vedit)await updateDoc(doc(db,'varadas',vedit.id),{...data,editadoPor:cur.nombre,editado:serverTimestamp()});
