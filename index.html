@@ -48,9 +48,53 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .side select{width:100%;margin:4px 0 0;padding:8px 10px;border:1px solid rgba(255,255,255,.5);border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font-weight:600;cursor:pointer}
 .side select option{color:#2b1b1b;background:#fff}
 .menu{display:grid;gap:6px}
-.mi{width:100%;display:flex;align-items:center;gap:10px;text-align:left;background:none;border:1px solid transparent;color:rgba(255,255,255,.85);font:inherit;font-weight:700;font-size:1rem;padding:9px 10px;border-radius:10px;cursor:pointer}
-.mi:hover{background:rgba(255,255,255,.1);color:#fff}
-.mi[aria-pressed="true"]{background:rgba(255,255,255,.17);border-color:rgba(255,255,255,.45);color:#fff}
+.menu{gap:10px}
+.mi{position:relative;overflow:hidden;isolation:isolate;width:100%;display:flex;align-items:center;gap:10px;text-align:left;font:inherit;font-weight:700;font-size:1rem;padding:11px 12px;border-radius:12px;cursor:pointer;color:#fff;
+  background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.05) 55%,rgba(0,0,0,.1));
+  border:1px solid rgba(255,255,255,.28);border-bottom-color:rgba(0,0,0,.28);
+  box-shadow:0 4px 0 rgba(0,0,0,.22),0 8px 16px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.35);
+  text-shadow:0 1px 1px rgba(0,0,0,.3);transition:transform .12s ease,box-shadow .12s ease,background .2s}
+.mi:hover{background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,.09) 55%,rgba(0,0,0,.08))}
+.mi:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.22),0 3px 8px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.3)}
+.mi[aria-pressed="true"]{background:linear-gradient(180deg,rgba(0,0,0,.14),rgba(255,255,255,.12));border-color:rgba(255,255,255,.55);
+  box-shadow:0 1px 0 rgba(0,0,0,.2),0 3px 8px rgba(0,0,0,.22),inset 0 3px 8px rgba(0,0,0,.28);transform:translateY(2px)}
+.mi::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.08) 40%,rgba(255,255,255,.55) 50%,rgba(255,255,255,.08) 60%,transparent 70%);
+  background-size:260% 100%;background-position:140% 0;animation:miBrillo 3s ease-in-out infinite}
+.mi[data-m="cal"]::after{animation-delay:1s}
+.mi[data-m="var"]::after{animation-delay:2s}
+.icv{width:26px;height:26px;margin:0 1px}
+.humo{display:inline-flex;margin-left:auto;flex:none}
+.humo svg{overflow:visible}
+.humo .nube circle{fill:#eeeeee;stroke:rgba(0,0,0,.18);stroke-width:.5;opacity:0;transform-box:fill-box;transform-origin:center;animation:humoSube 2.4s ease-out infinite}
+.humo .nube circle:nth-child(2){animation-delay:.8s;fill:#cfcfcf}.humo .nube circle:nth-child(3){animation-delay:1.6s}
+@keyframes humoSube{0%{opacity:0;transform:translate(0,3px) scale(.5)}15%{opacity:1}70%{opacity:.75}100%{opacity:0;transform:translate(3px,-16px) scale(2.2)}}
+@media (prefers-reduced-motion:reduce){.humo .nube circle{animation:none;opacity:.7}}
+.shell.mini .side .humo{display:none}
+.vcard{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--bad);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.vcard.ok{border-left-color:var(--ok)}
+.vcard .vgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px 16px;margin:10px 0 0}
+.vcard dt{font-size:.78rem;color:var(--mut)}.vcard dd{margin:0;font-weight:600}
+.vcard .vfot{width:130px;height:96px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--line)}
+.vbody{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.vbody>div{flex:1;min-width:220px}
+.vubok{font-size:.85rem;color:var(--ok);font-weight:600}
+.vubok.no{color:var(--mut);font-weight:400}
+.vayuda{margin:8px 0 4px;font-size:.88rem;background:var(--soft);border-radius:8px;padding:8px 12px}
+.vayuda summary{cursor:pointer;font-weight:600}
+.vayuda ol{margin:6px 0;padding-left:20px}
+.vsn{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:12px 0 0;display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.vsn legend{font-weight:700;font-size:.9rem;padding:0 4px}
+.vsn label{display:flex;align-items:center;gap:6px;margin:0;font-weight:600;cursor:pointer}
+.vsn input{width:auto;margin:0;accent-color:var(--acc)}
+.vfoto{margin-top:12px}
+.vfoto .prev{min-height:140px}
+.vfoto .prev img{max-height:260px;width:100%;object-fit:contain;background:#111}
+.kpi b.badc{color:var(--bad)}
+#mapdlg{width:min(900px,96vw);max-width:none;padding:14px 16px}
+#mapdlg[open]{display:flex;flex-direction:column;gap:10px}
+@keyframes miBrillo{0%{background-position:140% 0}40%,100%{background-position:-40% 0}}
+@media (prefers-reduced-motion:reduce){.mi::after{animation:none;opacity:0}.mi{transition:none}}
 .mi .lbl{flex:1;line-height:1.2}
 .chev{width:18px;height:18px;flex:none;transition:transform .2s;opacity:.85}
 .mi[aria-expanded="false"] .chev,.mesesb[aria-expanded="false"] .chev{transform:rotate(-90deg)}
@@ -257,6 +301,9 @@ textarea{font:inherit;color:inherit;width:100%;margin-top:4px;padding:9px 10px;b
 html.tema-cal{--bg:#eef4ef;--card:#fff;--ink:#16261c;--mut:#5b7062;--line:#d2e2d6;--acc:#1f6b3f;--acc2:#2f8a52;--soft:#e2f1e6;--band1:#2f8a52;--band2:#1f6b3f}
 html.tema-cal[data-theme="dark"]{--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}
 @media (prefers-color-scheme:dark){html.tema-cal:not([data-theme="light"]){--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}}
+html.tema-var{--acc:#b45309;--acc2:#d97706;--soft:#fdf0e1;--band1:#d97706;--band2:#9a4a0b}
+html.tema-var[data-theme="dark"]{--acc:#d97706;--acc2:#f59e0b;--soft:#3a2a17}
+@media (prefers-color-scheme:dark){html.tema-var:not([data-theme="light"]){--acc:#d97706;--acc2:#f59e0b;--soft:#3a2a17}}
 html.tema-cal .kpi b{color:var(--acc)}
 html.tema-cal .kpi b.badc{color:var(--bad)}
 .brand select{width:auto;margin:0;padding:6px 32px 6px 12px;border:1px solid rgba(255,255,255,.55);border-radius:8px;background:rgba(255,255,255,.12);color:#fff;font-weight:600;cursor:pointer}
@@ -395,6 +442,16 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
         <div class="meses" id="meses" role="group" aria-label="Meses"></div>
       </div>
     </div>
+    <div class="grp">
+      <button type="button" class="mi" data-m="var" aria-pressed="false" aria-expanded="false" title="Varadas"><svg class="ic icv" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3zM12 10v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Varadas</span><span class="humo" aria-hidden="true"><svg viewBox="0 0 48 36" width="44" height="33">
+<g class="nube"><circle cx="38" cy="14" r="3.4"/><circle cx="36" cy="14" r="3"/><circle cx="40" cy="14" r="3.2"/></g>
+<path d="M4 25v-6.5c0-1.2.7-2.2 1.8-2.6l5.2-2 4.4-4.6c.7-.7 1.6-1.1 2.6-1.1H33c1 0 1.9.5 2.5 1.3l4.3 6.2 3.6 1.4c1 .4 1.6 1.4 1.6 2.4V25c0 .8-.7 1.5-1.5 1.5H5.5C4.7 26.5 4 25.8 4 25z" fill="#f2f2f2" stroke="#2b2b2b" stroke-width="1.2"/>
+<path d="M17.5 11h6.8v5.2h-11z M26.3 11H32l3.6 5.2h-9.3z" fill="#7fb3d5" stroke="#2b2b2b" stroke-width=".8"/>
+<rect x="4" y="20.5" width="41" height="2.2" fill="#c0392b"/>
+<circle cx="13" cy="26.5" r="4.4" fill="#222"/><circle cx="13" cy="26.5" r="1.8" fill="#bbb"/>
+<circle cx="36" cy="26.5" r="4.4" fill="#222"/><circle cx="36" cy="26.5" r="1.8" fill="#bbb"/>
+<rect x="43" y="18" width="2.4" height="2" rx=".6" fill="#f5c542"/></svg></span></button>
+    </div>
   </nav>
   <div class="sidefoot">
     <button type="button" class="si" id="adminb" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Admin</span></button>
@@ -407,6 +464,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <button type="button" class="sidemob" id="sidemob" aria-label="Abrir menú"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   <h1 id="vtit">Novedades / Solucionadas</h1>
   <button class="btn" id="add">+ Añadir novedad</button>
+  <button class="btn" id="vadd" hidden>+ Reportar varada</button>
 </div>
 <section id="inicio" class="inicio" hidden aria-label="Inicio"><h2 class="flotabig" aria-label="Flota Llanos"><span aria-hidden="true" class="flw"><span class="pal"><span style="--i:0">F</span><span style="--i:1">L</span><span style="--i:2">O</span><span style="--i:3">T</span><span style="--i:4">A</span></span><span class="pal"><span style="--i:6">L</span><span style="--i:7">L</span><span style="--i:8">A</span><span style="--i:9">N</span><span style="--i:10">O</span><span style="--i:11">S</span></span></span></h2></section>
 <div id="listv">
@@ -417,6 +475,15 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </div>
 <div id="list"></div>
 </div>
+<section id="varv" hidden aria-label="Varadas">
+  <div class="kpis" id="vkpi"></div>
+  <div class="tabs" role="group" aria-label="Filtrar varadas" id="vtabs">
+    <button class="tab" data-vf="todas" aria-pressed="true">Todas</button>
+    <button class="tab" data-vf="varado" aria-pressed="false">Varados ahora</button>
+    <button class="tab" data-vf="operativo" aria-pressed="false">Operativos</button>
+  </div>
+  <div id="vlist"></div>
+</section>
 <section id="calv" hidden aria-label="Calibraciones">
   <div class="cbar">
     <label>Año<select id="canio"></select></label>
@@ -537,6 +604,39 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="err" id="merr" role="alert"></div>
     <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="psave">Guardar placas</button></div>
   </form>
+</dialog>
+<dialog id="vdlg">
+  <form id="vfrm">
+    <h2 id="vdlgt">Reportar varada</h2>
+    <div class="row">
+      <label>Placa del vehículo<input id="vplaca" required maxlength="10" autocomplete="off" style="text-transform:uppercase"></label>
+      <label>Fecha y hora de la varada<input type="datetime-local" id="vfv" required></label>
+    </div>
+    <div class="foto vfoto"><b>Foto del vehículo varado</b>
+      <div class="prev" id="vprev">Sin foto</div>
+      <div class="fb"><button type="button" id="vsub">Subir foto</button><button type="button" id="vcam">Tomar foto</button><button type="button" id="vqui" hidden>Quitar foto</button></div>
+      <small class="mnota" style="margin:6px 0 0">Las fotos tomadas con la cámara quedan con marca de agua: Flota Llanos, placa, fecha, hora y ubicación.</small>
+      <input type="file" accept="image/*" hidden id="vfsub"><input type="file" accept="image/*" capture="environment" hidden id="vfcam">
+    </div>
+    <label>Ubicación del vehículo<textarea id="vubi" rows="2" placeholder="Pega aquí la ubicación que te enviaron por WhatsApp"></textarea></label>
+    <div class="mall" style="margin-top:6px"><button type="button" class="btn ghost" id="vgps">Usar mi ubicación actual</button><span class="vubok" id="vubok"></span></div>
+    <details class="vayuda"><summary>¿Cómo copiar la ubicación de WhatsApp?</summary>
+      <ol><li>Pídele al conductor que envíe su <b>Ubicación actual</b> por WhatsApp (clip 📎 → Ubicación → Enviar tu ubicación actual).</li>
+      <li>Toca la ubicación que te llegó, ábrela en Google Maps y usa <b>Compartir → Copiar</b>. O mantén presionado el mensaje y elige <b>Copiar</b>.</li>
+      <li>Pégala en el campo de arriba. Si tienes el vehículo al frente, usa «Usar mi ubicación actual».</li></ol>
+      <small>La «ubicación en tiempo real» de WhatsApp no se puede copiar: pide la <b>ubicación actual</b>.</small></details>
+    <label>Vehículo operativo nuevamente (fecha y hora)<input type="datetime-local" id="vfo"></label>
+    <small class="mnota">Déjalo vacío mientras siga varado. Puedes agregarlo después con «Editar».</small>
+    <fieldset class="vsn"><legend>¿Se llevó el vehículo al taller?</legend>
+      <label><input type="radio" name="vtal" value="si"> Sí</label><label><input type="radio" name="vtal" value="no" checked> No</label></fieldset>
+    <label>Descripción de la falla (opcional)<textarea id="vdesc" rows="2" maxlength="500"></textarea></label>
+    <div class="err" id="verr" role="alert"></div>
+    <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="vsave">Guardar varada</button></div>
+  </form>
+</dialog>
+<dialog id="mapdlg">
+  <div class="pvtop"><div><b id="maptit">Ubicación</b><small id="mapsub"></small></div><div class="hb"><a class="btn ghost" id="mapab" target="_blank" rel="noopener">Abrir en Google Maps</a><button type="button" class="btn" onclick="this.closest('dialog').close()">Cerrar</button></div></div>
+  <iframe id="mapfr" class="pvframe" title="Mapa de la ubicación" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
 </dialog>
 <dialog id="drdlg">
   <form id="drfrm">
@@ -695,6 +795,8 @@ function salir(){
   if(unsubC){unsubC();unsubC=null}
   if(unsubM){unsubM();unsubM=null}
   if(unsubA){unsubA();unsubA=null}
+  if(unsubV){unsubV();unsubV=null}
+  varadas=[];
   archivos=[];
   metas={};cmes=0;
   cals=[];modulo('ini');
@@ -719,6 +821,7 @@ async function entrar(user){
   unsubC=onSnapshot(collection(db,'calibraciones'),snap=>{
     cals=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal();
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
+  unsubV=onSnapshot(collection(db,'varadas'),snap=>{varadas=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderVar()},x=>{if(!$('varv').hidden)$('vlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
   unsubA=onSnapshot(collection(db,'archivos'),snap=>{archivos=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal()},()=>{});
   unsubM=onSnapshot(collection(db,'metas'),snap=>{metas={};snap.docs.forEach(d=>metas[d.id]=d.data());renderCal()},()=>{});
   $('cadd').hidden=!canEdit();
@@ -764,12 +867,13 @@ const hoyD=new Date();let canio=hoyD.getFullYear(),cmes=0,metas={},unsubM=null;
 const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
-  const cal=m==='cal',ini=m==='ini';
-  document.documentElement.classList.toggle('tema-cal',cal);
+  const cal=m==='cal',ini=m==='ini',vr=m==='var';
+  document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('listv').hidden=cal||ini;
-  $('add').hidden=cal||ini||!canEdit();$('dashb').hidden=!cur||cur.rol!=='admin';
+  if(cal||ini||vr)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('listv').hidden=cal||ini||vr;
+  $('add').hidden=cal||ini||vr||!canEdit();$('vadd').hidden=!vr||!canEdit();
+  if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
   if(cal)renderCal();
   titulo();
 }
@@ -779,9 +883,9 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden;
-  $('vtit').textContent=ini?'':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!cal&&$('dash').hidden);
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden;
+  $('vtit').textContent=ini?'':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!cal&&$('dash').hidden);
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
 function cerrarMenuMovil(){document.querySelector('.shell').classList.remove('abierto');$('velo').hidden=true}
@@ -1488,6 +1592,109 @@ function verDrive(a){
   $('pvdlg').querySelector('.pvnota').textContent='Si no aparece la vista previa, el archivo puede ser demasiado grande para que Drive lo muestre o no está compartido con «Cualquier persona que tenga el vínculo». Puedes descargarlo o abrirlo en Drive.';
   $('pvdlg').showModal();
 }
+
+/* ---------- Varadas ---------- */
+let varadas=[],unsubV=null,vfiltro='todas',vedit=null,vfotoD='',vfotoMarca=false,vcoords=null;
+const dtTxt=v=>{if(!v)return '';const[d,t]=String(v).split('T');const[y,m,dd]=d.split('-');return `${dd}/${m}/${y} ${t||''}`.trim()};
+const dtMs=v=>{if(!v)return NaN;const[d,t='00:00']=String(v).split('T');const[y,m,dd]=d.split('-').map(Number);const[h,mi]=t.split(':').map(Number);return new Date(y,m-1,dd,h,mi).getTime()};
+const ahoraDT=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`};
+const durTxt=ms=>{if(!(ms>=0))return '—';const m=Math.round(ms/60000),d=Math.floor(m/1440),h=Math.floor(m%1440/60),mi=m%60;return [d?d+' d':'',h?h+' h':'',(!d&&mi)||(!d&&!h)?mi+' min':''].filter(Boolean).join(' ')};
+function coordsDe(t){
+  if(!t)return null;let s=String(t);try{s=decodeURIComponent(s)}catch(x){}
+  const m=s.match(/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/);if(!m)return null;
+  const lat=Number(m[1]),lng=Number(m[2]);return Math.abs(lat)<=90&&Math.abs(lng)<=180?{lat,lng}:null;
+}
+const enlaceSeguro=t=>{const m=String(t||'').match(/https?:\/\/[^\s<>"']+/);return m?m[0]:''};
+function mapsUrl(u){if(u&&u.lat!==undefined&&u.lat!==null)return `https://www.google.com/maps/search/?api=1&query=${u.lat},${u.lng}`;return enlaceSeguro(u&&u.texto)}
+function renderVar(){
+  if(!cur||$('varv').hidden)return;
+  const del=varadas.filter(v=>(v.sede||SEDES[0])===sede),ahora=Date.now();
+  const abiertas=del.filter(v=>!v.fo),cerr=del.filter(v=>v.fo),durs=cerr.map(v=>dtMs(v.fo)-dtMs(v.fv)).filter(x=>x>=0);
+  const mes=new Date().getMonth(),anio=new Date().getFullYear(),delMes=del.filter(v=>{const d=new Date(dtMs(v.fv));return d.getMonth()===mes&&d.getFullYear()===anio});
+  $('vkpi').innerHTML=[[abiertas.length,'Varados ahora','badc'],[delMes.length,'Varadas este mes',''],[durs.length?durTxt(durs.reduce((a,b)=>a+b,0)/durs.length):'—','Tiempo promedio fuera de servicio',''],[del.filter(v=>v.taller==='si').length,'Llevados al taller','']]
+    .map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
+  const vis=del.filter(v=>vfiltro==='todas'||(vfiltro==='varado'?!v.fo:!!v.fo)).sort((a,b)=>dtMs(b.fv)-dtMs(a.fv));
+  if(!vis.length){$('vlist').innerHTML=`<div class="empty">No hay varadas ${vfiltro==='varado'?'abiertas ':vfiltro==='operativo'?'cerradas ':''}en ${esc(sede)}.${canEdit()?' Usa «Reportar varada» para registrar una.':''}</div>`;return}
+  $('vlist').innerHTML=vis.map(v=>{const op=!!v.fo,t=op?dtMs(v.fo)-dtMs(v.fv):ahora-dtMs(v.fv),mu=mapsUrl(v.ubic);return `<article class="vcard ${op?'ok':''}">
+    <div class="top"><div><span class="placa">${esc(v.placa)}</span> <span class="pill ${op?'o':'b'}">${op?'Operativo':'Varado'}</span><div class="rpor">Reportado por <b>${esc(v.por||'—')}</b>${v.editadoPor?` · Última edición: ${esc(v.editadoPor)}`:''}</div></div>
+      <div class="acts">${canEdit()?`<button class="btn ghost" data-ved="${v.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="del" data-vdel="${v.id}">Eliminar</button>`:''}</div></div>
+    <div class="vbody"><div><dl class="vgrid">
+      <div><dt>Fecha y hora de la varada</dt><dd>${dtTxt(v.fv)}</dd></div>
+      <div><dt>Operativo nuevamente</dt><dd>${op?dtTxt(v.fo):'<span style="color:var(--bad)">Sigue varado</span>'}</dd></div>
+      <div><dt>${op?'Tiempo fuera de servicio':'Lleva varado'}</dt><dd style="color:${op?'inherit':'var(--bad)'}">${durTxt(t)}</dd></div>
+      <div><dt>¿Se llevó al taller?</dt><dd>${v.taller==='si'?'Sí':'No'}</dd></div>
+      <div><dt>Ubicación</dt><dd>${mu?`<button type="button" class="ver" data-vmap="${v.id}">Ver en el mapa</button>`:'—'}</dd></div>
+      ${v.desc?`<div style="grid-column:1/-1"><dt>Descripción</dt><dd style="font-weight:400">${esc(v.desc)}</dd></div>`:''}
+    </dl></div>${v.foto?`<img class="vfot" src="${v.foto}" alt="Foto del vehículo ${esc(v.placa)}">`:''}</div></article>`}).join('');
+}
+setInterval(()=>{if(!$('varv').hidden&&!document.hidden)renderVar()},60000);
+$('vtabs').onclick=e=>{const b=e.target.closest('[data-vf]');if(!b)return;vfiltro=b.dataset.vf;$('vtabs').querySelectorAll('[data-vf]').forEach(x=>x.setAttribute('aria-pressed',x===b));renderVar()};
+function vUbiEstado(){const c=coordsDe($('vubi').value),t=$('vubi').value.trim();vcoords=c;
+  $('vubok').className='vubok'+(c?'':' no');$('vubok').textContent=c?`Ubicación detectada: ${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}`:t?(enlaceSeguro(t)?'Se guardará el enlace de la ubicación.':'No se encontró un enlace ni coordenadas.'):''}
+$('vubi').oninput=vUbiEstado;
+$('vgps').onclick=()=>{
+  if(!navigator.geolocation){$('vubok').className='vubok no';$('vubok').textContent='Este dispositivo no permite obtener la ubicación.';return}
+  $('vubok').className='vubok no';$('vubok').textContent='Obteniendo ubicación…';
+  navigator.geolocation.getCurrentPosition(p=>{const la=p.coords.latitude.toFixed(6),ln=p.coords.longitude.toFixed(6);$('vubi').value=`https://www.google.com/maps/search/?api=1&query=${la},${ln}`;vUbiEstado()},
+    ()=>{$('vubok').className='vubok no';$('vubok').textContent='No se pudo obtener la ubicación. Revisa que el navegador tenga permiso de ubicación.'},{enableHighAccuracy:true,timeout:15000});
+};
+function vPintarFoto(){$('vprev').innerHTML=vfotoD?`<img src="${vfotoD}" alt="Foto del vehículo varado">`:'Sin foto';$('vqui').hidden=!vfotoD}
+function marcaAgua(file,lineas){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{
+  const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+  const x=c.getContext('2d');x.drawImage(im,0,0,c.width,c.height);
+  const f=Math.max(14,Math.round(c.width/42)),pad=Math.round(f*.7),alto=pad*2+f*1.35*lineas.length;
+  const g=x.createLinearGradient(0,c.height-alto-f,0,c.height);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.35,'rgba(0,0,0,.55)');g.addColorStop(1,'rgba(0,0,0,.75)');
+  x.fillStyle=g;x.fillRect(0,c.height-alto-f,c.width,alto+f);
+  x.fillStyle='#fff';x.textBaseline='top';x.shadowColor='rgba(0,0,0,.6)';x.shadowBlur=3;
+  lineas.forEach((l,i)=>{x.font=`${i===0?'700 ':''}${i===0?Math.round(f*1.1):f}px Segoe UI,Arial,sans-serif`;x.fillText(l,pad,c.height-alto+pad+i*f*1.35)});
+  x.save();x.translate(c.width/2,c.height/2);x.rotate(-Math.PI/9);x.font=`800 ${Math.round(c.width/9)}px Segoe UI,Arial,sans-serif`;x.textAlign='center';x.textBaseline='middle';
+  x.shadowBlur=0;x.fillStyle='rgba(255,255,255,.16)';x.fillText('FLOTA LLANOS',0,0);x.lineWidth=Math.max(1,c.width/700);x.strokeStyle='rgba(0,0,0,.12)';x.strokeText('FLOTA LLANOS',0,0);x.restore();
+  res(c.toDataURL('image/jpeg',.68))};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
+function posicionRapida(){return new Promise(res=>{if(!navigator.geolocation)return res(null);navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),()=>res(null),{enableHighAccuracy:true,timeout:6000,maximumAge:60000})})}
+$('vsub').onclick=()=>$('vfsub').click();$('vcam').onclick=()=>$('vfcam').click();
+$('vqui').onclick=()=>{vfotoD='';vfotoMarca=false;vPintarFoto()};
+$('vfsub').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{vfotoD=await comp(f);vfotoMarca=false;vPintarFoto()}catch(x){$('verr').textContent='No se pudo leer la imagen.'}};
+$('vfcam').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  $('vprev').textContent='Aplicando marca de agua…';
+  try{const c=vcoords||await posicionRapida(),pl=$('vplaca').value.trim().toUpperCase();
+    const d=new Date(),p=n=>String(n).padStart(2,'0');
+    const lineas=['FLOTA LLANOS · VARADA'+(pl?' · '+pl:''),`${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())} · ${sede}`,
+      c?`Ubicación: ${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}`:'Ubicación no disponible',`Tomada por: ${cur.nombre}`];
+    vfotoD=await marcaAgua(f,lineas);vfotoMarca=true;vPintarFoto()}catch(x){vPintarFoto();$('verr').textContent='No se pudo procesar la foto.'}};
+function abrirVar(v){
+  vedit=v||null;$('vfrm').reset();$('verr').textContent='';
+  $('vdlgt').textContent=v?`Editar varada · ${v.placa}`:`Reportar varada · ${sede}`;
+  $('vplaca').value=v?v.placa:'';$('vfv').value=v?v.fv:ahoraDT();$('vfo').value=v?v.fo||'':'';
+  $('vubi').value=v&&v.ubic?(v.ubic.texto||''):'';$('vdesc').value=v?v.desc||'':'';
+  document.querySelector(`input[name="vtal"][value="${v&&v.taller==='si'?'si':'no'}"]`).checked=true;
+  vfotoD=v?v.foto||'':'';vfotoMarca=v?!!v.marca:false;vPintarFoto();vUbiEstado();$('vdlg').showModal();
+}
+$('vadd').onclick=()=>{if(canEdit())abrirVar()};
+$('vfrm').onsubmit=async e=>{
+  e.preventDefault();
+  const placa=$('vplaca').value.trim().toUpperCase(),fv=$('vfv').value,fo=$('vfo').value,taller=document.querySelector('input[name="vtal"]:checked').value;
+  if(!placa||!fv){$('verr').textContent='Escribe la placa y la fecha y hora de la varada.';return}
+  if(fo&&dtMs(fo)<dtMs(fv)){$('verr').textContent='La fecha en que quedó operativo no puede ser anterior a la varada.';return}
+  const t=$('vubi').value.trim().slice(0,500),c=coordsDe(t),ubic={texto:t,lat:c?c.lat:null,lng:c?c.lng:null};
+  const data={placa,fv,fo,taller,ubic,foto:vfotoD,marca:vfotoMarca,desc:$('vdesc').value.trim()};
+  if(JSON.stringify(data).length>950000){$('verr').textContent='La foto pesa demasiado. Quita la foto e inténtalo de nuevo.';return}
+  $('vsave').disabled=true;$('verr').textContent='';
+  try{if(vedit)await updateDoc(doc(db,'varadas',vedit.id),{...data,editadoPor:cur.nombre,editado:serverTimestamp()});
+    else await addDoc(collection(db,'varadas'),{...data,sede,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});
+    $('vdlg').close()}catch(x){$('verr').textContent=ERR(x.code)}
+  $('vsave').disabled=false;
+};
+$('vlist').onclick=e=>{
+  const im=e.target.closest('.vfot');if(im){$('bigimg').src=im.src;$('big').showModal();return}
+  const ed=e.target.closest('[data-ved]');if(ed&&canEdit()){abrirVar(varadas.find(v=>v.id===ed.dataset.ved));return}
+  const mp=e.target.closest('[data-vmap]');if(mp){const v=varadas.find(q=>q.id===mp.dataset.vmap);const u=v.ubic||{},url=mapsUrl(u);
+    if(u.lat!==null&&u.lat!==undefined){$('maptit').textContent=`Ubicación · ${v.placa}`;$('mapsub').textContent=`${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}`;$('mapab').href=url;
+      $('mapfr').src=`https://maps.google.com/maps?q=${u.lat},${u.lng}&z=16&output=embed`;$('mapdlg').showModal()}
+    else if(url)window.open(url,'_blank','noopener');return}
+  const d=e.target.closest('[data-vdel]');
+  if(d&&cur.rol==='admin'&&confirm('¿Eliminar este reporte de varada?'))deleteDoc(doc(db,'varadas',d.dataset.vdel)).catch(x=>alert(ERR(x.code)));
+};
+$('mapdlg').addEventListener('close',()=>{$('mapfr').src='about:blank'});
 function resumenCal(S,del){
   const tot=S.reduce((a,s)=>a+s.n,0),ok=S.reduce((a,s)=>a+s.comp,0),inc=tot-ok;
   const hasta=canio<hoyD.getFullYear()?12:canio>hoyD.getFullYear()?0:hoyD.getMonth()+1;
@@ -1620,6 +1827,8 @@ $('sede').onchange=e=>{
   if($('dlg').open)$('dlg').close();
   if($('cdlg').open)$('cdlg').close();
   if($('mdlg').open)$('mdlg').close();
+  if($('vdlg').open)$('vdlg').close();
+  renderVar();
   aplicarSede();renderCal();
 };
 $('out').onclick=()=>signOut(auth);
