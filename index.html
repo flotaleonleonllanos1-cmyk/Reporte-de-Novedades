@@ -21,6 +21,66 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Segoe UI",system-ui,sans-serif}
 main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
+#app{max-width:none;padding:0}
+.shell{display:flex;min-height:100vh;min-height:100dvh}
+.side{--sw:280px;width:var(--sw);flex:none;position:sticky;top:0;height:100vh;height:100dvh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:14px;padding:14px 12px 16px;color:#fff;
+  background:linear-gradient(180deg,var(--band2,#a12c2c),color-mix(in srgb,var(--band2,#a12c2c) 82%,#000));transition:width .25s ease;z-index:20;scrollbar-width:thin}
+.side::before{content:"";position:absolute;inset:0 auto 0 0;width:6px;background:var(--band1,#c63b3a);pointer-events:none}
+.sidetop{display:flex;align-items:center;gap:10px}
+.sidetgl,.sidemob{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;cursor:pointer}
+.sidetgl:hover{background:rgba(255,255,255,.2)}
+.ic{width:20px;height:20px;flex:none}
+.sidebrand{font-weight:300;letter-spacing:.22em;font-size:.95rem;white-space:nowrap}
+.side .whobox{display:grid;gap:8px;margin:0;justify-items:stretch;padding:10px;border-radius:10px;background:rgba(0,0,0,.14)}
+.side .who{color:rgba(255,255,255,.9);font-size:.85rem;text-align:left;width:auto;margin:0}
+.sedel{margin:0;color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600}
+.side select{width:100%;margin:4px 0 0;padding:8px 10px;border:1px solid rgba(255,255,255,.5);border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font-weight:600;cursor:pointer}
+.side select option{color:#2b1b1b;background:#fff}
+.menu{display:grid;gap:6px}
+.mi{width:100%;display:flex;align-items:center;gap:10px;text-align:left;background:none;border:1px solid transparent;color:rgba(255,255,255,.85);font:inherit;font-weight:700;font-size:1rem;padding:9px 10px;border-radius:10px;cursor:pointer}
+.mi:hover{background:rgba(255,255,255,.1);color:#fff}
+.mi[aria-pressed="true"]{background:rgba(255,255,255,.17);border-color:rgba(255,255,255,.45);color:#fff}
+.mi .lbl{flex:1;line-height:1.2}
+.chev{width:18px;height:18px;flex:none;transition:transform .2s;opacity:.85}
+.mi[aria-expanded="false"] .chev,.mesesb[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+.sub{display:grid;gap:2px;padding:4px 0 6px 18px;margin-left:14px;border-left:1px solid rgba(255,255,255,.25)}
+.mi[aria-expanded="false"]+.sub{display:none}
+.si{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;color:rgba(255,255,255,.82);font:inherit;font-size:.92rem;font-weight:600;padding:8px 10px;border-radius:8px;cursor:pointer}
+.si:hover{background:rgba(255,255,255,.1);color:#fff}
+.si[aria-current="true"],.si[aria-pressed="true"]{background:#fff;color:var(--band2,#a12c2c)}
+.mesesb{justify-content:space-between}
+.side .meses{display:grid;grid-template-columns:1fr;gap:2px;margin:2px 0 0 6px}
+.mesesb[aria-expanded="false"]+.meses{display:none}
+.side .mes{display:flex;justify-content:space-between;align-items:center;gap:8px;border:0;background:none;color:rgba(255,255,255,.85);padding:6px 10px;border-radius:8px;cursor:pointer;text-align:left}
+.side .mes:hover{background:rgba(255,255,255,.1)}
+.side .mes b{font-size:.88rem;font-weight:600}
+.side .mes small{color:rgba(255,255,255,.7);font-size:.72rem;white-space:nowrap}
+.side .mes[aria-pressed="true"]{background:#fff;color:var(--band2,#a12c2c)}
+.side .mes[aria-pressed="true"] small{color:var(--mut)}
+.sidefoot{margin-top:auto;display:grid;gap:2px;padding-top:10px;border-top:1px solid rgba(255,255,255,.2)}
+.sidefoot .si{font-size:.9rem}
+.side button:focus-visible,.side select:focus-visible{outline:3px solid #fff;outline-offset:1px}
+.contenido{flex:1;min-width:0;max-width:1120px;margin:0 auto;padding:20px 24px 48px}
+.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.topbar h1{margin:0;font-size:1.45rem;flex:1;min-width:180px}
+.sidemob{display:none;background:var(--band2,#a12c2c);border-color:transparent}
+/* menú contraído (escritorio) */
+.shell.mini .side{--sw:76px}
+.shell.mini .side .lbl,.shell.mini .side .sidebrand,.shell.mini .side .whobox,.shell.mini .side .sub,.shell.mini .side .chev{display:none}
+.shell.mini .side .mi,.shell.mini .side .sidefoot .si{justify-content:center;padding:9px 0}
+.shell.mini .sidetop{justify-content:center}
+/* celular: menú lateral desplegable */
+@media (max-width:900px){
+  .side{position:fixed;left:0;top:0;bottom:0;transform:translateX(-105%);transition:transform .25s ease;box-shadow:8px 0 30px rgba(0,0,0,.35);--sw:min(300px,86vw)}
+  .shell.abierto .side{transform:none}
+  .shell.mini .side{--sw:min(300px,86vw)}
+  .shell.mini .side .lbl,.shell.mini .side .sidebrand,.shell.mini .side .chev{display:inline}
+  .shell.mini .side .whobox{display:grid}.shell.mini .side .sub{display:grid}
+  .sidemob{display:grid}
+  .velo{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:15}
+  .contenido{padding:14px 14px 40px}
+}
+@media (prefers-reduced-motion:reduce){.side,.chev{transition:none}}
 header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
 h1{margin:0;font-size:1.9rem;font-weight:700;letter-spacing:-.01em}
 button,input,select{font:inherit;color:inherit}
@@ -293,25 +353,46 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   </div>
 </section>
 <main id="app" hidden>
-<div class="brand">
-  <nav class="mods" aria-label="Módulos">
-    <button type="button" data-m="nov" aria-pressed="true"><span class="chequeo" aria-hidden="true"><svg viewBox="0 0 40 40" width="28" height="28"><rect x="5" y="5" width="30" height="33" rx="4" fill="#f5f6f7" stroke="#c5cbd0" stroke-width="1.2"/><rect x="13" y="2" width="14" height="7" rx="2.5" fill="#6b747a"/><rect x="16.5" y="3.6" width="7" height="2.4" rx="1.2" fill="#d7dbde"/><path class="chk" style="animation-delay:0.00s" d="M9 14 l2.6 2.6 l4.6 -5" fill="none" stroke="#2e9e5b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="19" y="12.8" width="12" height="2.6" rx="1.3" fill="#9aa3a9"/><path class="chk" style="animation-delay:0.18s" d="M9 22 l2.6 2.6 l4.6 -5" fill="none" stroke="#2e9e5b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="19" y="20.8" width="9" height="2.6" rx="1.3" fill="#9aa3a9"/><path class="chk" style="animation-delay:0.36s" d="M9 30 l2.6 2.6 l4.6 -5" fill="none" stroke="#2e9e5b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="19" y="28.8" width="12" height="2.6" rx="1.3" fill="#9aa3a9"/></svg></span>Novedades / Solucionadas</button>
-    <button type="button" data-m="cal" aria-pressed="false">Calibraciones<span class="llanta" aria-hidden="true"><svg viewBox="0 0 40 40" width="28" height="28"><g fill="#2b2b2b"><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(0 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(20 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(40 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(60 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(80 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(100 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(120 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(140 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(160 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(180 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(200 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(220 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(240 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(260 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(280 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(300 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(320 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(340 20 20)"/></g><circle cx="20" cy="20" r="17" fill="#1a1a1a"/><circle cx="20" cy="20" r="14.2" fill="none" stroke="#3d3d3d" stroke-width="1.4"/><circle cx="20" cy="20" r="10.5" fill="#d7dbde"/><circle cx="20" cy="20" r="10.5" fill="none" stroke="#9aa1a6" stroke-width="1"/><g fill="#6f777d"><circle cx="20.00" cy="14.00" r="2.1"/><circle cx="25.71" cy="18.15" r="2.1"/><circle cx="23.53" cy="24.85" r="2.1"/><circle cx="16.47" cy="24.85" r="2.1"/><circle cx="14.29" cy="18.15" r="2.1"/></g><circle cx="20" cy="20" r="2.6" fill="#8e969c"/><circle cx="20" cy="20" r="1" fill="#3c4247"/></svg></span></button>
-  </nav>
+<div class="shell">
+<div class="velo" id="velo" hidden></div>
+<aside class="side" id="side" aria-label="Menú principal">
+  <div class="sidetop">
+    <button type="button" class="sidetgl" id="sidetgl" aria-label="Contraer menú" aria-expanded="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <span class="sidebrand">FLOTA LLANOS</span>
+  </div>
   <div class="whobox">
     <div class="who" id="who"></div>
-    <select id="sede" aria-label="Sede"><option>Villavicencio</option><option>Yopal</option></select>
+    <label class="sedel">Sede<select id="sede"><option>Villavicencio</option><option>Yopal</option></select></label>
   </div>
+  <nav class="menu">
+    <div class="grp">
+      <button type="button" class="mi" data-m="nov" aria-pressed="true" aria-expanded="true" title="Novedades / Solucionadas"><span class="chequeo" aria-hidden="true"><svg viewBox="0 0 40 40" width="28" height="28"><rect x="5" y="5" width="30" height="33" rx="4" fill="#f5f6f7" stroke="#c5cbd0" stroke-width="1.2"/><rect x="13" y="2" width="14" height="7" rx="2.5" fill="#6b747a"/><rect x="16.5" y="3.6" width="7" height="2.4" rx="1.2" fill="#d7dbde"/><path class="chk" style="animation-delay:0.00s" d="M9 14 l2.6 2.6 l4.6 -5" fill="none" stroke="#2e9e5b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="19" y="12.8" width="12" height="2.6" rx="1.3" fill="#9aa3a9"/><path class="chk" style="animation-delay:0.18s" d="M9 22 l2.6 2.6 l4.6 -5" fill="none" stroke="#2e9e5b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="19" y="20.8" width="9" height="2.6" rx="1.3" fill="#9aa3a9"/><path class="chk" style="animation-delay:0.36s" d="M9 30 l2.6 2.6 l4.6 -5" fill="none" stroke="#2e9e5b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="19" y="28.8" width="12" height="2.6" rx="1.3" fill="#9aa3a9"/></svg></span><span class="lbl">Novedades / Solucionadas</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="sub">
+        <button type="button" class="si" id="listab" aria-current="true">Lista de novedades</button>
+        <button type="button" class="si" id="dashb" aria-pressed="false">Dashboard</button>
+      </div>
+    </div>
+    <div class="grp">
+      <button type="button" class="mi" data-m="cal" aria-pressed="false" aria-expanded="false" title="Calibraciones"><span class="llanta" aria-hidden="true"><svg viewBox="0 0 40 40" width="28" height="28"><g fill="#2b2b2b"><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(0 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(20 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(40 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(60 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(80 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(100 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(120 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(140 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(160 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(180 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(200 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(220 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(240 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(260 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(280 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(300 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(320 20 20)"/><rect x="18" y="0.6" width="4" height="4.2" rx="1" transform="rotate(340 20 20)"/></g><circle cx="20" cy="20" r="17" fill="#1a1a1a"/><circle cx="20" cy="20" r="14.2" fill="none" stroke="#3d3d3d" stroke-width="1.4"/><circle cx="20" cy="20" r="10.5" fill="#d7dbde"/><circle cx="20" cy="20" r="10.5" fill="none" stroke="#9aa1a6" stroke-width="1"/><g fill="#6f777d"><circle cx="20.00" cy="14.00" r="2.1"/><circle cx="25.71" cy="18.15" r="2.1"/><circle cx="23.53" cy="24.85" r="2.1"/><circle cx="16.47" cy="24.85" r="2.1"/><circle cx="14.29" cy="18.15" r="2.1"/></g><circle cx="20" cy="20" r="2.6" fill="#8e969c"/><circle cx="20" cy="20" r="1" fill="#3c4247"/></svg></span><span class="lbl">Calibraciones</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="sub">
+        <button type="button" class="si" id="cresb">Resumen del año</button>
+        <button type="button" class="si mesesb" id="mesesb" aria-expanded="true" aria-controls="meses">Meses <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="meses" id="meses" role="group" aria-label="Meses"></div>
+      </div>
+    </div>
+  </nav>
+  <div class="sidefoot">
+    <button type="button" class="si" id="adminb" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Admin</span></button>
+    <button type="button" class="si" id="pwb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Mi contraseña</span></button>
+    <button type="button" class="si" id="out"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h4v16h-4M10 17l5-5-5-5M15 12H4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Cerrar sesión</span></button>
+  </div>
+</aside>
+<div class="contenido">
+<div class="topbar">
+  <button type="button" class="sidemob" id="sidemob" aria-label="Abrir menú"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <h1 id="vtit">Novedades / Solucionadas</h1>
+  <button class="btn" id="add">+ Añadir novedad</button>
 </div>
-<header>
-  <div class="hb">
-    <button class="btn" id="add">+ Añadir novedad</button>
-    <button class="btn ghost" id="dashb" aria-pressed="false">Dashboard</button>
-    <button class="btn ghost" id="adminb" hidden>Admin</button>
-    <button class="btn ghost" id="pwb">Mi contraseña</button>
-    <button class="btn ghost" id="out">Cerrar sesión</button>
-  </div>
-</header>
 <div id="listv">
 <div class="tabs" role="group" aria-label="Filtrar">
   <button class="tab" data-f="todas" aria-pressed="true">Todas</button>
@@ -328,10 +409,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       <button class="btn" id="cadd">+ Registrar calibración</button>
     </div>
   </div>
-  <div class="meses" id="meses" role="group" aria-label="Mes"></div>
   <div id="cres"></div>
   <div id="cmesv" hidden>
-    <div class="chead"><h2 id="ctit"></h2><span id="csub"></span><button type="button" class="btn ghost" id="cback">Ver resumen del año</button></div>
+    <div class="chead"><h2 id="ctit" hidden></h2><span id="csub"></span><button type="button" class="btn ghost" id="cback">Ver resumen del año</button></div>
     <div id="calist"></div>
     <div id="cppt"></div>
     <input type="file" id="pptin" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" hidden>
@@ -353,6 +433,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <button class="btn" id="xlsb">Descargar Excel</button>
   </div>
 </section>
+</div>
+</div>
 </main>
 
 <dialog id="dlg">
@@ -668,13 +750,38 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 function modulo(m){
   const cal=m==='cal';
   document.documentElement.classList.toggle('tema-cal',cal);
-  document.querySelectorAll('.mods button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m));
+  document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
   if(cal)showDash(false);
   $('calv').hidden=!cal;$('listv').hidden=cal;
-  $('add').hidden=cal||!canEdit();$('dashb').hidden=cal||!cur||cur.rol!=='admin';
+  $('add').hidden=cal||!canEdit();$('dashb').hidden=!cur||cur.rol!=='admin';
   if(cal)renderCal();
+  titulo();
 }
-document.querySelector('.mods').onclick=e=>{const b=e.target.closest('[data-m]');if(b&&cur)modulo(b.dataset.m)};
+document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)return;
+  const sh=document.querySelector('.shell'),movil=window.matchMedia('(max-width:900px)').matches;
+  if(sh.classList.contains('mini')&&!movil){if(b.getAttribute('aria-pressed')==='true'){$('sidetgl').click();return}}
+  else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
+  if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
+function titulo(){
+  const cal=!$('calv').hidden;
+  $('vtit').textContent=cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!cal&&$('dash').hidden);
+  $('cresb').setAttribute('aria-current',cal&&!cmes);
+}
+function cerrarMenuMovil(){document.querySelector('.shell').classList.remove('abierto');$('velo').hidden=true}
+$('sidemob').onclick=()=>{document.querySelector('.shell').classList.add('abierto');$('velo').hidden=false};
+$('velo').onclick=cerrarMenuMovil;
+$('sidetgl').onclick=()=>{
+  if(window.matchMedia('(max-width:900px)').matches){cerrarMenuMovil();return}
+  const sh=document.querySelector('.shell'),mini=!sh.classList.contains('mini');sh.classList.toggle('mini',mini);
+  $('sidetgl').setAttribute('aria-expanded',!mini);$('sidetgl').setAttribute('aria-label',mini?'Expandir menú':'Contraer menú');
+  try{localStorage.setItem('menu-mini',mini?'1':'')}catch(x){}
+};
+try{if(localStorage.getItem('menu-mini')==='1'){document.querySelector('.shell').classList.add('mini');$('sidetgl').setAttribute('aria-expanded','false');$('sidetgl').setAttribute('aria-label','Expandir menú')}}catch(x){}
+$('listab').onclick=()=>{if(!cur)return;modulo('nov');showDash(false);cerrarMenuMovil()};
+$('cresb').onclick=()=>{if(!cur)return;cmes=0;modulo('cal');cerrarMenuMovil()};
+$('mesesb').onclick=()=>{const b=$('mesesb');b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true')};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')cerrarMenuMovil()});
 function calSede(){return cals.filter(c=>(c.sede||SEDES[0])===sede&&c.anio===canio)}
 function metaDe(){return (metas[sede+'_'+canio]||{}).meses||{}}
 const cmpP=(a,b)=>String(a).localeCompare(String(b),'es',{numeric:true,sensitivity:'base'});
@@ -690,9 +797,12 @@ function calcCal(){
   return {del,meta,lista,S};
 }
 function renderCal(){
-  if(!cur||$('calv').hidden)return;
+  if(!cur)return;
+  const enCal=!$('calv').hidden;
   const {del,lista,S}=calcCal();
-  $('meses').innerHTML=S.map(s=>`<button type="button" class="mes" data-mes="${s.m}" aria-pressed="${s.m===cmes}"><b>${MESES[s.m-1]}</b><small>${s.n?`${s.inc?'<span class="dot" style="background:var(--bad)"></span>':'<span class="dot" style="background:var(--ok)"></span>'}${s.n} reg.${s.pct!==null?' · '+pctTxt(s.pct):''}`:(s.mt?'0% · '+s.mt+' placas':'Sin registros')}</small></button>`).join('');
+  $('meses').innerHTML=S.map(s=>`<button type="button" class="mes" data-mes="${s.m}" aria-pressed="${enCal&&s.m===cmes}"><b>${MESES[s.m-1]}</b><small>${s.n?`${s.inc?'<span class="dot" style="background:var(--bad)"></span>':'<span class="dot" style="background:var(--ok)"></span>'}${s.n} reg.${s.pct!==null?' · '+pctTxt(s.pct):''}`:(s.mt?'0% · '+s.mt+' placas':'Sin registros')}</small></button>`).join('');
+  if(!enCal)return;
+  titulo();
   $('cadd').textContent='+ Registrar calibración en '+MESES[mesReg()-1];
   $('cmetab').hidden=cur.rol!=='admin';
   if(!cmes){$('cmesv').hidden=true;$('cres').hidden=false;resumenCal(S,del);return}
@@ -1416,7 +1526,7 @@ $('mfrm').onsubmit=async e=>{
   catch(x){$('merr').textContent=ERR(x.code)}
   $('psave').disabled=false;
 };
-$('meses').onclick=e=>{const b=e.target.closest('[data-mes]');if(b){if(!subiendo)pptMsg='';const m=Number(b.dataset.mes);cmes=cmes===m?0:m;renderCal()}};
+$('meses').onclick=e=>{const b=e.target.closest('[data-mes]');if(b){if(!subiendo)pptMsg='';const m=Number(b.dataset.mes);cmes=cmes===m&&!$('calv').hidden?0:m;if($('calv').hidden)modulo('cal');else{renderCal();titulo()}cerrarMenuMovil();window.scrollTo({top:0,behavior:'smooth'})}};
 $('canio').onchange=e=>{canio=Number(e.target.value);renderCal()};
 function buildCFotos(prev={}){
   cfotos={...prev};
@@ -1585,11 +1695,11 @@ function dash(){
 }
 function showDash(on){
   $('dash').hidden=!on;$('listv').hidden=on;
-  $('dashb').setAttribute('aria-pressed',on);$('dashb').classList.toggle('on',on);
-  $('dashb').textContent=on?'Ver novedades':'Dashboard';
+  $('dashb').setAttribute('aria-pressed',on);
   if(on)dash();
+  if(typeof titulo==='function'&&cur)titulo();
 }
-$('dashb').onclick=()=>{if(cur&&cur.rol==='admin')showDash($('dash').hidden)};
+$('dashb').onclick=()=>{if(cur&&cur.rol==='admin'){modulo('nov');showDash(true);cerrarMenuMovil()}};
 $('d-top').addEventListener('click',e=>{const im=e.target.closest('img');if(im){$('bigimg').src=im.src;$('big').showModal()}});
 
 /* ---------- Excel ---------- */
