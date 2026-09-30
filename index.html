@@ -76,7 +76,14 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .vcard .vgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px 16px;margin:10px 0 0}
 .vcard dt{font-size:.78rem;color:var(--mut)}.vcard dd{margin:0;font-weight:600}
 .vcard .vfot{width:130px;height:96px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--line)}
-.vbody{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.vbody{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.vmap{flex:0 1 380px;min-width:260px;display:grid;gap:6px}
+.vmapt{font-size:.78rem;color:var(--mut);font-weight:400}
+.vmap iframe{width:100%;height:210px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+.vmap small{color:var(--mut);font-size:.78rem}
+.vmap .btn{padding:7px 12px;font-size:.9rem}
+.vmapno{border:1px dashed var(--line);border-radius:10px;padding:14px;color:var(--mut);font-size:.88rem;min-height:90px;display:grid;place-items:center;text-align:center}
+#vmapf{width:100%;height:190px;border:1px solid var(--line);border-radius:10px;margin-top:8px}
 .vbody>div{flex:1;min-width:220px}
 .vubok{font-size:.85rem;color:var(--ok);font-weight:600}
 .vubok.no{color:var(--mut);font-weight:400}
@@ -620,6 +627,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     </div>
     <label>Ubicación del vehículo<textarea id="vubi" rows="2" placeholder="Pega aquí la ubicación que te enviaron por WhatsApp"></textarea></label>
     <div class="mall" style="margin-top:6px"><button type="button" class="btn ghost" id="vgps">Usar mi ubicación actual</button><span class="vubok" id="vubok"></span></div>
+    <iframe id="vmapf" hidden title="Vista previa de la ubicación" loading="lazy"></iframe>
     <details class="vayuda"><summary>¿Cómo copiar la ubicación de WhatsApp?</summary>
       <ol><li>Pídele al conductor que envíe su <b>Ubicación actual</b> por WhatsApp (clip 📎 → Ubicación → Enviar tu ubicación actual).</li>
       <li>Toca la ubicación que te llegó, ábrela en Google Maps y usa <b>Compartir → Copiar</b>. O mantén presionado el mensaje y elige <b>Copiar</b>.</li>
@@ -1605,6 +1613,8 @@ function coordsDe(t){
   const lat=Number(m[1]),lng=Number(m[2]);return Math.abs(lat)<=90&&Math.abs(lng)<=180?{lat,lng}:null;
 }
 const enlaceSeguro=t=>{const m=String(t||'').match(/https?:\/\/[^\s<>"']+/);return m?m[0]:''};
+const tieneCoord=u=>!!u&&typeof u.lat==='number'&&typeof u.lng==='number';
+const embedUrl=u=>`https://maps.google.com/maps?q=${u.lat},${u.lng}&z=16&output=embed`;
 function mapsUrl(u){if(u&&u.lat!==undefined&&u.lat!==null)return `https://www.google.com/maps/search/?api=1&query=${u.lat},${u.lng}`;return enlaceSeguro(u&&u.texto)}
 function renderVar(){
   if(!cur||$('varv').hidden)return;
@@ -1621,15 +1631,20 @@ function renderVar(){
     <div class="vbody"><div><dl class="vgrid">
       <div><dt>Fecha y hora de la varada</dt><dd>${dtTxt(v.fv)}</dd></div>
       <div><dt>Operativo nuevamente</dt><dd>${op?dtTxt(v.fo):'<span style="color:var(--bad)">Sigue varado</span>'}</dd></div>
-      <div><dt>${op?'Tiempo fuera de servicio':'Lleva varado'}</dt><dd style="color:${op?'inherit':'var(--bad)'}">${durTxt(t)}</dd></div>
+      <div><dt>${op?'Tiempo fuera de servicio':'Lleva varado'}</dt><dd style="color:${op?'inherit':'var(--bad)'}"${op?'':` data-vdur="${esc(v.fv)}"`}>${durTxt(t)}</dd></div>
       <div><dt>¿Se llevó al taller?</dt><dd>${v.taller==='si'?'Sí':'No'}</dd></div>
-      <div><dt>Ubicación</dt><dd>${mu?`<button type="button" class="ver" data-vmap="${v.id}">Ver en el mapa</button>`:'—'}</dd></div>
       ${v.desc?`<div style="grid-column:1/-1"><dt>Descripción</dt><dd style="font-weight:400">${esc(v.desc)}</dd></div>`:''}
-    </dl></div>${v.foto?`<img class="vfot" src="${v.foto}" alt="Foto del vehículo ${esc(v.placa)}">`:''}</div></article>`}).join('');
+    </dl>${v.foto?`<img class="vfot" src="${v.foto}" alt="Foto del vehículo ${esc(v.placa)}" style="margin-top:12px">`:''}</div>
+    <div class="vmap"><b class="vmapt">Ubicación del vehículo</b>${tieneCoord(v.ubic)
+      ?`<iframe loading="lazy" src="${embedUrl(v.ubic)}" title="Mapa de la ubicación de ${esc(v.placa)}" referrerpolicy="no-referrer-when-downgrade"></iframe><small>${v.ubic.lat.toFixed(5)}, ${v.ubic.lng.toFixed(5)}</small>`
+      :`<div class="vmapno">${mu?'El enlace guardado no trae coordenadas, así que no se puede dibujar el mapa aquí. Ábrelo en Google Maps.':'No se registró la ubicación. Agrégala con «Editar».'}</div>`}
+      ${mu?`<div class="hb"><a class="btn ghost" href="${esc(mu)}" target="_blank" rel="noopener">Abrir en Google Maps</a>${tieneCoord(v.ubic)?`<button type="button" class="btn ghost" data-vmap="${v.id}">Ampliar</button>`:''}</div>`:''}
+    </div></div></article>`}).join('');
 }
-setInterval(()=>{if(!$('varv').hidden&&!document.hidden)renderVar()},60000);
+setInterval(()=>{if($('varv').hidden||document.hidden)return;const a=Date.now();document.querySelectorAll('#vlist [data-vdur]').forEach(d=>d.textContent=durTxt(a-dtMs(d.dataset.vdur)))},60000);
 $('vtabs').onclick=e=>{const b=e.target.closest('[data-vf]');if(!b)return;vfiltro=b.dataset.vf;$('vtabs').querySelectorAll('[data-vf]').forEach(x=>x.setAttribute('aria-pressed',x===b));renderVar()};
 function vUbiEstado(){const c=coordsDe($('vubi').value),t=$('vubi').value.trim();vcoords=c;
+  const nu=c?embedUrl(c):'';if($('vmapf').dataset.u!==nu){$('vmapf').dataset.u=nu;$('vmapf').hidden=!c;if(c)$('vmapf').src=nu;else $('vmapf').removeAttribute('src')}
   $('vubok').className='vubok'+(c?'':' no');$('vubok').textContent=c?`Ubicación detectada: ${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}`:t?(enlaceSeguro(t)?'Se guardará el enlace de la ubicación.':'No se encontró un enlace ni coordenadas.'):''}
 $('vubi').oninput=vUbiEstado;
 $('vgps').onclick=()=>{
@@ -1689,7 +1704,7 @@ $('vlist').onclick=e=>{
   const ed=e.target.closest('[data-ved]');if(ed&&canEdit()){abrirVar(varadas.find(v=>v.id===ed.dataset.ved));return}
   const mp=e.target.closest('[data-vmap]');if(mp){const v=varadas.find(q=>q.id===mp.dataset.vmap);const u=v.ubic||{},url=mapsUrl(u);
     if(u.lat!==null&&u.lat!==undefined){$('maptit').textContent=`Ubicación · ${v.placa}`;$('mapsub').textContent=`${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}`;$('mapab').href=url;
-      $('mapfr').src=`https://maps.google.com/maps?q=${u.lat},${u.lng}&z=16&output=embed`;$('mapdlg').showModal()}
+      $('mapfr').src=`https://maps.google.com/maps?q=${u.lat},${u.lng}&z=17&output=embed`;$('mapdlg').showModal()}
     else if(url)window.open(url,'_blank','noopener');return}
   const d=e.target.closest('[data-vdel]');
   if(d&&cur.rol==='admin'&&confirm('¿Eliminar este reporte de varada?'))deleteDoc(doc(db,'varadas',d.dataset.vdel)).catch(x=>alert(ERR(x.code)));
