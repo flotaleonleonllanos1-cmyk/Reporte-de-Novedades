@@ -237,6 +237,8 @@ html.tema-cal .kpi b.badc{color:var(--bad)}
 /* presentaciones */
 .pfile{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}
 .pfile:last-child{border-bottom:0}
+.pico.drv{background:#1a73e8;font-size:.68rem}
+a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .pico{width:38px;height:44px;border-radius:6px;background:#c4461f;color:#fff;display:grid;place-items:center;font-weight:800;font-size:.8rem;flex:none}
 .pfile .pinfo{flex:1;min-width:180px}
 .pfile .pinfo b{display:block;overflow-wrap:anywhere}
@@ -257,6 +259,10 @@ html.tema-cal .kpi b.badc{color:var(--bad)}
 .pvdots button{flex:none;min-width:34px;height:30px;border:1px solid var(--line);background:var(--card);border-radius:6px;cursor:pointer;font-weight:600;font-size:.85rem;color:var(--ink)}
 .pvdots button[aria-current="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
 .pvnota{color:var(--mut);font-size:.8rem}
+.drhelp{background:var(--soft);border-radius:8px;padding:10px 14px;font-size:.88rem;margin-top:10px}
+.drhelp ol{margin:6px 0 0;padding-left:20px}.drhelp li{margin:2px 0}
+#pvdlg.drive .pvnav{display:none}
+.pvframe{width:100%;aspect-ratio:16/10;max-height:72vh;border:0;border-radius:6px;background:#fff}
 .xl .btn:disabled{opacity:.7;cursor:progress}
 .hb{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .who{color:var(--mut);font-size:.9rem;width:100%;text-align:right}
@@ -432,6 +438,17 @@ html.tema-cal .kpi b.badc{color:var(--bad)}
     <div class="plist" id="plist"></div>
     <div class="err" id="merr" role="alert"></div>
     <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="psave">Guardar placas</button></div>
+  </form>
+</dialog>
+<dialog id="drdlg">
+  <form id="drfrm">
+    <h2 id="drtit">Agregar enlace de Google Drive</h2>
+    <label>Nombre de la presentación<input id="drnom" required maxlength="120" placeholder="Ej: Informe de calibraciones septiembre"></label>
+    <label>Enlace de Google Drive<input id="drurl" required inputmode="url" placeholder="https://drive.google.com/file/d/…"></label>
+    <div class="drhelp"><b>Cómo copiar el enlace en Google Drive</b>
+      <ol><li>Sube la presentación a Google Drive.</li><li>Haz clic derecho sobre el archivo y elige <b>Compartir → Compartir</b>.</li><li>En «Acceso general» elige <b>Cualquier persona que tenga el vínculo</b>, con permiso de <b>Lector</b>.</li><li>Pulsa <b>Copiar vínculo</b> y pégalo aquí.</li></ol></div>
+    <div class="err" id="drerr" role="alert"></div>
+    <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="drsave">Guardar enlace</button></div>
   </form>
 </dialog>
 <dialog id="pvdlg" aria-labelledby="pvtit">
@@ -1198,13 +1215,16 @@ function renderPpt(){
     .sort((a,b)=>(b.creado?.seconds||0)-(a.creado?.seconds||0));
   const f=d=>d&&d.toDate?d.toDate().toLocaleDateString('es-CO'):'';
   $('cppt').innerHTML=`<div class="dc" style="margin-top:14px">
-    <div class="chead" style="margin:0"><h2 style="font-size:1.05rem">Presentaciones de ${MESES[cmes-1]}</h2><button type="button" class="btn" id="pptup"${subiendo?' disabled':''}>${subiendo?'Cargando…':'Cargar PowerPoint'}</button></div>
-    <small>Archivos PowerPoint (.pptx) de ${MESES[cmes-1]} ${canio} · ${esc(sede)}. Máximo 20 MB por archivo.</small>
+    <div class="chead" style="margin:0"><h2 style="font-size:1.05rem">Presentaciones de ${MESES[cmes-1]}</h2><div class="hb"><button type="button" class="btn ghost" id="drvadd">Agregar enlace de Drive</button><button type="button" class="btn" id="pptup"${subiendo?' disabled':''}>${subiendo?'Cargando…':'Cargar PowerPoint'}</button></div></div>
+    <small>${MESES[cmes-1]} ${canio} · ${esc(sede)}. Hasta 20 MB: usa «Cargar PowerPoint». Archivos más grandes (hasta 500 MB o más): súbelos a Google Drive y usa «Agregar enlace de Drive».</small>
     <div class="pprog" id="pprog" role="status">${esc(pptMsg)}</div>
-    ${fs.length?fs.map(a=>`<div class="pfile"><span class="pico" aria-hidden="true">PPT</span>
+    ${fs.length?fs.map(a=>a.tipo==='drive'?`<div class="pfile"><span class="pico drv" aria-hidden="true">Drive</span>
+      <div class="pinfo"><b>${esc(a.nombre)}</b><small>Enlace de Google Drive · Agregado por ${esc(a.por||'—')}${a.creado?' el '+f(a.creado):''}</small></div>
+      <div class="acts"><button type="button" class="btn ghost" data-pver="${a.id}">Ver</button><a class="btn ghost" href="${driveUrls(a).abrir}" target="_blank" rel="noopener">Abrir en Drive</a><a class="btn ghost" href="${driveUrls(a).bajar}" target="_blank" rel="noopener">Descargar</a>${cur.rol==='admin'?`<button type="button" class="del" data-pdel="${a.id}">Eliminar</button>`:''}</div></div>`
+      :`<div class="pfile"><span class="pico" aria-hidden="true">PPT</span>
       <div class="pinfo"><b>${esc(a.nombre)}</b><small>${tam(a.tamano||0)} · Cargado por ${esc(a.por||'—')}${a.creado?' el '+f(a.creado):''}${a.listo?'':' · <span style="color:var(--bad);font-weight:700">Carga incompleta</span>'}</small></div>
       <div class="acts">${a.listo?`<button type="button" class="btn ghost" data-pver="${a.id}">Ver</button><button type="button" class="btn ghost" data-pdl="${a.id}">Descargar</button>`:''}${cur.rol==='admin'?`<button type="button" class="del" data-pdel="${a.id}">Eliminar</button>`:''}</div></div>`).join('')
-      :`<p class="empty" style="margin:8px 0 0">Aún no hay presentaciones en este mes. Usa «Cargar PowerPoint» para agregar la primera.</p>`}
+      :`<p class="empty" style="margin:8px 0 0">Aún no hay presentaciones en este mes. Usa «Cargar PowerPoint» o «Agregar enlace de Drive» para agregar la primera.</p>`}
   </div>`;
 }
 async function bytesPpt(a,prog){
@@ -1247,6 +1267,7 @@ async function pvMostrar(i){
   $('pvdots').querySelectorAll('button').forEach((b,k)=>{b.setAttribute('aria-current',k===pvI);if(k===pvI)b.scrollIntoView({block:'nearest',inline:'center'})});
 }
 async function verPpt(a){
+  $('pvdlg').classList.remove('drive');$('pvdlg').querySelector('.pvnota').textContent='Vista previa: algunas animaciones, efectos o fuentes especiales pueden verse distinto. Descarga el archivo para verlo exactamente como fue creado.';
   pv=null;pvA=a;$('pvtit').textContent=a.nombre;$('pvnum').textContent='';$('pvdots').innerHTML='';
   $('pvslide').removeAttribute('style');$('pvslide').innerHTML='<div class="empty">Cargando presentación…</div>';$('pvdlg').showModal();
   try{
@@ -1259,13 +1280,15 @@ async function verPpt(a){
 }
 $('pvprev').onclick=()=>pvMostrar(pvI-1);$('pvnext').onclick=()=>pvMostrar(pvI+1);
 $('pvdots').onclick=e=>{const b=e.target.closest('[data-pi]');if(b)pvMostrar(Number(b.dataset.pi))};
-$('pvdl').onclick=async()=>{if(!pvA)return;try{bajarPpt(pvA,await bytesPpt(pvA))}catch(x){alert('No se pudo descargar el archivo.')}};
+$('pvdl').onclick=async()=>{if(!pvA)return;if(pvA.tipo==='drive'){window.open(driveUrls(pvA).bajar,'_blank','noopener');return}try{bajarPpt(pvA,await bytesPpt(pvA))}catch(x){alert('No se pudo descargar el archivo.')}};
 document.addEventListener('keydown',e=>{if(!$('pvdlg').open||!pv)return;if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();pvMostrar(pvI+1)}if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();pvMostrar(pvI-1)}});
+$('pvdlg').addEventListener('close',()=>{if($('pvdlg').classList.contains('drive'))$('pvslide').innerHTML=''});
 let pvRz;window.addEventListener('resize',()=>{if($('pvdlg').open&&pv){clearTimeout(pvRz);pvRz=setTimeout(()=>pvMostrar(pvI),200)}});
 $('cppt').onclick=async e=>{
   if(e.target.closest('#pptup')){$('pptin').click();return}
+  if(e.target.closest('#drvadd')){$('drfrm').reset();$('drerr').textContent='';$('drtit').textContent=`Agregar enlace de Google Drive · ${MESES[cmes-1]} ${canio}`;$('drdlg').showModal();return}
   const v=e.target.closest('[data-pver]'),d=e.target.closest('[data-pdl]'),x=e.target.closest('[data-pdel]');
-  if(v){verPpt(archivos.find(a=>a.id===v.dataset.pver));return}
+  if(v){const a=archivos.find(q=>q.id===v.dataset.pver);if(a&&a.tipo==='drive')verDrive(a);else verPpt(a);return}
   if(d){const a=archivos.find(q=>q.id===d.dataset.pdl);const t=d.textContent;d.disabled=true;d.textContent='Preparando…';
     try{bajarPpt(a,await bytesPpt(a))}catch(y){alert('No se pudo descargar el archivo. Revisa tu conexión.')}d.disabled=false;d.textContent=t;return}
   if(x&&cur.rol==='admin'){const a=archivos.find(q=>q.id===x.dataset.pdel);if(!a||!confirm(`¿Eliminar la presentación «${a.nombre}»? Esta acción no se puede deshacer.`))return;
@@ -1274,6 +1297,39 @@ $('cppt').onclick=async e=>{
       await deleteDoc(doc(db,'archivos',a.id));delete pptCache[a.id]}
     catch(y){alert(ERR(y.code));x.disabled=false}}
 };
+
+/* ---------- Enlaces de Google Drive ---------- */
+function driveInfo(u){
+  u=String(u||'').trim();let m;
+  if(!/^https:\/\/(drive|docs)\.google\.com\//i.test(u))return null;
+  if((m=u.match(/docs\.google\.com\/presentation\/d\/([a-zA-Z0-9_-]{10,})/)))return{driveId:m[1],clase:'slides'};
+  if((m=u.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/)))return{driveId:m[1],clase:'file'};
+  if((m=u.match(/[?&]id=([a-zA-Z0-9_-]{10,})/)))return{driveId:m[1],clase:'file'};
+  return null;
+}
+function driveUrls(a){
+  const id=String(a.driveId||'').replace(/[^a-zA-Z0-9_-]/g,'');
+  return a.clase==='slides'
+    ?{ver:`https://docs.google.com/presentation/d/${id}/embed?start=false&loop=false`,abrir:`https://docs.google.com/presentation/d/${id}/edit?usp=sharing`,bajar:`https://docs.google.com/presentation/d/${id}/export/pptx`}
+    :{ver:`https://drive.google.com/file/d/${id}/preview`,abrir:`https://drive.google.com/file/d/${id}/view?usp=sharing`,bajar:`https://drive.google.com/uc?export=download&id=${id}`};
+}
+$('drfrm').onsubmit=async e=>{
+  e.preventDefault();const nom=$('drnom').value.trim(),inf=driveInfo($('drurl').value);
+  if(!nom){$('drerr').textContent='Escribe el nombre de la presentación.';return}
+  if(!inf){$('drerr').textContent='Ese enlace no es de Google Drive. Copia el vínculo desde Drive con «Compartir → Copiar vínculo».';return}
+  $('drsave').disabled=true;$('drerr').textContent='';
+  try{await addDoc(collection(db,'archivos'),{tipo:'drive',...inf,nombre:nom,sede,anio:canio,mes:cmes,listo:true,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});
+    $('drdlg').close();setProg(`Enlace «${nom}» agregado.`)}
+  catch(x){$('drerr').textContent=ERR(x.code)}
+  $('drsave').disabled=false;
+};
+function verDrive(a){
+  pv=null;pvA=a;$('pvdlg').classList.add('drive');$('pvtit').textContent=a.nombre;$('pvnum').textContent='Vista previa de Google Drive';
+  $('pvslide').removeAttribute('style');$('pvslide').style.width='100%';
+  $('pvslide').innerHTML=`<iframe class="pvframe" src="${driveUrls(a).ver}" allow="autoplay; fullscreen" allowfullscreen title="${esc(a.nombre)}"></iframe>`;
+  $('pvdlg').querySelector('.pvnota').textContent='Si no aparece la vista previa, el archivo puede ser demasiado grande para que Drive lo muestre o no está compartido con «Cualquier persona que tenga el vínculo». Puedes descargarlo o abrirlo en Drive.';
+  $('pvdlg').showModal();
+}
 function resumenCal(S,del){
   const tot=S.reduce((a,s)=>a+s.n,0),ok=S.reduce((a,s)=>a+s.comp,0),inc=tot-ok;
   const hasta=canio<hoyD.getFullYear()?12:canio>hoyD.getFullYear()?0:hoyD.getMonth()+1;
