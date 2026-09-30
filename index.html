@@ -24,8 +24,8 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 #app{max-width:none;padding:0}
 .shell{display:flex;min-height:100vh;min-height:100dvh}
 .side{--sw:280px;width:var(--sw);flex:none;position:sticky;top:0;height:100vh;height:100dvh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:14px;padding:14px 12px 16px;color:#fff;
-  background:linear-gradient(180deg,var(--band2,#a12c2c),color-mix(in srgb,var(--band2,#a12c2c) 82%,#000));transition:width .25s ease;z-index:20;scrollbar-width:thin}
-.side::before{content:"";position:absolute;inset:0 auto 0 0;width:6px;background:var(--band1,#c63b3a);pointer-events:none}
+  background:linear-gradient(180deg,#1e40af,#172554);transition:width .25s ease;z-index:20;scrollbar-width:thin}
+.side::before{content:"";position:absolute;inset:0 auto 0 0;width:6px;background:#3b82f6;pointer-events:none}
 .sidetop{display:flex;align-items:center;gap:10px}
 .sidetgl,.sidemob{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;cursor:pointer}
 .sidetgl:hover{background:rgba(255,255,255,.2)}
@@ -63,6 +63,9 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
   background-size:260% 100%;background-position:140% 0;animation:miBrillo 3s ease-in-out infinite}
 .mi[data-m="cal"]::after{animation-delay:1s}
 .mi[data-m="var"]::after{animation-delay:2s}
+.mi[data-m="km"]::after{animation-delay:3s}
+.kmbar{display:inline-flex;width:28px;justify-content:center;flex:none}
+.kmbar rect{transition:opacity .2s}
 .icv{width:26px;height:26px;margin:0 1px}
 .humo{display:inline-flex;margin-left:auto;flex:none}
 .humo svg{overflow:visible}
@@ -87,6 +90,21 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .vbody>div{flex:1;min-width:220px}
 .vubok{font-size:.85rem;color:var(--ok);font-weight:600}
 .vtabdash{margin-left:auto}
+.kmsem{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.kmsem>div{display:grid;min-width:210px;text-align:center}.kmsem b{font-size:1.05rem}.kmsem small{color:var(--mut)}
+.kmsem .btn{padding:8px 14px}
+.kmt{width:100%;border-collapse:collapse;font-size:.92rem;min-width:760px}
+.kmt th{text-align:left;font-size:.78rem;color:var(--mut);font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.kmt td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle;font-variant-numeric:tabular-nums}
+.kmt .num{text-align:right;white-space:nowrap}
+.kmt .kpl{font-weight:700;letter-spacing:.05em;background:none;border:0;color:var(--acc);cursor:pointer;text-decoration:underline;font:inherit;font-weight:700;padding:0}
+.kmin{display:flex;gap:6px;align-items:center}.kmin input{width:130px;margin:0;text-align:right}.kmin .btn{padding:7px 12px}
+.kmal{font-size:.82rem;line-height:1.3;border-radius:6px;padding:5px 8px;display:inline-block}
+.kmal.r{background:var(--badbg);color:var(--bad);font-weight:600}.kmal.a{background:var(--wipbg);color:var(--wip);font-weight:600}.kmal.o{background:var(--okbg);color:var(--ok)}.kmal.n{color:var(--mut)}
+.kmt tr.al td{background:color-mix(in srgb,var(--wipbg) 45%,transparent)}
+.kmt tr.alr td{background:color-mix(in srgb,var(--badbg) 55%,transparent)}
+.kmsaved{color:var(--mut);font-size:.78rem;display:block}
+#khdlg{width:min(820px,96vw);max-width:none}
 .vdbar{display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin-bottom:12px}.vdbar label{margin:0}.vdbar select{width:auto}.vdbar small{color:var(--mut)}
 .pie{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.pie svg{width:170px;height:170px;flex:none}
 .pleg{display:grid;gap:7px;font-size:.9rem;flex:1;min-width:160px}.pleg div{display:grid;grid-template-columns:14px 1fr auto;gap:8px;align-items:center}.pleg i{width:14px;height:14px;border-radius:3px}.pleg b{font-variant-numeric:tabular-nums}
@@ -124,7 +142,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .mi[aria-expanded="false"]+.sub{display:none}
 .si{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;color:rgba(255,255,255,.82);font:inherit;font-size:.92rem;font-weight:600;padding:8px 10px;border-radius:8px;cursor:pointer}
 .si:hover{background:rgba(255,255,255,.1);color:#fff}
-.si[aria-current="true"],.si[aria-pressed="true"]{background:#fff;color:var(--band2,#a12c2c)}
+.si[aria-current="true"],.si[aria-pressed="true"]{background:#fff;color:#1e40af}
 .mesesb{justify-content:space-between}
 .side .meses{display:grid;grid-template-columns:1fr;gap:2px;margin:2px 0 0 6px}
 .mesesb[aria-expanded="false"]+.meses{display:none}
@@ -132,7 +150,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .side .mes:hover{background:rgba(255,255,255,.1)}
 .side .mes b{font-size:.88rem;font-weight:600}
 .side .mes small{color:rgba(255,255,255,.7);font-size:.72rem;white-space:nowrap}
-.side .mes[aria-pressed="true"]{background:#fff;color:var(--band2,#a12c2c)}
+.side .mes[aria-pressed="true"]{background:#fff;color:#1e40af}
 .side .mes[aria-pressed="true"] small{color:var(--mut)}
 .sidefoot{margin-top:auto;display:grid;gap:2px;padding-top:10px;border-top:1px solid rgba(255,255,255,.2)}
 .sidefoot .si{font-size:.9rem}
@@ -140,7 +158,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .contenido{flex:1;min-width:0;max-width:1120px;margin:0 auto;padding:20px 24px 48px}
 .topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
 .topbar h1{margin:0;font-size:1.45rem;flex:1;min-width:180px}
-.sidemob{display:none;background:var(--band2,#a12c2c);border-color:transparent}
+.sidemob{display:none;background:#1e40af;border-color:transparent}
 /* menú contraído (escritorio) */
 .shell.mini .side{--sw:76px}
 .shell.mini .side .lbl,.shell.mini .side .sidebrand,.shell.mini .side .whobox,.shell.mini .side .sub,.shell.mini .side .chev{display:none}
@@ -323,6 +341,9 @@ textarea{font:inherit;color:inherit;width:100%;margin-top:4px;padding:9px 10px;b
 html.tema-cal{--bg:#eef4ef;--card:#fff;--ink:#16261c;--mut:#5b7062;--line:#d2e2d6;--acc:#1f6b3f;--acc2:#2f8a52;--soft:#e2f1e6;--band1:#2f8a52;--band2:#1f6b3f}
 html.tema-cal[data-theme="dark"]{--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}
 @media (prefers-color-scheme:dark){html.tema-cal:not([data-theme="light"]){--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}}
+html.tema-km{--acc:#1d4ed8;--acc2:#3b82f6;--soft:#e7eefc}
+html.tema-km[data-theme="dark"]{--acc:#3b82f6;--acc2:#60a5fa;--soft:#172554}
+@media (prefers-color-scheme:dark){html.tema-km:not([data-theme="light"]){--acc:#3b82f6;--acc2:#60a5fa;--soft:#172554}}
 html.tema-var{--acc:#b45309;--acc2:#d97706;--soft:#fdf0e1;--band1:#d97706;--band2:#9a4a0b}
 html.tema-var[data-theme="dark"]{--acc:#d97706;--acc2:#f59e0b;--soft:#3a2a17}
 @media (prefers-color-scheme:dark){html.tema-var:not([data-theme="light"]){--acc:#d97706;--acc2:#f59e0b;--soft:#3a2a17}}
@@ -474,6 +495,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 <circle cx="36" cy="26.5" r="4.4" fill="#222"/><circle cx="36" cy="26.5" r="1.8" fill="#bbb"/>
 <rect x="43" y="18" width="2.4" height="2" rx=".6" fill="#f5c542"/></svg></span></button>
     </div>
+    <div class="grp">
+      <button type="button" class="mi" data-m="km" aria-pressed="false" aria-expanded="false" title="Kilometrajes"><span class="kmbar" aria-hidden="true"><svg viewBox="0 0 16 32" width="16" height="30"><rect x="1" y="1" width="14" height="30" rx="4" fill="#0f172a" stroke="rgba(255,255,255,.6)" stroke-width="1"/><rect x="3" y="3.5" width="10" height="5" rx="1.5" fill="#ef4444"/><rect x="3" y="9.5" width="10" height="5" rx="1.5" fill="#f97316"/><rect x="3" y="15.5" width="10" height="5" rx="1.5" fill="#facc15"/><rect x="3" y="21.5" width="10" height="7" rx="1.5" fill="#22c55e"/></svg></span><span class="lbl">Kilometrajes</span></button>
+    </div>
   </nav>
   <div class="sidefoot">
     <button type="button" class="si" id="adminb" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Admin</span></button>
@@ -486,6 +510,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <button type="button" class="sidemob" id="sidemob" aria-label="Abrir menú"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   <h1 id="vtit">Novedades / Solucionadas</h1>
   <button class="btn" id="add">+ Añadir novedad</button>
+  <button class="btn ghost" id="kmvehb" hidden>Vehículos y alertas</button>
   <button class="btn ghost" id="vcondb" hidden>Conductores</button>
   <button class="btn" id="vadd" hidden>+ Reportar varada</button>
 </div>
@@ -498,12 +523,26 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </div>
 <div id="list"></div>
 </div>
+<section id="kmv" hidden aria-label="Kilometrajes">
+  <div class="kmsem">
+    <button type="button" class="btn ghost" id="kmprev" aria-label="Semana anterior">‹</button>
+    <div><b id="kmsemt"></b><small id="kmsems"></small></div>
+    <button type="button" class="btn ghost" id="kmnext" aria-label="Semana siguiente">›</button>
+    <button type="button" class="btn ghost" id="kmhoy">Semana actual</button>
+  </div>
+  <div class="kpis" id="kmkpi"></div>
+  <div class="tabs" role="group" aria-label="Filtrar vehículos" id="kmtabs">
+    <button class="tab" data-kf="todos" aria-pressed="true">Todos</button>
+    <button class="tab" data-kf="pend" aria-pressed="false">Pendientes</button>
+    <button class="tab" data-kf="alerta" aria-pressed="false">Con alerta</button>
+  </div>
+  <div id="kmlist"></div>
+</section>
 <section id="varv" hidden aria-label="Varadas">
   <div class="kpis" id="vkpi"></div>
   <div class="tabs" role="group" aria-label="Filtrar varadas" id="vtabs">
     <button class="tab" data-vf="todas" aria-pressed="true">Todas</button>
     <button class="tab" data-vf="varado" aria-pressed="false">Varados ahora</button>
-    <button class="tab" data-vf="operativo" aria-pressed="false">Operativos</button>
     <button class="tab vtabdash" data-vf="dash" aria-pressed="false" id="vdashb" hidden>Dashboard</button>
   </div>
   <div id="vlist"></div>
@@ -693,6 +732,25 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="cnsave">Guardar conductores</button></div>
   </form>
 </dialog>
+<dialog id="kmdlg">
+  <form id="kmfrm">
+    <h2 id="kmtit">Vehículos para kilometraje</h2>
+    <p class="mnota">Las placas de esta lista aparecerán cada semana para registrar su kilometraje en esta sede.</p>
+    <label>Añadir placas a mano<textarea id="kmtxt" rows="3" placeholder="Una placa por línea, o separadas por comas"></textarea></label>
+    <div class="mall"><button type="button" class="btn ghost" id="kmadd">Añadir a la lista</button><button type="button" class="btn ghost" id="kmxls">Subir Excel</button><button type="button" class="btn ghost" id="kmcal">Usar placas de Calibraciones</button><input type="file" id="kmfile" accept=".xlsx,.xls,.csv" hidden></div>
+    <small class="mnota">El Excel debe tener una sola columna con las placas. El título de la columna es opcional.</small>
+    <div class="phead"><b id="kmcount">0 placas</b><button type="button" class="del" id="kmclear">Quitar todas</button></div>
+    <div class="plist" id="kmplist"></div>
+    <label style="margin-top:14px">Tolerancia para la alerta de recorrido (%)<input type="number" id="kmtol" min="0" max="500" step="1" inputmode="numeric"></label>
+    <small class="mnota">Se muestra una alerta si lo recorrido esta semana difiere de lo recorrido la semana pasada en más de este porcentaje. Con 0, cualquier diferencia genera alerta.</small>
+    <div class="err" id="kmerr" role="alert"></div>
+    <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="kmsave">Guardar</button></div>
+  </form>
+</dialog>
+<dialog id="khdlg">
+  <div class="pvtop"><div><b id="khtit">Historial</b><small>Últimas 12 semanas</small></div><button type="button" class="btn" onclick="this.closest('dialog').close()">Cerrar</button></div>
+  <div class="tscroll" id="khbody"></div>
+</dialog>
 <dialog id="mapdlg">
   <div class="pvtop"><div><b id="maptit">Ubicación</b><small id="mapsub"></small></div><div class="hb"><a class="btn ghost" id="mapab" target="_blank" rel="noopener">Abrir en Google Maps</a><button type="button" class="btn" onclick="this.closest('dialog').close()">Cerrar</button></div></div>
   <iframe id="mapfr" class="pvframe" title="Mapa de la ubicación" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
@@ -856,6 +914,8 @@ function salir(){
   if(unsubA){unsubA();unsubA=null}
   if(unsubV){unsubV();unsubV=null}
   if(unsubL){unsubL();unsubL=null}
+  if(unsubK){unsubK();unsubK=null}
+  kms=[];
   listas={};
   varadas=[];
   archivos=[];
@@ -882,7 +942,8 @@ async function entrar(user){
   unsubC=onSnapshot(collection(db,'calibraciones'),snap=>{
     cals=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal();
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
-  unsubL=onSnapshot(collection(db,'listas'),snap=>{listas={};snap.docs.forEach(d=>listas[d.id]=d.data());if($('vdlg').open&&!vedit)llenarConductores($('vcon').value)},()=>{});
+  unsubK=onSnapshot(collection(db,'kilometrajes'),snap=>{kms=snap.docs.map(d=>({id:d.id,...d.data()}));renderKm()},x=>{if(!$('kmv').hidden)$('kmlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
+  unsubL=onSnapshot(collection(db,'listas'),snap=>{listas={};snap.docs.forEach(d=>listas[d.id]=d.data());renderKm();if($('vdlg').open&&!vedit)llenarConductores($('vcon').value)},()=>{});
   unsubV=onSnapshot(collection(db,'varadas'),snap=>{varadas=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderVar()},x=>{if(!$('varv').hidden)$('vlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
   unsubA=onSnapshot(collection(db,'archivos'),snap=>{archivos=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal()},()=>{});
   unsubM=onSnapshot(collection(db,'metas'),snap=>{metas={};snap.docs.forEach(d=>metas[d.id]=d.data());renderCal()},()=>{});
@@ -929,12 +990,13 @@ const hoyD=new Date();let canio=hoyD.getFullYear(),cmes=0,metas={},unsubM=null;
 const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
-  const cal=m==='cal',ini=m==='ini',vr=m==='var';
-  document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km';
+  document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('listv').hidden=cal||ini||vr;
-  $('add').hidden=cal||ini||vr||!canEdit();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
+  if(cal||ini||vr||km)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('listv').hidden=cal||ini||vr||km;
+  $('add').hidden=cal||ini||vr||km||!canEdit();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';
+  if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
   if(cal)renderCal();
   titulo();
@@ -945,9 +1007,9 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden;
-  $('vtit').textContent=ini?'':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!cal&&$('dash').hidden);
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden;
+  $('vtit').textContent=ini?'':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!cal&&$('dash').hidden);
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
 function cerrarMenuMovil(){document.querySelector('.shell').classList.remove('abierto');$('velo').hidden=true}
@@ -1758,6 +1820,107 @@ function dashVar(delTodo){
       <div class="g"><b>${so.length}</b><span>Varadas solucionadas</span></div><div class="g"><b>${so.length?durTxt(prom(so)):'—'}</b><span>Tiempo promedio hasta solucionar</span></div></div>
     <div class="tcomp"><div><h3 style="color:var(--bad)">Reportadas: más tiempo sin solucionar</h3>${lista(ab,'r')}</div><div><h3 style="color:var(--ok)">Solucionadas: más tiempo fuera de servicio</h3>${lista(so,'g')}</div></div>`;
 }
+
+/* ---------- Kilometrajes ---------- */
+let kms=[],unsubK=null,kmFiltro='todos',kmSem=null,kmpl=[];
+const fISO=ms=>{const d=new Date(ms),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`};
+const semISO=ms=>fISO(semanaDe(ms));
+const semMs=iso=>{const[y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d).getTime()};
+const semMas=(iso,k)=>{const d=new Date(semMs(iso));d.setDate(d.getDate()+7*k);return fISO(d.getTime())};
+const fCorta=iso=>{const[y,m,d]=iso.split('-');return `${d}/${m}/${y}`};
+const kmN=n=>Number(n).toLocaleString('es-CO')+' km';
+function kmCfg(){return listas['km_'+sede]||{}}
+function kmPlacas(){return [...(kmCfg().placas||[])].sort(cmpP)}
+function kmTol(){const t=Number(kmCfg().tolerancia);return Number.isFinite(t)&&t>=0?t:10}
+const kmId=(pl,sem)=>`${sede}_${pl}_${sem}`;
+function lectura(pl,sem){return kms.find(k=>k.id===kmId(pl,sem))||null}
+function anteriorA(pl,sem){return kms.filter(k=>(k.sede||SEDES[0])===sede&&k.placa===pl&&k.semana<sem).sort((a,b)=>b.semana.localeCompare(a.semana))[0]||null}
+function evaluarKm(pl,sem,km){
+  const ant=anteriorA(pl,sem);if(!ant)return{nivel:'n',txt:'Primera lectura registrada: no hay semana anterior para comparar.'};
+  const sp=semMas(sem,-1),etiqueta=ant.semana===sp?'la semana pasada':`la última lectura (semana del ${fCorta(ant.semana)})`;
+  if(km<ant.km)return{nivel:'r',txt:`Es MENOR que ${etiqueta} (${kmN(ant.km)}). Revisa el dato.`,ant};
+  if(km===ant.km)return{nivel:'a',txt:`Es IGUAL a ${etiqueta} (${kmN(ant.km)}): el vehículo no registra recorrido.`,ant,rec:0};
+  const rec=km-ant.km,ant2=anteriorA(pl,ant.semana);
+  if(ant2&&ant.km>ant2.km){const recAnt=ant.km-ant2.km,dif=(rec-recAnt)/recAnt*100;
+    if(Math.abs(dif)>kmTol())return{nivel:'a',txt:`Recorrió ${kmN(rec)}; ${ant.semana===sp?'la semana pasada':'en la lectura anterior'} recorrió ${kmN(recAnt)} (${dif>0?'+':''}${Math.round(dif)}%). Es diferente al recorrido anterior.`,ant,rec};
+    return{nivel:'o',txt:`Recorrió ${kmN(rec)}, similar a ${ant.semana===sp?'la semana pasada':'la lectura anterior'} (${kmN(recAnt)}).`,ant,rec}}
+  return{nivel:'o',txt:`Recorrió ${kmN(rec)} desde ${etiqueta}.`,ant,rec};
+}
+function renderKm(){
+  if(!cur||$('kmv').hidden)return;
+  if(!kmSem)kmSem=semISO(Date.now());
+  const act=semISO(Date.now()),fin=new Date(semMs(kmSem));fin.setDate(fin.getDate()+6);
+  $('kmsemt').textContent=`Semana del ${fCorta(kmSem)} al ${fCorta(fISO(fin.getTime()))}`;
+  $('kmsems').textContent=kmSem===act?'Semana actual':kmSem<act?'Semana anterior':'Semana futura';
+  $('kmnext').disabled=kmSem>=act;
+  const pls=kmPlacas();
+  if(!pls.length){$('kmkpi').innerHTML='';$('kmlist').innerHTML=`<div class="empty">Aún no hay vehículos en la lista de ${esc(sede)}.${cur.rol==='admin'?' Agrégalos con «Vehículos y alertas».':' Pídele al administrador que los agregue.'}</div>`;return}
+  const filas=pls.map(pl=>{const l=lectura(pl,kmSem),ev=l?evaluarKm(pl,kmSem,l.km):null,ant=anteriorA(pl,kmSem);return{pl,l,ev,ant}});
+  const reg=filas.filter(f=>f.l).length,alr=filas.filter(f=>f.ev&&(f.ev.nivel==='r'||f.ev.nivel==='a')).length,tot=filas.reduce((a,f)=>a+(f.ev&&f.ev.rec>0?f.ev.rec:0),0);
+  $('kmkpi').innerHTML=[[pls.length,'Vehículos en la lista',''],[`${reg} de ${pls.length}`,'Registrados esta semana',''],[pls.length-reg,'Pendientes',pls.length-reg?'badc':''],[alr,'Con alerta',alr?'badc':''],[kmN(tot),'Recorrido total de la semana','']]
+    .map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
+  const vis=filas.filter(f=>kmFiltro==='todos'||(kmFiltro==='pend'?!f.l:f.ev&&(f.ev.nivel==='r'||f.ev.nivel==='a')));
+  if(!vis.length){$('kmlist').innerHTML=`<div class="empty">${kmFiltro==='pend'?'Todos los vehículos tienen el kilometraje de esta semana.':'No hay alertas esta semana.'}</div>`;return}
+  const fut=kmSem>act,borr={};
+  $('kmlist').querySelectorAll('[data-kin][data-dirty]').forEach(i=>borr[i.dataset.kin]=i.value);
+  $('kmlist').innerHTML=`<div class="tscroll"><table class="kmt"><thead><tr><th>Placa</th><th class="num">Lectura anterior</th><th>Kilometraje de esta semana</th><th class="num">Recorrido</th><th>Alerta</th></tr></thead><tbody>
+  ${vis.map(f=>{const niv=f.ev?f.ev.nivel:'';return `<tr class="${niv==='r'?'alr':niv==='a'?'al':''}" data-pl="${esc(f.pl)}">
+    <td><button type="button" class="kpl" data-kh="${esc(f.pl)}" title="Ver historial">${esc(f.pl)}</button></td>
+    <td class="num">${f.ant?`${kmN(f.ant.km)}<span class="kmsaved">Semana del ${fCorta(f.ant.semana)}</span>`:'—'}</td>
+    <td><div class="kmin"><input type="number" min="0" step="1" inputmode="numeric" aria-label="Kilometraje de ${esc(f.pl)}" value="${f.l?f.l.km:''}" data-kin="${esc(f.pl)}" ${fut?'disabled':''}><button type="button" class="btn" data-ks="${esc(f.pl)}" ${fut?'disabled':''}>${f.l?'Actualizar':'Guardar'}</button></div>
+      ${f.l?`<span class="kmsaved">Registrado por ${esc(f.l.por||'—')}${f.l.editadoPor?` · editado por ${esc(f.l.editadoPor)}`:''}</span>`:''}</td>
+    <td class="num">${f.ev&&f.ev.rec!==undefined?kmN(f.ev.rec):'—'}</td>
+    <td data-kal="${esc(f.pl)}">${f.ev?`<span class="kmal ${niv}">${esc(f.ev.txt)}</span>`:'<span class="kmal n">Pendiente</span>'}</td></tr>`}).join('')}
+  </tbody></table></div><small class="mnota" style="margin-top:8px">Tolerancia de la alerta de recorrido: ${kmTol()}%. Toca una placa para ver su historial.</small>`;
+  Object.entries(borr).forEach(([pl,v])=>{const i=$('kmlist').querySelector(`[data-kin="${CSS.escape(pl)}"]`);if(i){i.value=v;i.dataset.dirty='1';i.dispatchEvent(new Event('input',{bubbles:true}))}});
+}
+const kmLimpiar=()=>$('kmlist').querySelectorAll('[data-dirty]').forEach(i=>delete i.dataset.dirty);
+$('kmprev').onclick=()=>{kmLimpiar();kmSem=semMas(kmSem,-1);renderKm()};
+$('kmnext').onclick=()=>{const a=semISO(Date.now());if(kmSem<a){kmLimpiar();kmSem=semMas(kmSem,1);renderKm()}};
+$('kmhoy').onclick=()=>{kmLimpiar();kmSem=semISO(Date.now());renderKm()};
+$('kmtabs').onclick=e=>{const b=e.target.closest('[data-kf]');if(!b)return;kmFiltro=b.dataset.kf;$('kmtabs').querySelectorAll('[data-kf]').forEach(x=>x.setAttribute('aria-pressed',x===b));renderKm()};
+$('kmlist').addEventListener('input',e=>{const i=e.target.closest('[data-kin]');if(!i)return;if(e.isTrusted)i.dataset.dirty='1';const pl=i.dataset.kin,td=$('kmlist').querySelector(`[data-kal="${CSS.escape(pl)}"]`);
+  if(i.value===''){td.innerHTML='<span class="kmal n">Pendiente</span>';return}const ev=evaluarKm(pl,kmSem,Math.round(Number(i.value)));td.innerHTML=`<span class="kmal ${ev.nivel}">${esc(ev.txt)}</span>`});
+async function guardarKm(pl,btn){
+  const i=$('kmlist').querySelector(`[data-kin="${CSS.escape(pl)}"]`),v=i.value.trim();
+  if(v===''||!(Number(v)>=0)){i.focus();alert('Escribe el kilometraje del vehículo.');return}
+  const km=Math.round(Number(v)),ev=evaluarKm(pl,kmSem,km);
+  if((ev.nivel==='r'||ev.nivel==='a')&&!confirm(`Alerta para ${pl}:\n\n${ev.txt}\n\n¿Guardar este kilometraje de todos modos?`))return;
+  const prev=lectura(pl,kmSem);btn.disabled=true;delete i.dataset.dirty;
+  try{await setDoc(doc(db,'kilometrajes',kmId(pl,kmSem)),{sede,placa:pl,semana:kmSem,km,alerta:ev.nivel==='r'||ev.nivel==='a'?ev.txt:'',
+      por:prev?prev.por:cur.nombre,uid:prev?prev.uid:cur.uid,...(prev?{editadoPor:cur.nombre}:{}),creado:prev&&prev.creado?prev.creado:serverTimestamp()})}
+  catch(x){alert(ERR(x.code));btn.disabled=false;i.dataset.dirty='1'}
+}
+$('kmlist').addEventListener('click',e=>{const s=e.target.closest('[data-ks]');if(s){guardarKm(s.dataset.ks,s);return}
+  const h=e.target.closest('[data-kh]');if(h)historialKm(h.dataset.kh)});
+$('kmlist').addEventListener('keydown',e=>{const i=e.target.closest('[data-kin]');if(i&&e.key==='Enter'){e.preventDefault();guardarKm(i.dataset.kin,$('kmlist').querySelector(`[data-ks="${CSS.escape(i.dataset.kin)}"]`))}});
+function historialKm(pl){
+  const ls=kms.filter(k=>(k.sede||SEDES[0])===sede&&k.placa===pl).sort((a,b)=>b.semana.localeCompare(a.semana)).slice(0,12);
+  $('khtit').textContent=`Historial de kilometraje · ${pl}`;
+  $('khbody').innerHTML=ls.length?`<table class="kmt" style="min-width:560px"><thead><tr><th>Semana</th><th class="num">Kilometraje</th><th class="num">Recorrido</th><th>Alerta</th><th>Registrado por</th></tr></thead><tbody>${ls.map(k=>{const ev=evaluarKm(pl,k.semana,k.km);
+    return `<tr class="${ev.nivel==='r'?'alr':ev.nivel==='a'?'al':''}"><td>${fCorta(k.semana)}</td><td class="num">${kmN(k.km)}</td><td class="num">${ev.rec!==undefined?kmN(ev.rec):'—'}</td><td><span class="kmal ${ev.nivel}">${esc(ev.txt)}</span></td><td>${esc(k.editadoPor||k.por||'—')}</td></tr>`}).join('')}</tbody></table>`
+    :'<p class="empty">Este vehículo aún no tiene kilometrajes registrados.</p>';
+  $('khdlg').showModal();
+}
+function pintarKmP(){$('kmcount').textContent=kmpl.length+' placa'+(kmpl.length===1?'':'s');$('kmclear').hidden=!kmpl.length;
+  $('kmplist').innerHTML=kmpl.length?kmpl.map((p,k)=>`<span class="pc2">${esc(p)}<button type="button" data-kk="${k}" aria-label="Quitar ${esc(p)}">×</button></span>`).join(''):'<span class="vacio">Aún no hay placas. Añádelas a mano, sube un Excel o usa las de Calibraciones.</span>'}
+function sumarKmP(arr){const antes=kmpl.length,st=new Set(kmpl);arr.map(normP).filter(p=>p.length>=4&&p.length<=10&&!/^PLACAS?$/.test(p)).forEach(p=>{if(!st.has(p)){st.add(p);kmpl.push(p)}});kmpl.sort(cmpP);pintarKmP();return kmpl.length-antes}
+$('kmvehb').onclick=()=>{if(cur.rol!=='admin')return;kmpl=kmPlacas();$('kmtxt').value='';$('kmerr').textContent='';$('kmtol').value=kmTol();$('kmtit').textContent=`Vehículos para kilometraje · ${sede}`;pintarKmP();$('kmdlg').showModal()};
+$('kmadd').onclick=()=>{const n=sumarKmP($('kmtxt').value.split(/[\n,;\t]+/));$('kmerr').textContent=n?'':'No se agregaron placas nuevas. Revisa que no estén repetidas.';if(n)$('kmtxt').value=''};
+$('kmcal').onclick=()=>{const src=Object.values(metas).filter(m=>(m.sede||'')===sede).flatMap(m=>m.placas||[]);const n=sumarKmP(src);$('kmerr').textContent=src.length?(n?`Se agregaron ${n} placa${n===1?'':'s'} de Calibraciones.`:'Las placas de Calibraciones ya están en la lista.'):'No hay placas cargadas en Calibraciones para esta sede.'};
+$('kmxls').onclick=()=>$('kmfile').click();
+$('kmfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;$('kmerr').textContent='Leyendo archivo…';
+  try{let vals;if(/\.csv$/i.test(f.name))vals=(await f.text()).split(/\r?\n/).map(l=>l.split(/[;,\t]/)[0]);
+    else{const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]];vals=X.utils.sheet_to_json(ws,{header:1,blankrows:false}).map(r=>r&&r[0])}
+    const n=sumarKmP(vals.filter(v=>v!==undefined&&v!==null));$('kmerr').textContent=n?`Se agregaron ${n} placa${n===1?'':'s'} del archivo.`:'El archivo no tenía placas nuevas.'}
+  catch(x){$('kmerr').textContent='No se pudo leer el archivo. Usa un Excel (.xlsx) con las placas en la primera columna.'}};
+$('kmplist').onclick=e=>{const b=e.target.closest('[data-kk]');if(b){kmpl.splice(Number(b.dataset.kk),1);pintarKmP()}};
+$('kmclear').onclick=()=>{if(confirm('¿Quitar todas las placas de la lista?')){kmpl=[];pintarKmP()}};
+$('kmfrm').onsubmit=async e=>{e.preventDefault();const t=Number($('kmtol').value);
+  if(!(t>=0&&t<=500)){$('kmerr').textContent='La tolerancia debe ser un número entre 0 y 500.';return}
+  $('kmsave').disabled=true;
+  try{await setDoc(doc(db,'listas','km_'+sede),{tipo:'kilometraje',sede,placas:kmpl,tolerancia:Math.round(t),por:cur.nombre,editado:serverTimestamp()});$('kmdlg').close()}
+  catch(x){$('kmerr').textContent=ERR(x.code)}$('kmsave').disabled=false};
 $('vper').onchange=()=>renderVar();
 
 /* ---------- Sistema "Otro" y lista de conductores ---------- */
@@ -2115,6 +2278,8 @@ $('sede').onchange=e=>{
   if($('mdlg').open)$('mdlg').close();
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
+  if($('kmdlg').open)$('kmdlg').close();
+  renderKm();
   renderVar();
   aplicarSede();renderCal();
 };
