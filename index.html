@@ -486,6 +486,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <button type="button" class="sidemob" id="sidemob" aria-label="Abrir menú"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   <h1 id="vtit">Novedades / Solucionadas</h1>
   <button class="btn" id="add">+ Añadir novedad</button>
+  <button class="btn ghost" id="vcondb" hidden>Conductores</button>
   <button class="btn" id="vadd" hidden>+ Reportar varada</button>
 </div>
 <section id="inicio" class="inicio" hidden aria-label="Inicio"><h2 class="flotabig" aria-label="Flota Llanos"><span aria-hidden="true" class="flw"><span class="pal"><span style="--i:0">F</span><span style="--i:1">L</span><span style="--i:2">O</span><span style="--i:3">T</span><span style="--i:4">A</span></span><span class="pal"><span style="--i:6">L</span><span style="--i:7">L</span><span style="--i:8">A</span><span style="--i:9">N</span><span style="--i:10">O</span><span style="--i:11">S</span></span></span></h2></section>
@@ -518,6 +519,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     </div>
     <div class="dc" style="margin-bottom:14px"><h2>Comportamiento por semana</h2><small>Varadas reportadas y solucionadas en las últimas 12 semanas</small><div id="vd-sem"></div></div>
     <div class="dc"><h2>Tiempos más altos: reportadas vs. solucionadas</h2><small>Las 5 varadas que llevan más tiempo sin solucionar frente a las 5 solucionadas que más tiempo estuvieron fuera de servicio</small><div id="vd-tie"></div></div>
+    <div class="xl"><p><b>Descargar datos y gráficas de varadas</b>Excel con las gráficas del dashboard, las tablas de resumen y la base de datos completa de varadas del periodo elegido.</p>
+      <div class="hb"><button type="button" class="btn" id="vxls">Descargar Excel</button></div><p class="err" id="vxerr" role="alert" style="width:100%;margin:0"></p></div>
   </div>
 </section>
 <section id="calv" hidden aria-label="Calibraciones">
@@ -668,12 +671,26 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       <label><input type="radio" name="vtal" value="si"> Sí</label><label><input type="radio" name="vtal" value="no" checked> No</label></fieldset>
     <div class="row">
       <label>Sistema afectado<select id="vsis" required><option value="">Elige el sistema…</option></select></label>
-      <label>Nombre del conductor<input id="vcon" maxlength="80" autocomplete="off" list="vconlist"></label>
+      <label>Conductor<select id="vcon"><option value="">Elige el conductor…</option></select></label>
     </div>
-    <datalist id="vconlist"></datalist>
+    <label id="vsisow" hidden>¿Cuál sistema?<input id="vsiso" maxlength="60" autocomplete="off" placeholder="Escribe el sistema afectado"></label>
+    <small class="mnota" id="vconnota" hidden></small>
     <label>Descripción de la falla (opcional)<textarea id="vdesc" rows="2" maxlength="500"></textarea></label>
     <div class="err" id="verr" role="alert"></div>
     <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="vsave">Guardar varada</button></div>
+  </form>
+</dialog>
+<dialog id="cndlg">
+  <form id="cnfrm">
+    <h2 id="cntit">Conductores</h2>
+    <p class="mnota">Estos nombres aparecerán en la lista «Conductor» al reportar una varada en esta sede.</p>
+    <label>Añadir conductores a mano<textarea id="cntxt" rows="3" placeholder="Un nombre por línea. Ej: Carlos Ruiz"></textarea></label>
+    <div class="mall"><button type="button" class="btn ghost" id="cnadd">Añadir a la lista</button><button type="button" class="btn ghost" id="cnxls">Subir Excel</button><input type="file" id="cnfile" accept=".xlsx,.xls,.csv" hidden></div>
+    <small class="mnota">El Excel debe tener una sola columna con los nombres. El título de la columna es opcional.</small>
+    <div class="phead"><b id="cncount">0 conductores</b><button type="button" class="del" id="cnclear">Quitar todos</button></div>
+    <div class="plist" id="cnlist"></div>
+    <div class="err" id="cnerr" role="alert"></div>
+    <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="cnsave">Guardar conductores</button></div>
   </form>
 </dialog>
 <dialog id="mapdlg">
@@ -838,6 +855,8 @@ function salir(){
   if(unsubM){unsubM();unsubM=null}
   if(unsubA){unsubA();unsubA=null}
   if(unsubV){unsubV();unsubV=null}
+  if(unsubL){unsubL();unsubL=null}
+  listas={};
   varadas=[];
   archivos=[];
   metas={};cmes=0;
@@ -863,6 +882,7 @@ async function entrar(user){
   unsubC=onSnapshot(collection(db,'calibraciones'),snap=>{
     cals=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal();
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
+  unsubL=onSnapshot(collection(db,'listas'),snap=>{listas={};snap.docs.forEach(d=>listas[d.id]=d.data());if($('vdlg').open&&!vedit)llenarConductores($('vcon').value)},()=>{});
   unsubV=onSnapshot(collection(db,'varadas'),snap=>{varadas=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderVar()},x=>{if(!$('varv').hidden)$('vlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
   unsubA=onSnapshot(collection(db,'archivos'),snap=>{archivos=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal()},()=>{});
   unsubM=onSnapshot(collection(db,'metas'),snap=>{metas={};snap.docs.forEach(d=>metas[d.id]=d.data());renderCal()},()=>{});
@@ -914,7 +934,7 @@ function modulo(m){
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
   if(cal||ini||vr)showDash(false);
   $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('listv').hidden=cal||ini||vr;
-  $('add').hidden=cal||ini||vr||!canEdit();$('vadd').hidden=!vr||!canEdit();
+  $('add').hidden=cal||ini||vr||!canEdit();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
   if(cal)renderCal();
   titulo();
@@ -1005,7 +1025,7 @@ const hueHex=p=>{const h=Math.min(100,Math.max(0,p||0))*1.2/360,s=.62,l=.40;cons
 function hojaXML(filas,{cols=[],congelar=false,filtro=null,dibujo=false}={}){
   const cel=(v,r,c)=>{const ref=colL(c)+(r+1);if(v===null||v===undefined||v==='')return '';
     let s=0,x=v;if(typeof v==='object'&&!Array.isArray(v)){s=v.s||0;x=('f' in v)?v:('d' in v)?v:v.v}
-    if(x&&typeof x==='object'&&'f' in x)return `<c r="${ref}" s="${s}"><f>${XE(x.f)}</f>${x.v!==undefined?`<v>${x.v}</v>`:''}</c>`;
+    if(x&&typeof x==='object'&&'f' in x)return `<c r="${ref}" s="${s}"${typeof x.v==='string'?' t="str"':''}><f>${XE(x.f)}</f>${x.v!==undefined?`<v>${XE(x.v)}</v>`:''}</c>`;
     if(x&&typeof x==='object'&&'d' in x){const n=serialF(x.d);return n===null?`<c r="${ref}" s="${s}" t="inlineStr"><is><t>${XE(x.d||'')}</t></is></c>`:`<c r="${ref}" s="${s}"><v>${n}</v></c>`}
     if(typeof x==='number')return `<c r="${ref}" s="${s}"><v>${x}</v></c>`;
     if(x===null||x===undefined||x==='')return s?`<c r="${ref}" s="${s}"/>`:'';
@@ -1682,12 +1702,12 @@ function renderVar(){
 }
 
 /* ---------- Dashboard de varadas ---------- */
-const SISTEMAS=['Motor','Frenos','Suspensión','Sistema eléctrico','Transmisión / caja','Llantas','Dirección','Refrigeración','Combustible','Embrague','Carrocería','Otro'];
+const SISTEMAS=['Motor','Frenos','Suspensión','Sistema eléctrico','Transmisión / caja','Llantas','Dirección','Refrigeración','Combustible','Embrague','Carrocería','Vidrios / Espejos','Cinturones','Sillas','Otro'];
 $('vsis').insertAdjacentHTML('beforeend',SISTEMAS.map(x=>`<option>${x}</option>`).join(''));
 const sinTilde=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 function sistemaDe(v){if(v.sistema)return v.sistema;const d=sinTilde(v.desc);if(!d)return 'Sin clasificar';
   const M=[['Motor',['motor']],['Frenos',['fren']],['Suspensión',['suspens','amortig','muelle']],['Sistema eléctrico',['electr','bateri','alternador','arranque']],['Transmisión / caja',['caja','transmis','cardan','diferencial']],
-    ['Llantas',['llanta','pinch','neumat']],['Dirección',['direcc']],['Refrigeración',['refriger','radiador','recalent','temperatura']],['Combustible',['combust','acpm','gasolin','inyector']],['Embrague',['embrag','clutch']],['Carrocería',['carrocer','vidrio','puerta']]];
+    ['Llantas',['llanta','pinch','neumat']],['Dirección',['direcc']],['Refrigeración',['refriger','radiador','recalent','temperatura']],['Combustible',['combust','acpm','gasolin','inyector']],['Embrague',['embrag','clutch']],['Vidrios / Espejos',['vidrio','espejo','parabrisas']],['Cinturones',['cinturon']],['Sillas',['silla','asiento']],['Carrocería',['carrocer','puerta','latoneria']]];
   for(const[n,ks]of M)if(ks.some(k=>d.includes(k)))return n;return 'Otro'}
 const nomProp=t=>String(t||'').trim().toLowerCase().replace(/(^|\s)\S/g,m=>m.toUpperCase());
 const PAL=['#b45309','#2563eb','#15803d','#9333ea','#dc2626','#6b7280'];
@@ -1739,6 +1759,151 @@ function dashVar(delTodo){
     <div class="tcomp"><div><h3 style="color:var(--bad)">Reportadas: más tiempo sin solucionar</h3>${lista(ab,'r')}</div><div><h3 style="color:var(--ok)">Solucionadas: más tiempo fuera de servicio</h3>${lista(so,'g')}</div></div>`;
 }
 $('vper').onchange=()=>renderVar();
+
+/* ---------- Sistema "Otro" y lista de conductores ---------- */
+function vSisOtro(){const o=$('vsis').value==='Otro';$('vsisow').hidden=!o;$('vsiso').required=o;if(o&&!$('vsiso').value)setTimeout(()=>$('vsiso').focus(),0)}
+$('vsis').onchange=vSisOtro;
+let listas={},unsubL=null,cnl=[];
+const cmpN=(a,b)=>a.localeCompare(b,'es',{sensitivity:'base'});
+function conductoresDe(){return [...((listas['conductores_'+sede]||{}).nombres||[])].sort(cmpN)}
+function llenarConductores(actual){
+  const l=conductoresDe(),extra=actual&&!l.some(n=>cmpN(n,actual)===0);
+  $('vcon').innerHTML=`<option value="">${l.length?'Elige el conductor…':'Sin conductores cargados'}</option>`+(extra?`<option value="${esc(actual)}">${esc(actual)} (no está en la lista)</option>`:'')+l.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  $('vcon').value=actual||'';$('vcon').required=l.length>0;
+  $('vconnota').hidden=l.length>0;$('vconnota').textContent=cur&&cur.rol==='admin'?'Aún no hay conductores cargados para esta sede. Cárgalos con el botón «Conductores».':'Aún no hay conductores cargados para esta sede. Pídele al administrador que los cargue.';
+}
+function pintarCn(){
+  $('cncount').textContent=cnl.length+' conductor'+(cnl.length===1?'':'es');$('cnclear').hidden=!cnl.length;
+  $('cnlist').innerHTML=cnl.length?cnl.map((p,k)=>`<span class="pc2">${esc(p)}<button type="button" data-ck="${k}" aria-label="Quitar ${esc(p)}">×</button></span>`).join(''):'<span class="vacio">Aún no hay conductores. Añádelos a mano o sube un Excel.</span>';
+}
+function sumarCn(arr){const antes=cnl.length;
+  arr.map(x=>nomProp(String(x??'').replace(/\s+/g,' '))).filter(x=>x.length>=3&&x.length<=80&&!/^(conductor|conductores|nombre|nombres)$/i.test(x))
+    .forEach(x=>{if(!cnl.some(y=>cmpN(y,x)===0))cnl.push(x)});
+  cnl.sort(cmpN);pintarCn();return cnl.length-antes}
+$('vcondb').onclick=()=>{if(cur.rol!=='admin')return;cnl=conductoresDe();$('cntxt').value='';$('cnerr').textContent='';$('cntit').textContent=`Conductores · ${sede}`;pintarCn();$('cndlg').showModal()};
+$('cnadd').onclick=()=>{const n=sumarCn($('cntxt').value.split(/[\n;]+/));$('cnerr').textContent=n?'':'No se agregaron nombres nuevos. Revisa que no estén repetidos.';if(n)$('cntxt').value=''};
+$('cnxls').onclick=()=>$('cnfile').click();
+$('cnfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;$('cnerr').textContent='Leyendo archivo…';
+  try{let vals;if(/\.csv$/i.test(f.name))vals=(await f.text()).split(/\r?\n/).map(l=>l.split(/[;,\t]/)[0]);
+    else{const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]];vals=X.utils.sheet_to_json(ws,{header:1,blankrows:false}).map(r=>r&&r[0])}
+    const n=sumarCn(vals.filter(v=>v!==undefined&&v!==null));$('cnerr').textContent=n?`Se agregaron ${n} conductor${n===1?'':'es'} del archivo.`:'El archivo no tenía nombres nuevos. Revisa que estén en la primera columna.'}
+  catch(x){$('cnerr').textContent='No se pudo leer el archivo. Usa un Excel (.xlsx) con los nombres en la primera columna, o revisa tu conexión.'}};
+$('cnlist').onclick=e=>{const b=e.target.closest('[data-ck]');if(b){cnl.splice(Number(b.dataset.ck),1);pintarCn()}};
+$('cnclear').onclick=()=>{if(confirm('¿Quitar todos los conductores de la lista?')){cnl=[];pintarCn()}};
+$('cnfrm').onsubmit=async e=>{e.preventDefault();$('cnsave').disabled=true;
+  try{await setDoc(doc(db,'listas','conductores_'+sede),{tipo:'conductores',sede,nombres:cnl,por:cur.nombre,editado:serverTimestamp()});$('cndlg').close()}
+  catch(x){$('cnerr').textContent=ERR(x.code)}$('cnsave').disabled=false};
+
+/* ---------- Excel de varadas (datos + gráficas nativas) ---------- */
+function graficaV({titulo,tipo,cats,series,colores=[],coloresPunto=null,num='General',lbl='#,##0;;'}){
+  const sc=a=>`<c:strCache><c:ptCount val="${a.length}"/>${a.map((v,i)=>`<c:pt idx="${i}"><c:v>${XE(v)}</c:v></c:pt>`).join('')}</c:strCache>`;
+  const nc=a=>`<c:numCache><c:formatCode>${num}</c:formatCode><c:ptCount val="${a.length}"/>${a.map((v,i)=>`<c:pt idx="${i}"><c:v>${v}</c:v></c:pt>`).join('')}</c:numCache>`;
+  const fill=h=>`<c:spPr><a:solidFill><a:srgbClr val="${h}"/></a:solidFill></c:spPr>`;
+  const txt=(sz,b,col)=>`<c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="${sz}" b="${b?1:0}"><a:solidFill><a:srgbClr val="${col}"/></a:solidFill></a:defRPr></a:pPr><a:endParaRPr lang="es-CO"/></a:p></c:txPr>`;
+  const pie=tipo==='pie',hor=tipo==='bar';
+  const ser=series.map((s,k)=>`<c:ser><c:idx val="${k}"/><c:order val="${k}"/><c:tx><c:strRef><c:f>${s.nombreRef}</c:f>${sc([s.nombre])}</c:strRef></c:tx>
+${pie?'':fill(colores[k]||'B45309')}${pie?'':'<c:invertIfNegative val="0"/>'}
+${(coloresPunto||[]).map((h,i)=>`<c:dPt><c:idx val="${i}"/>${pie?'':'<c:invertIfNegative val="0"/>'}<c:bubble3D val="0"/>${fill(h)}</c:dPt>`).join('')}
+<c:dLbls><c:numFmt formatCode="${pie?'0%':lbl}" sourceLinked="0"/><c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr>${txt(900,true,pie?'FFFFFF':'333333')}<c:dLblPos val="${pie?'bestFit':'outEnd'}"/><c:showLegendKey val="0"/><c:showVal val="${pie?0:1}"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="${pie?1:0}"/><c:showBubbleSize val="0"/>${pie?'<c:showLeaderLines val="1"/>':''}</c:dLbls>
+<c:cat><c:strRef><c:f>${s.catRef}</c:f>${sc(cats)}</c:strRef></c:cat><c:val><c:numRef><c:f>${s.valRef}</c:f>${nc(s.valores)}</c:numRef></c:val></c:ser>`).join('');
+  const ejes=pie?'':`<c:catAx><c:axId val="61010"/><c:scaling><c:orientation val="${hor?'maxMin':'minMax'}"/></c:scaling><c:delete val="0"/><c:axPos val="${hor?'l':'b'}"/><c:numFmt formatCode="General" sourceLinked="0"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:spPr><a:ln w="9525"><a:solidFill><a:srgbClr val="BFBFBF"/></a:solidFill></a:ln></c:spPr>${txt(900,false,'555555')}<c:crossAx val="61020"/><c:crosses val="autoZero"/><c:auto val="1"/><c:lblAlgn val="ctr"/><c:lblOffset val="100"/><c:noMultiLvlLbl val="0"/></c:catAx>
+<c:valAx><c:axId val="61020"/><c:scaling><c:orientation val="minMax"/><c:min val="0"/></c:scaling><c:delete val="0"/><c:axPos val="${hor?'b':'l'}"/><c:majorGridlines><c:spPr><a:ln w="6350"><a:solidFill><a:srgbClr val="E6E6E6"/></a:solidFill></a:ln></c:spPr></c:majorGridlines><c:numFmt formatCode="General" sourceLinked="0"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:spPr><a:ln><a:noFill/></a:ln></c:spPr>${txt(900,false,'555555')}<c:crossAx val="61010"/><c:crosses val="${hor?'max':'autoZero'}"/><c:crossBetween val="between"/></c:valAx>`;
+  const cuerpo=pie?`<c:pieChart><c:varyColors val="1"/>${ser}<c:firstSliceAng val="0"/></c:pieChart>`
+    :`<c:barChart><c:barDir val="${hor?'bar':'col'}"/><c:grouping val="clustered"/><c:varyColors val="0"/>${ser}<c:gapWidth val="60"/><c:axId val="61010"/><c:axId val="61020"/></c:barChart>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><c:roundedCorners val="0"/>
+<c:chart><c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1300" b="1"/></a:pPr><a:r><a:rPr lang="es-CO" sz="1300" b="1"><a:solidFill><a:srgbClr val="2B1B1B"/></a:solidFill></a:rPr><a:t>${XE(titulo)}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title><c:autoTitleDeleted val="0"/>
+<c:plotArea><c:layout/>${cuerpo}${ejes}</c:plotArea>${pie||series.length>1?'<c:legend><c:legendPos val="'+(pie?'r':'b')+'"/><c:overlay val="0"/></c:legend>':''}<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart>
+<c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln><a:noFill/></a:ln></c:spPr></c:chartSpace>`;
+}
+const serialDT=v=>{if(!v)return null;const[d,t='00:00']=String(v).split('T');const[y,m,dd]=d.split('-').map(Number);const[h,mi]=t.split(':').map(Number);if(!y)return null;return (Date.UTC(y,m-1,dd,h||0,mi||0)-Date.UTC(1899,11,30))/864e5};
+async function construirXlsxVar(JSZip,D){
+  const h=t=>({v:t,s:1}),C=(v,s=4)=>({v,s});
+  // Resumen: bloques en columnas
+  const R=[];const put=(r,c,v)=>{(R[r]=R[r]||[])[c]=v};
+  const bloque=(c0,titulos,filas)=>{titulos.forEach((t,k)=>put(0,c0+k,h(t)));filas.forEach((f,i)=>f.forEach((v,k)=>put(i+1,c0+k,v)))};
+  bloque(0,['Sistema afectado','Varadas'],D.sistemas.map(([l,n])=>[C(l,11),C(n)]));
+  bloque(3,['Placa','Varadas'],D.placas.map(([l,n])=>[C(l,11),C(n)]));
+  bloque(6,['Conductor','Varadas'],D.conductores.map(([l,n])=>[C(l,11),C(n)]));
+  bloque(9,['Día','Varadas'],D.dias.map(([l,n])=>[C(l,11),C(n)]));
+  bloque(12,['Semana (lunes)','Reportadas','Solucionadas'],D.semanas.map(w=>[C(w.l,11),C(w.rep),C(w.sol)]));
+  bloque(16,['Varada (placa · fecha)','Horas','Estado'],D.tiempos.map(t=>[C(t.l,11),C(t.h),C(t.estado,t.estado==='Sin solucionar'?6:5)]));
+  const filasR=Array.from({length:Math.max(...R.map((_,i)=>i))+1},(_,i)=>R[i]||[]);
+  const ult=n=>n+1;// última fila de datos (1-based): n filas + encabezado
+  // Gráficas
+  const graf=[[{v:`Varadas · ${D.sede} · ${D.periodo}`,s:7}],[{v:`Generado el ${D.generado} por ${D.por}. Los datos de las gráficas están en la hoja «Resumen».`,s:10}]];
+  // Base de datos
+  const reg=[[h('Placa'),h('Sede'),h('Fecha y hora de la varada'),h('Operativo nuevamente'),h('Estado'),h('Horas fuera de servicio'),h('Tiempo fuera de servicio'),h('Sistema afectado'),h('Conductor'),h('¿Se llevó al taller?'),h('Ubicación'),h('Coordenadas'),h('Descripción'),h('Reportado por'),h('Última edición'),h('Foto')]];
+  D.registros.forEach(v=>{const op=!!v.fo,hrs=v.horas,url=v.url;
+    reg.push([C(v.placa,11),C(D.sede),v.fvS!==null?{v:v.fvS,s:12}:C(v.fv),op&&v.foS!==null?{v:v.foS,s:12}:C(op?v.fo:'Sigue varado',op?4:6),C(op?'Operativo':'Varado',op?5:6),C(hrs),C(v.durTxt),C(v.sistema),C(v.conductor||''),C(v.taller==='si'?'Sí':'No'),
+      url?{f:`HYPERLINK("${url.replace(/"/g,'%22')}","Abrir en Google Maps")`,v:'Abrir en Google Maps',s:4}:C(''),C(v.coord||''),C(v.desc||''),C(v.por||''),C(v.editadoPor||''),C(v.foto?'Sí':'No')])});
+  const hojas=[['Gráficas',hojaXML(graf,{cols:[16],dibujo:true})],['Resumen',hojaXML(filasR,{cols:[20,9,3,12,9,3,24,9,3,8,9,3,15,12,13,3,26,9,15],congelar:true})],
+    ['Varadas',hojaXML(reg,{cols:[11,14,20,20,12,12,16,20,24,12,22,20,34,22,22,7],congelar:true,filtro:`A1:P${Math.max(2,reg.length)}`})]];
+  const est=ESTILOS.replace('<numFmts count="1"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/></numFmts>','<numFmts count="2"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/><numFmt numFmtId="165" formatCode="dd/mm/yyyy hh:mm"/></numFmts>')
+    .replace('<cellXfs count="12">','<cellXfs count="13">').replace('</cellXfs>','<xf numFmtId="165" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf>\n</cellXfs>');
+  const g=[];const col=(c,n)=>`'Resumen'!$${colL(c)}$2:$${colL(c)}$${Math.max(2,ult(n))}`,hd=c=>`'Resumen'!$${colL(c)}$1`;
+  const PALX=['B45309','2563EB','15803D','9333EA','DC2626','6B7280','0891B2','CA8A04','BE185D','4B5563','65A30D','7C3AED','EA580C','0F766E','A16207'];
+  const n1=D.sistemas.length,n2=D.placas.length,n3=D.conductores.length,n5=D.semanas.length,n6=D.tiempos.length;
+  g.push(graficaV({titulo:'Sistemas más afectados',tipo:'pie',cats:D.sistemas.map(x=>x[0]),coloresPunto:D.sistemas.map((_,i)=>PALX[i%PALX.length]),series:[{nombre:'Varadas',nombreRef:hd(1),catRef:col(0,n1),valRef:col(1,n1),valores:D.sistemas.map(x=>x[1])}]}));
+  g.push(graficaV({titulo:'Placas más varadas',tipo:'bar',cats:D.placas.map(x=>x[0]),colores:['B45309'],series:[{nombre:'Varadas',nombreRef:hd(4),catRef:col(3,n2),valRef:col(4,n2),valores:D.placas.map(x=>x[1])}]}));
+  g.push(graficaV({titulo:'Conductores con más varadas',tipo:'col',cats:D.conductores.map(x=>x[0]),colores:['B45309'],series:[{nombre:'Varadas',nombreRef:hd(7),catRef:col(6,n3),valRef:col(7,n3),valores:D.conductores.map(x=>x[1])}]}));
+  g.push(graficaV({titulo:'Varadas por día de la semana',tipo:'col',cats:D.dias.map(x=>x[0]),colores:['D97706'],series:[{nombre:'Varadas',nombreRef:hd(10),catRef:col(9,7),valRef:col(10,7),valores:D.dias.map(x=>x[1])}]}));
+  g.push(graficaV({titulo:'Comportamiento por semana',tipo:'col',cats:D.semanas.map(x=>x.l),colores:['C0392B','1F7A4D'],series:[
+    {nombre:'Reportadas',nombreRef:hd(13),catRef:col(12,n5),valRef:col(13,n5),valores:D.semanas.map(x=>x.rep)},{nombre:'Solucionadas',nombreRef:hd(14),catRef:col(12,n5),valRef:col(14,n5),valores:D.semanas.map(x=>x.sol)}]}));
+  g.push(graficaV({titulo:'Tiempos más altos (horas): sin solucionar vs. solucionadas',tipo:'bar',lbl:'#,##0.0;;',cats:D.tiempos.map(x=>x.l),colores:['C0392B'],coloresPunto:D.tiempos.map(t=>t.estado==='Sin solucionar'?'C0392B':'1F7A4D'),series:[{nombre:'Horas',nombreRef:hd(17),catRef:col(16,n6),valRef:col(17,n6),valores:D.tiempos.map(x=>x.h)}]}));
+  const z=new JSZip();
+  z.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${hojas.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}
+<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>
+${g.map((_,i)=>`<Override PartName="/xl/charts/chart${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>`).join('')}</Types>`);
+  z.file('_rels/.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
+  z.file('xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>${hojas.map(([n],i)=>`<sheet name="${XE(n)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets>
+<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">'Varadas'!$A$1:$P$${Math.max(2,reg.length)}</definedName></definedNames><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
+  z.file('xl/_rels/workbook.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hojas.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${hojas.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
+  z.file('xl/styles.xml',est);
+  hojas.forEach(([,x],i)=>z.file(`xl/worksheets/sheet${i+1}.xml`,x));
+  z.file('xl/worksheets/_rels/sheet1.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/></Relationships>`);
+  const anc=(id)=>{const c0=((id-1)%2)*9,r0=3+Math.floor((id-1)/2)*20;return `<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>${c0}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${r0}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>${c0+8}</xdr:col><xdr:colOff>400000</xdr:colOff><xdr:row>${r0+18}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="${id+1}" name="Gráfico ${id}"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr><xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" r:id="rId${id}"/></a:graphicData></a:graphic></xdr:graphicFrame><xdr:clientData/></xdr:twoCellAnchor>`};
+  z.file('xl/drawings/drawing1.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${g.map((_,i)=>anc(i+1)).join('')}</xdr:wsDr>`);
+  z.file('xl/drawings/_rels/drawing1.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${g.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart${i+1}.xml"/>`).join('')}</Relationships>`);
+  g.forEach((x,i)=>z.file(`xl/charts/chart${i+1}.xml`,x));
+  return z;
+}
+function datosVar(){
+  const per=$('vper').value,now=Date.now(),y0=new Date();
+  const desde=per==='30'?now-30*864e5:per==='90'?now-90*864e5:per==='anio'?new Date(y0.getFullYear(),0,1).getTime():-Infinity;
+  const todo=varadas.filter(v=>(v.sede||SEDES[0])===sede),del=todo.filter(v=>dtMs(v.fv)>=desde);
+  const DIAS=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'],cd=DIAS.map(()=>0);del.forEach(v=>{cd[(new Date(dtMs(v.fv)).getDay()+6)%7]++});
+  const s0=semanaDe(now),sem=Array.from({length:12},(_,k)=>s0-(11-k)*7*864e5);
+  const ab=del.filter(v=>!v.fo).map(v=>({v,t:now-dtMs(v.fv),e:'Sin solucionar'})).sort((a,b)=>b.t-a.t).slice(0,5);
+  const so=del.filter(v=>v.fo).map(v=>({v,t:dtMs(v.fo)-dtMs(v.fv),e:'Solucionada'})).filter(x=>x.t>=0).sort((a,b)=>b.t-a.t).slice(0,5);
+  const hrs=ms=>Math.round(ms/36e5*10)/10;
+  return{sede,por:cur.nombre,generado:new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}),periodo:$('vper').selectedOptions[0].textContent,
+    sistemas:cuenta(del,sistemaDe),placas:cuenta(del,v=>normP(v.placa)).slice(0,5),conductores:cuenta(del,v=>v.conductor?nomProp(v.conductor):'').slice(0,3),
+    dias:DIAS.map((d,i)=>[d,cd[i]]),
+    semanas:sem.map(w=>{const d=new Date(w);return{l:`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`,rep:todo.filter(v=>semanaDe(dtMs(v.fv))===w).length,sol:todo.filter(v=>v.fo&&semanaDe(dtMs(v.fo))===w).length}}),
+    tiempos:[...ab,...so].map(x=>({l:`${normP(x.v.placa)} · ${dtTxt(x.v.fv).slice(0,10)}`,h:hrs(x.t),estado:x.e})),
+    registros:del.slice().sort((a,b)=>dtMs(b.fv)-dtMs(a.fv)).map(v=>{const op=!!v.fo,t=op?dtMs(v.fo)-dtMs(v.fv):now-dtMs(v.fv),u=v.ubic||{};
+      return{placa:normP(v.placa),fv:dtTxt(v.fv),fo:dtTxt(v.fo),fvS:serialDT(v.fv),foS:serialDT(v.fo),horas:t>=0?hrs(t):'',durTxt:t>=0?durTxt(t):'',sistema:sistemaDe(v),conductor:v.conductor?nomProp(v.conductor):'',taller:v.taller,
+        url:mapsUrl(u)||'',coord:tieneCoord(u)?`${u.lat.toFixed(6)}, ${u.lng.toFixed(6)}`:'',desc:v.desc||'',por:v.por||'',editadoPor:v.editadoPor||'',foto:!!v.foto}})};
+}
+$('vxls').onclick=async()=>{
+  if(!cur||cur.rol!=='admin')return;const b=$('vxls'),t=b.textContent;b.disabled=true;b.textContent='Preparando…';$('vxerr').textContent='';
+  try{const D=datosVar();if(!D.registros.length){$('vxerr').textContent='No hay varadas en el periodo elegido.';throw 0}
+    const JSZip=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js'],'JSZip');
+    const z=await construirXlsxVar(JSZip,D),blob=await z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`varadas_${sede}_${new Date().toISOString().slice(0,10)}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  }catch(x){if(x!==0){console.error(x);$('vxerr').textContent='No se pudo generar el archivo. Revisa tu conexión a internet e inténtalo de nuevo.'}}
+  b.disabled=false;b.textContent=t;
+};
+
 setInterval(()=>{if($('varv').hidden||document.hidden)return;const a=Date.now();document.querySelectorAll('#vlist [data-vdur]').forEach(d=>d.textContent=durTxt(a-dtMs(d.dataset.vdur)))},60000);
 $('vtabs').onclick=e=>{const b=e.target.closest('[data-vf]');if(!b)return;vfiltro=b.dataset.vf;$('vtabs').querySelectorAll('[data-vf]').forEach(x=>x.setAttribute('aria-pressed',x===b));renderVar()};
 function vUbiEstado(){const c=coordsDe($('vubi').value),t=$('vubi').value.trim();vcoords=c;
@@ -1778,8 +1943,11 @@ function abrirVar(v){
   vedit=v||null;$('vfrm').reset();$('verr').textContent='';
   $('vdlgt').textContent=v?`Editar varada · ${v.placa}`:`Reportar varada · ${sede}`;
   $('vplaca').value=v?v.placa:'';$('vfv').value=v?v.fv:ahoraDT();$('vfo').value=v?v.fo||'':'';
-  $('vsis').value=v?sistemaDe(v):'';if(v&&$('vsis').value==='Sin clasificar')$('vsis').value='';$('vcon').value=v?v.conductor||'':'';
-  $('vconlist').innerHTML=[...new Set(varadas.map(x=>x.conductor).filter(Boolean))].sort().map(n=>`<option value="${esc(n)}">`).join('');
+  const sd=v?sistemaDe(v):'';
+  if(!sd||sd==='Sin clasificar'){$('vsis').value='';$('vsiso').value=''}
+  else if(SISTEMAS.includes(sd)&&sd!=='Otro'){$('vsis').value=sd;$('vsiso').value=''}
+  else{$('vsis').value='Otro';$('vsiso').value=sd==='Otro'?'':sd}
+  vSisOtro();llenarConductores(v?v.conductor||'':'');
   $('vubi').value=v&&v.ubic?(v.ubic.texto||''):'';$('vdesc').value=v?v.desc||'':'';
   document.querySelector(`input[name="vtal"][value="${v&&v.taller==='si'?'si':'no'}"]`).checked=true;
   vfotoD=v?v.foto||'':'';vfotoMarca=v?!!v.marca:false;vPintarFoto();vUbiEstado();$('vdlg').showModal();
@@ -1791,8 +1959,9 @@ $('vfrm').onsubmit=async e=>{
   if(!placa||!fv){$('verr').textContent='Escribe la placa y la fecha y hora de la varada.';return}
   if(fo&&dtMs(fo)<dtMs(fv)){$('verr').textContent='La fecha en que quedó operativo no puede ser anterior a la varada.';return}
   const t=$('vubi').value.trim().slice(0,500),c=coordsDe(t),ubic={texto:t,lat:c?c.lat:null,lng:c?c.lng:null};
-  const sistema=$('vsis').value,conductor=$('vcon').value.trim().replace(/\s+/g,' ');
+  let sistema=$('vsis').value;const conductor=$('vcon').value.trim();
   if(!sistema){$('verr').textContent='Elige el sistema afectado.';return}
+  if(sistema==='Otro'){sistema=$('vsiso').value.trim().replace(/\s+/g,' ');if(!sistema){$('verr').textContent='Escribe cuál es el sistema afectado.';return}sistema=sistema.charAt(0).toUpperCase()+sistema.slice(1)}
   const data={placa,fv,fo,taller,ubic,foto:vfotoD,marca:vfotoMarca,desc:$('vdesc').value.trim(),sistema,conductor};
   if(JSON.stringify(data).length>950000){$('verr').textContent='La foto pesa demasiado. Quita la foto e inténtalo de nuevo.';return}
   $('vsave').disabled=true;$('verr').textContent='';
@@ -1945,6 +2114,7 @@ $('sede').onchange=e=>{
   if($('cdlg').open)$('cdlg').close();
   if($('mdlg').open)$('mdlg').close();
   if($('vdlg').open)$('vdlg').close();
+  if($('cndlg').open)$('cndlg').close();
   renderVar();
   aplicarSede();renderCal();
 };
