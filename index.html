@@ -297,6 +297,7 @@ html.tema-cal .kpi b.badc{color:var(--bad)}
 /* presentaciones */
 .pfile{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}
 .pfile:last-child{border-bottom:0}
+.pico.pdf{background:#d93025}
 .pico.drv{background:#1a73e8;font-size:.68rem}
 a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .pico{width:38px;height:44px;border-radius:6px;background:#c4461f;color:#fff;display:grid;place-items:center;font-weight:800;font-size:.8rem;flex:none}
@@ -313,6 +314,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .pvtop small{color:var(--mut);display:block}
 .pvstage{background:#3a3f3c;border-radius:8px;padding:10px;display:grid;place-items:center;min-height:200px}
 #pvslide{box-shadow:0 6px 24px rgba(0,0,0,.35);max-width:100%}
+#pvslide canvas{display:block;background:#fff}
 .pvstage .empty{color:#e5e5e5;border-color:#777}
 .pvnav{display:flex;align-items:center;gap:10px}
 .pvdots{flex:1;display:flex;gap:6px;overflow-x:auto;padding:4px 2px}
@@ -414,7 +416,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="chead"><h2 id="ctit" hidden></h2><span id="csub"></span><button type="button" class="btn ghost" id="cback">Ver resumen del año</button></div>
     <div id="calist"></div>
     <div id="cppt"></div>
-    <input type="file" id="pptin" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" hidden>
+    <input type="file" id="pptin" accept=".pdf,application/pdf" hidden>
   </div>
 </section>
 <section id="dash" hidden aria-label="Dashboard">
@@ -1316,7 +1318,8 @@ return{abrir};
 /* ---------- Presentaciones por mes (se guardan en partes dentro de Firestore) ---------- */
 let archivos=[],unsubA=null,pptMsg='',subiendo=false;const pptCache={};
 const setProg=t=>{pptMsg=t;if($('pprog'))$('pprog').textContent=t};
-const PARTE=675000,MAXPPT=20*1024*1024;
+const PARTE=675000,MAXPPT=70*1024*1024;
+const esPdf=a=>a.formato==='pdf'||/\.pdf$/i.test(a.nombre||'');
 const tam=b=>b>=1048576?(b/1048576).toFixed(1).replace('.',',')+' MB':Math.max(1,Math.round(b/1024))+' KB';
 const aB64=u=>{let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)};
 const deB64=s=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u};
@@ -1325,16 +1328,16 @@ function renderPpt(){
     .sort((a,b)=>(b.creado?.seconds||0)-(a.creado?.seconds||0));
   const f=d=>d&&d.toDate?d.toDate().toLocaleDateString('es-CO'):'';
   $('cppt').innerHTML=`<div class="dc" style="margin-top:14px">
-    <div class="chead" style="margin:0"><h2 style="font-size:1.05rem">Presentaciones de ${MESES[cmes-1]}</h2><div class="hb"><button type="button" class="btn ghost" id="drvadd">Agregar enlace de Drive</button><button type="button" class="btn" id="pptup"${subiendo?' disabled':''}>${subiendo?'Cargando…':'Cargar PowerPoint'}</button></div></div>
-    <small>${MESES[cmes-1]} ${canio} · ${esc(sede)}. Hasta 20 MB: usa «Cargar PowerPoint». Archivos más grandes (hasta 500 MB o más): súbelos a Google Drive y usa «Agregar enlace de Drive».</small>
+    <div class="chead" style="margin:0"><h2 style="font-size:1.05rem">Documentos de ${MESES[cmes-1]}</h2><div class="hb"><button type="button" class="btn ghost" id="drvadd">Agregar enlace de Drive</button><button type="button" class="btn" id="pptup"${subiendo?' disabled':''}>${subiendo?'Cargando…':'Cargar PDF'}</button></div></div>
+    <small>${MESES[cmes-1]} ${canio} · ${esc(sede)}. PDF de hasta 70 MB: usa «Cargar PDF». Presentaciones u otros archivos más grandes: súbelos a Google Drive y usa «Agregar enlace de Drive».</small>
     <div class="pprog" id="pprog" role="status">${esc(pptMsg)}</div>
     ${fs.length?fs.map(a=>a.tipo==='drive'?`<div class="pfile"><span class="pico drv" aria-hidden="true">Drive</span>
       <div class="pinfo"><b>${esc(a.nombre)}</b><small>Enlace de Google Drive · Agregado por ${esc(a.por||'—')}${a.creado?' el '+f(a.creado):''}</small></div>
       <div class="acts"><button type="button" class="btn ghost" data-pver="${a.id}">Ver</button><a class="btn ghost" href="${driveUrls(a).abrir}" target="_blank" rel="noopener">Abrir en Drive</a><a class="btn ghost" href="${driveUrls(a).bajar}" target="_blank" rel="noopener">Descargar</a>${cur.rol==='admin'?`<button type="button" class="del" data-pdel="${a.id}">Eliminar</button>`:''}</div></div>`
-      :`<div class="pfile"><span class="pico" aria-hidden="true">PPT</span>
+      :`<div class="pfile"><span class="pico${esPdf(a)?' pdf':''}" aria-hidden="true">${esPdf(a)?'PDF':'PPT'}</span>
       <div class="pinfo"><b>${esc(a.nombre)}</b><small>${tam(a.tamano||0)} · Cargado por ${esc(a.por||'—')}${a.creado?' el '+f(a.creado):''}${a.listo?'':' · <span style="color:var(--bad);font-weight:700">Carga incompleta</span>'}</small></div>
       <div class="acts">${a.listo?`<button type="button" class="btn ghost" data-pver="${a.id}">Ver</button><button type="button" class="btn ghost" data-pdl="${a.id}">Descargar</button>`:''}${cur.rol==='admin'?`<button type="button" class="del" data-pdel="${a.id}">Eliminar</button>`:''}</div></div>`).join('')
-      :`<p class="empty" style="margin:8px 0 0">Aún no hay presentaciones en este mes. Usa «Cargar PowerPoint» o «Agregar enlace de Drive» para agregar la primera.</p>`}
+      :`<p class="empty" style="margin:8px 0 0">Aún no hay documentos en este mes. Usa «Cargar PDF» o «Agregar enlace de Drive» para agregar el primero.</p>`}
   </div>`;
 }
 async function bytesPpt(a,prog){
@@ -1347,36 +1350,66 @@ async function bytesPpt(a,prog){
 }
 async function subirPpt(file){
   if(subiendo)return;
-  if(!/\.pptx$/i.test(file.name)){setProg('Solo se pueden cargar archivos PowerPoint en formato .pptx. Si tienes un .ppt, ábrelo en PowerPoint y guárdalo como .pptx.');return}
-  if(file.size>MAXPPT){setProg(`El archivo pesa ${tam(file.size)}. El máximo es 20 MB: comprime las imágenes en PowerPoint (Archivo → Comprimir imágenes) e inténtalo de nuevo.`);return}
+  if(!/\.pdf$/i.test(file.name)){setProg('Solo se pueden cargar archivos PDF. Si tienes una presentación o un documento, guárdalo como PDF (Archivo → Guardar como → PDF) o súbelo a Google Drive.');return}
+  if(file.size>MAXPPT){setProg(`El archivo pesa ${tam(file.size)}. El máximo es 70 MB: comprímelo (por ejemplo, al guardarlo como PDF elige «Tamaño mínimo») o súbelo a Google Drive.`);return}
   subiendo=true;renderPpt();
   try{
-    const u=new Uint8Array(await file.arrayBuffer()),n=Math.ceil(u.length/PARTE);
-    const ref=doc(collection(db,'archivos'));
+    const u=new Uint8Array(await file.arrayBuffer());
+    if(String.fromCharCode(...u.subarray(0,5))!=='%PDF-'){subiendo=false;setProg('El archivo no es un PDF válido.');renderPpt();return}
+    const n=Math.ceil(u.length/PARTE),ref=doc(collection(db,'archivos'));
     setProg(`Cargando ${file.name}… 0%`);
-    await setDoc(ref,{sede,anio:canio,mes:cmes,nombre:file.name,tamano:u.length,partes:n,listo:false,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});
-    for(let k=0;k<n;k++){
+    await setDoc(ref,{sede,anio:canio,mes:cmes,nombre:file.name,formato:'pdf',tamano:u.length,partes:n,listo:false,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});
+    let hechos=0,sig=0;
+    const trabajador=async()=>{while(sig<n){const k=sig++;
       await setDoc(doc(db,'archivos',ref.id,'partes',String(k).padStart(3,'0')),{i:k,d:aB64(u.subarray(k*PARTE,(k+1)*PARTE))});
-      setProg(`Cargando ${file.name}… ${Math.round((k+1)/n*100)}%`);
-    }
+      hechos++;setProg(`Cargando ${file.name}… ${Math.round(hechos/n*100)}%`)}};
+    await Promise.all(Array.from({length:Math.min(4,n)},trabajador));
     pptCache[ref.id]=u;await updateDoc(ref,{listo:true});
     setProg(`«${file.name}» quedó cargado.`);
   }catch(x){setProg('No se pudo cargar el archivo. '+ERR(x.code))}
   subiendo=false;if(!$('cmesv').hidden)renderPpt();
 }
 $('pptin').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)subirPpt(f)};
-function bajarPpt(a,u){const b=new Blob([u],{type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
+function bajarPpt(a,u){const b=new Blob([u],{type:esPdf(a)?'application/pdf':'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
   const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download=a.nombre||'presentacion.pptx';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(l.href),3000)}
 let pv=null,pvI=0,pvA=null;
 async function pvMostrar(i){
   if(!pv)return;pvI=Math.max(0,Math.min(pv.n-1,i));
-  const st=$('pvstage'),w=Math.max(260,st.clientWidth-20),maxH=Math.max(200,window.innerHeight*.66),ancho=Math.min(w,maxH*pv.W/pv.H);
-  try{await pv.render(pvI,$('pvslide'),Math.floor(ancho))}catch(x){console.error(x);$('pvslide').innerHTML='<div class="empty">No se pudo mostrar esta diapositiva. Descarga el archivo para verla.</div>'}
-  $('pvnum').textContent=`Diapositiva ${pvI+1} de ${pv.n}`;
+  const st=$('pvstage'),w=Math.max(260,st.clientWidth-20),maxH=Math.max(220,window.innerHeight*(pv.pdf?.72:.66)),ancho=Math.min(w,maxH*pv.W/pv.H);
+  try{if(pv.pdf)await pv.render(pvI,$('pvslide'),Math.floor(w),Math.floor(maxH));else await pv.render(pvI,$('pvslide'),Math.floor(ancho))}
+  catch(x){if(x&&x.name==='RenderingCancelledException')return;console.error(x);$('pvslide').innerHTML=`<div class="empty">No se pudo mostrar esta ${pv.pdf?'página':'diapositiva'}. Descarga el archivo para verla.</div>`}
+  $('pvnum').textContent=`${pv.pdf?'Página':'Diapositiva'} ${pvI+1} de ${pv.n}`;
   $('pvprev').disabled=pvI===0;$('pvnext').disabled=pvI===pv.n-1;
   $('pvdots').querySelectorAll('button').forEach((b,k)=>{b.setAttribute('aria-current',k===pvI);if(k===pvI)b.scrollIntoView({block:'nearest',inline:'center'})});
 }
+let pdfLib=null;
+async function cargarPdfjs(){
+  if(pdfLib)return pdfLib;
+  const fuentes=['https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/','https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/'];
+  for(const f of fuentes){try{const lib=await import(f+'pdf.min.mjs');lib.GlobalWorkerOptions.workerSrc=f+'pdf.worker.min.mjs';return pdfLib=lib}catch(x){}}
+  throw new Error('pdfjs');
+}
+async function abrirPdf(u){
+  const lib=await cargarPdfjs(),d=await lib.getDocument({data:u.slice()}).promise,v=(await d.getPage(1)).getViewport({scale:1});let tarea=null;
+  return{pdf:true,W:v.width,H:v.height,n:d.numPages,async render(i,cont,w,maxH){
+    if(tarea){try{tarea.cancel()}catch(x){}}
+    const pg=await d.getPage(i+1),v1=pg.getViewport({scale:1}),sc=Math.min(w/v1.width,maxH/v1.height),dpr=Math.min(2,window.devicePixelRatio||1),vp=pg.getViewport({scale:sc*dpr});
+    const c=document.createElement('canvas');c.width=Math.floor(vp.width);c.height=Math.floor(vp.height);c.style.width=Math.floor(vp.width/dpr)+'px';c.style.height=Math.floor(vp.height/dpr)+'px';
+    tarea=pg.render({canvasContext:c.getContext('2d'),viewport:vp,canvas:c});await tarea.promise;tarea=null;
+    cont.removeAttribute('style');cont.replaceChildren(c)}};
+}
+async function verPdf(a){
+  $('pvdlg').classList.remove('drive');$('pvdlg').querySelector('.pvnota').textContent='Usa las flechas del teclado o los números para pasar de página.';
+  pv=null;pvA=a;$('pvtit').textContent=a.nombre;$('pvnum').textContent='';$('pvdots').innerHTML='';
+  $('pvslide').removeAttribute('style');$('pvslide').innerHTML='<div class="empty">Cargando documento…</div>';$('pvdlg').showModal();
+  try{
+    const u=await bytesPpt(a);pv=await abrirPdf(u);
+    $('pvdots').innerHTML=Array.from({length:pv.n},(_,k)=>`<button type="button" data-pi="${k}" aria-label="Página ${k+1}">${k+1}</button>`).join('');
+    await pvMostrar(0);
+  }catch(x){console.error(x);$('pvslide').innerHTML=`<div class="empty">No se pudo abrir el documento${x.message==='incompleto'?' porque la carga quedó incompleta':''}. Revisa tu conexión o descarga el archivo.</div>`}
+}
 async function verPpt(a){
+  if(esPdf(a))return verPdf(a);
   $('pvdlg').classList.remove('drive');$('pvdlg').querySelector('.pvnota').textContent='Vista previa: algunas animaciones, efectos o fuentes especiales pueden verse distinto. Descarga el archivo para verlo exactamente como fue creado.';
   pv=null;pvA=a;$('pvtit').textContent=a.nombre;$('pvnum').textContent='';$('pvdots').innerHTML='';
   $('pvslide').removeAttribute('style');$('pvslide').innerHTML='<div class="empty">Cargando presentación…</div>';$('pvdlg').showModal();
