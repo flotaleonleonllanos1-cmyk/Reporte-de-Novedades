@@ -30,7 +30,18 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .sidetgl,.sidemob{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;cursor:pointer}
 .sidetgl:hover{background:rgba(255,255,255,.2)}
 .ic{width:20px;height:20px;flex:none}
-.sidebrand{font-weight:300;letter-spacing:.22em;font-size:.95rem;white-space:nowrap}
+.sidebrand{font:inherit;font-weight:300;letter-spacing:.22em;font-size:.95rem;white-space:nowrap;background:none;border:0;color:#fff;cursor:pointer;padding:6px 4px;border-radius:6px}
+.sidebrand:hover{background:rgba(255,255,255,.1)}
+.inicio{min-height:calc(100vh - 150px);min-height:calc(100dvh - 150px);display:grid;place-items:center;text-align:center;padding:10px 0}
+.flotabig{margin:0;font-size:clamp(3.2rem,14vw,7.5rem);font-weight:800;line-height:1.05}
+.flotabig .flw{display:flex;flex-wrap:wrap;justify-content:center;column-gap:.35em;row-gap:.1em}
+.flotabig .pal{display:inline-flex;letter-spacing:.06em;white-space:nowrap}
+.flotabig .pal span{display:inline-block;color:var(--acc);opacity:.3;animation:letraLuz 2s ease-in-out infinite;animation-delay:calc(var(--i)*.1s)}
+@keyframes letraLuz{
+  0%,30%,100%{opacity:.3;color:var(--acc);text-shadow:none}
+  12%{opacity:1;color:var(--acc2);text-shadow:0 0 10px rgba(255,214,120,.95),0 0 28px var(--acc2),0 0 60px rgba(255,200,90,.45)}
+}
+@media (prefers-reduced-motion:reduce){.flotabig .pal span{animation:none;opacity:1}}
 .side .whobox{display:grid;gap:8px;margin:0;justify-items:stretch;padding:10px;border-radius:10px;background:rgba(0,0,0,.14)}
 .side .who{color:rgba(255,255,255,.9);font-size:.85rem;text-align:left;width:auto;margin:0}
 .sedel{margin:0;color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600}
@@ -73,6 +84,8 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 @media (max-width:900px){
   .side{position:fixed;left:0;top:0;bottom:0;transform:translateX(-105%);transition:transform .25s ease;box-shadow:8px 0 30px rgba(0,0,0,.35);--sw:min(300px,86vw)}
   .shell.abierto .side{transform:none}
+  .shell:not(.abierto) .side{box-shadow:none;visibility:hidden;transition:transform .25s ease,visibility 0s .25s}
+  .shell.abierto .side{visibility:visible;transition:transform .25s ease}
   .shell.mini .side{--sw:min(300px,86vw)}
   .shell.mini .side .lbl,.shell.mini .side .sidebrand,.shell.mini .side .chev{display:inline}
   .shell.mini .side .whobox{display:grid}.shell.mini .side .sub{display:grid}
@@ -360,7 +373,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 <aside class="side" id="side" aria-label="Menú principal">
   <div class="sidetop">
     <button type="button" class="sidetgl" id="sidetgl" aria-label="Contraer menú" aria-expanded="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    <span class="sidebrand">FLOTA LLANOS</span>
+    <button type="button" class="sidebrand" id="inib" title="Ir al inicio">FLOTA LLANOS</button>
   </div>
   <div class="whobox">
     <div class="who" id="who"></div>
@@ -395,6 +408,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <h1 id="vtit">Novedades / Solucionadas</h1>
   <button class="btn" id="add">+ Añadir novedad</button>
 </div>
+<section id="inicio" class="inicio" hidden aria-label="Inicio"><h2 class="flotabig" aria-label="Flota Llanos"><span aria-hidden="true" class="flw"><span class="pal"><span style="--i:0">F</span><span style="--i:1">L</span><span style="--i:2">O</span><span style="--i:3">T</span><span style="--i:4">A</span></span><span class="pal"><span style="--i:6">L</span><span style="--i:7">L</span><span style="--i:8">A</span><span style="--i:9">N</span><span style="--i:10">O</span><span style="--i:11">S</span></span></span></h2></section>
 <div id="listv">
 <div class="tabs" role="group" aria-label="Filtrar">
   <button class="tab" data-f="todas" aria-pressed="true">Todas</button>
@@ -683,7 +697,7 @@ function salir(){
   if(unsubA){unsubA();unsubA=null}
   archivos=[];
   metas={};cmes=0;
-  cals=[];modulo('nov');
+  cals=[];modulo('ini');
   todas=[];items=[];cur=null;showDash(false);
   $('app').hidden=true;$('login').hidden=false;
 }
@@ -708,7 +722,7 @@ async function entrar(user){
   unsubA=onSnapshot(collection(db,'archivos'),snap=>{archivos=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal()},()=>{});
   unsubM=onSnapshot(collection(db,'metas'),snap=>{metas={};snap.docs.forEach(d=>metas[d.id]=d.data());renderCal()},()=>{});
   $('cadd').hidden=!canEdit();
-  modulo('nov');
+  modulo('ini');
 }
 onAuthStateChanged(auth,async user=>{
   if(creando)return;
@@ -750,12 +764,12 @@ const hoyD=new Date();let canio=hoyD.getFullYear(),cmes=0,metas={},unsubM=null;
 const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
-  const cal=m==='cal';
+  const cal=m==='cal',ini=m==='ini';
   document.documentElement.classList.toggle('tema-cal',cal);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal)showDash(false);
-  $('calv').hidden=!cal;$('listv').hidden=cal;
-  $('add').hidden=cal||!canEdit();$('dashb').hidden=!cur||cur.rol!=='admin';
+  if(cal||ini)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('listv').hidden=cal||ini;
+  $('add').hidden=cal||ini||!canEdit();$('dashb').hidden=!cur||cur.rol!=='admin';
   if(cal)renderCal();
   titulo();
 }
@@ -765,9 +779,9 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden;
-  $('vtit').textContent=cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!cal&&$('dash').hidden);
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden;
+  $('vtit').textContent=ini?'':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!cal&&$('dash').hidden);
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
 function cerrarMenuMovil(){document.querySelector('.shell').classList.remove('abierto');$('velo').hidden=true}
@@ -780,6 +794,7 @@ $('sidetgl').onclick=()=>{
   try{localStorage.setItem('menu-mini',mini?'1':'')}catch(x){}
 };
 try{if(localStorage.getItem('menu-mini')==='1'){document.querySelector('.shell').classList.add('mini');$('sidetgl').setAttribute('aria-expanded','false');$('sidetgl').setAttribute('aria-label','Expandir menú')}}catch(x){}
+$('inib').onclick=()=>{if(!cur)return;modulo('ini');cerrarMenuMovil()};
 $('listab').onclick=()=>{if(!cur)return;modulo('nov');showDash(false);cerrarMenuMovil()};
 $('cresb').onclick=()=>{if(!cur)return;cmes=0;modulo('cal');cerrarMenuMovil()};
 $('mesesb').onclick=()=>{const b=$('mesesb');b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true')};
