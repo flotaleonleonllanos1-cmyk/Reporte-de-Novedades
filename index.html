@@ -24,8 +24,11 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 #app{max-width:none;padding:0}
 .shell{display:flex;min-height:100vh;min-height:100dvh}
 .side{--sw:280px;width:var(--sw);flex:none;position:sticky;top:0;height:100vh;height:100dvh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:14px;padding:14px 12px 16px;color:#fff;
-  background:linear-gradient(180deg,#1e40af,#172554);transition:width .25s ease;z-index:20;scrollbar-width:thin}
-.side::before{content:"";position:absolute;inset:0 auto 0 0;width:6px;background:#3b82f6;pointer-events:none}
+  background:linear-gradient(180deg,var(--band2,#a12c2c),color-mix(in srgb,var(--band2,#a12c2c) 82%,#000));transition:width .25s ease;z-index:20;scrollbar-width:thin}
+.side::before{content:"";position:absolute;inset:0 auto 0 0;width:6px;background:var(--band1,#c63b3a);pointer-events:none}
+.sidecab{display:grid;gap:10px;padding:10px;border-radius:14px;background:linear-gradient(160deg,#2563eb,#1e3a8a);border:1px solid rgba(255,255,255,.22);box-shadow:0 6px 16px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.25)}
+.sidecab .whobox{background:rgba(0,0,0,.2)}
+.shell.mini .side .sidecab{padding:6px}
 .sidetop{display:flex;align-items:center;gap:10px}
 .sidetgl,.sidemob{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;cursor:pointer}
 .sidetgl:hover{background:rgba(255,255,255,.2)}
@@ -142,7 +145,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .mi[aria-expanded="false"]+.sub{display:none}
 .si{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;color:rgba(255,255,255,.82);font:inherit;font-size:.92rem;font-weight:600;padding:8px 10px;border-radius:8px;cursor:pointer}
 .si:hover{background:rgba(255,255,255,.1);color:#fff}
-.si[aria-current="true"],.si[aria-pressed="true"]{background:#fff;color:#1e40af}
+.si[aria-current="true"],.si[aria-pressed="true"]{background:#fff;color:var(--band2,#a12c2c)}
 .mesesb{justify-content:space-between}
 .side .meses{display:grid;grid-template-columns:1fr;gap:2px;margin:2px 0 0 6px}
 .mesesb[aria-expanded="false"]+.meses{display:none}
@@ -150,7 +153,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .side .mes:hover{background:rgba(255,255,255,.1)}
 .side .mes b{font-size:.88rem;font-weight:600}
 .side .mes small{color:rgba(255,255,255,.7);font-size:.72rem;white-space:nowrap}
-.side .mes[aria-pressed="true"]{background:#fff;color:#1e40af}
+.side .mes[aria-pressed="true"]{background:#fff;color:var(--band2,#a12c2c)}
 .side .mes[aria-pressed="true"] small{color:var(--mut)}
 .sidefoot{margin-top:auto;display:grid;gap:2px;padding-top:10px;border-top:1px solid rgba(255,255,255,.2)}
 .sidefoot .si{font-size:.9rem}
@@ -158,7 +161,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .contenido{flex:1;min-width:0;max-width:1120px;margin:0 auto;padding:20px 24px 48px}
 .topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
 .topbar h1{margin:0;font-size:1.45rem;flex:1;min-width:180px}
-.sidemob{display:none;background:#1e40af;border-color:transparent}
+.sidemob{display:none;background:var(--band2,#a12c2c);border-color:transparent}
 /* menú contraído (escritorio) */
 .shell.mini .side{--sw:76px}
 .shell.mini .side .lbl,.shell.mini .side .sidebrand,.shell.mini .side .whobox,.shell.mini .side .sub,.shell.mini .side .chev{display:none}
@@ -341,7 +344,7 @@ textarea{font:inherit;color:inherit;width:100%;margin-top:4px;padding:9px 10px;b
 html.tema-cal{--bg:#eef4ef;--card:#fff;--ink:#16261c;--mut:#5b7062;--line:#d2e2d6;--acc:#1f6b3f;--acc2:#2f8a52;--soft:#e2f1e6;--band1:#2f8a52;--band2:#1f6b3f}
 html.tema-cal[data-theme="dark"]{--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}
 @media (prefers-color-scheme:dark){html.tema-cal:not([data-theme="light"]){--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}}
-html.tema-km{--acc:#1d4ed8;--acc2:#3b82f6;--soft:#e7eefc}
+html.tema-km{--acc:#1d4ed8;--acc2:#3b82f6;--soft:#e7eefc;--band1:#6366f1;--band2:#3730a3}
 html.tema-km[data-theme="dark"]{--acc:#3b82f6;--acc2:#60a5fa;--soft:#172554}
 @media (prefers-color-scheme:dark){html.tema-km:not([data-theme="light"]){--acc:#3b82f6;--acc2:#60a5fa;--soft:#172554}}
 html.tema-var{--acc:#b45309;--acc2:#d97706;--soft:#fdf0e1;--band1:#d97706;--band2:#9a4a0b}
@@ -461,6 +464,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 <div class="shell">
 <div class="velo" id="velo" hidden></div>
 <aside class="side" id="side" aria-label="Menú principal">
+  <div class="sidecab">
   <div class="sidetop">
     <button type="button" class="sidetgl" id="sidetgl" aria-label="Contraer menú" aria-expanded="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <button type="button" class="sidebrand" id="inib" title="Ir al inicio">FLOTA LLANOS</button>
@@ -468,6 +472,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <div class="whobox">
     <div class="who" id="who"></div>
     <label class="sedel">Sede<select id="sede"><option>Villavicencio</option><option>Yopal</option></select></label>
+  </div>
   </div>
   <nav class="menu">
     <div class="grp">
