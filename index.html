@@ -113,6 +113,10 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .pubfoto{width:100%;max-height:420px;object-fit:contain;border-radius:10px;background:#111;margin-top:10px}
 .pubbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .pubpie{text-align:center;color:var(--mut);font-size:.82rem}
+.pubc.pubok{border-left:6px solid var(--ok)}
+.btn.pubfinb{background:#15803d;border-color:#15803d;color:#fff;font-size:1.05rem;padding:12px 22px}
+.pubfin{margin-top:8px;background:var(--okbg);color:var(--ok);font-weight:700;border-radius:10px;padding:12px 14px}
+.pubat label input{margin-top:6px}
 .vtabdash{margin-left:auto}
 .vdh{font-size:.92rem;margin:0 0 4px}
 .vcols.t div{flex:1 1 0;min-width:68px;max-width:96px;font-size:.8rem;white-space:nowrap}.vcl.t span{flex:1 1 0;min-width:68px;max-width:96px;font-size:.74rem;overflow-wrap:break-word}.vcl.t,.vcols.t{gap:8px;justify-content:flex-start}
@@ -834,6 +838,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     </div>
     <label id="vsisow" hidden>¿Cuál sistema?<input id="vsiso" maxlength="60" autocomplete="off" placeholder="Escribe el sistema afectado"></label>
     <small class="mnota" id="vconnota" hidden></small>
+    <label>Técnico que atendió la varada<input id="vtec" maxlength="80" autocomplete="off" placeholder="Lo puede registrar el taller desde el enlace"></label>
     <label>Descripción de la falla (opcional)<textarea id="vdesc" rows="2" maxlength="500"></textarea></label>
     <div class="err" id="verr" role="alert"></div>
     <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="vsave">Guardar varada</button></div>
@@ -1100,7 +1105,7 @@ const urlComp=t=>location.origin+location.pathname+'?v='+t;
 async function publicarComp(v){
   if(!v.comp)return;
   await setDoc(doc(db,'compartidos',v.comp),{tipo:'varada',varada:v.id,sede:v.sede||sede,placa:v.placa||'',fv:v.fv||'',fo:v.fo||'',taller:v.taller||'no',tallerNombre:v.tallerNombre||'',
-    sistema:sistemaDe(v),conductor:v.conductor||'',desc:v.desc||'',ubic:v.ubic||{},foto:v.foto||'',por:v.por||'',editadoPor:v.editadoPor||'',actualizado:serverTimestamp()});
+    sistema:sistemaDe(v),conductor:v.conductor||'',tecnico:v.tecnico||'',finPor:v.finPor||'',desc:v.desc||'',ubic:v.ubic||{},foto:v.foto||'',por:v.por||'',editadoPor:v.editadoPor||'',actualizado:serverTimestamp()});
 }
 function abrirCompartir(v,recien){
   const u=urlComp(v.comp),txt=`Hola, les compartimos el reporte de la varada del vehículo ${v.placa}${sistemaDe(v)&&sistemaDe(v)!=='Sin clasificar'?` (${sistemaDe(v)})`:''}. Allí encuentran la ubicación, el conductor y los demás datos: ${u}`;
@@ -1116,27 +1121,49 @@ async function vistaPublica(t){
   P.innerHTML='<div class="pubw"><div class="pubc"><p class="empty" style="margin:0">Cargando el reporte de la varada…</p></div></div>';
   let v;try{const d=await getDoc(doc(db,'compartidos',t));if(!d.exists())throw{code:'no'};v=d.data()}
   catch(x){P.innerHTML='<div class="pubw"><div class="pubh"><div><small>FLOTA LLANOS</small><h1>Reporte de varada</h1></div></div><div class="pubc"><p class="empty" style="margin:0">Este enlace no existe o fue desactivado. Pide a Flota Llanos un enlace nuevo.</p></div></div>';return}
-  const u=v.ubic||{},co=typeof u.lat==='number'&&typeof u.lng==='number',op=!!v.fo,t0=dtMs(v.fv),dur=op?dtMs(v.fo)-t0:Date.now()-t0;
+  pintarPublica(t,v);
+}
+function pintarPublica(t,v,msg){
+  const P=$('pub'),u=v.ubic||{},co=typeof u.lat==='number'&&typeof u.lng==='number',op=!!v.fo,t0=dtMs(v.fv),dur=op?dtMs(v.fo)-t0:Date.now()-t0;
   const ver=co?`https://www.google.com/maps/search/?api=1&query=${u.lat},${u.lng}`:enlaceSeguro(u.texto),ir=co?`https://www.google.com/maps/dir/?api=1&destination=${u.lat},${u.lng}`:'';
   document.title=`Varada ${v.placa} · Flota Llanos`;
   P.innerHTML=`<div class="pubw">
     <div class="pubh"><div><small>FLOTA LLANOS</small><h1>Reporte de varada</h1></div><span style="opacity:.9">Sede ${esc(v.sede||'')}</span></div>
-    <div class="pubc"><div class="pubtop"><span class="pubpl">${esc(v.placa)}</span><span class="pill ${op?'o':'b'}" style="font-size:.95rem;padding:4px 12px">${op?'Operativo':'Varado'}</span></div>
+    <div class="pubc ${op?'pubok':''}"><div class="pubtop"><span class="pubpl">${esc(v.placa)}</span><span class="pill ${op?'o':'b'}" style="font-size:.95rem;padding:4px 12px">${op?'Operativo · Varada finalizada':'Varado'}</span></div>
       <dl class="pubg">
         <div><dt>Fecha y hora de la varada</dt><dd>${esc(dtTxt(v.fv))}</dd></div>
         <div><dt>${op?'Tiempo fuera de servicio':'Lleva varado'}</dt><dd>${durTxt(dur)}</dd></div>
-        ${op?`<div><dt>Operativo nuevamente</dt><dd>${esc(dtTxt(v.fo))}</dd></div>`:''}
+        ${op?`<div><dt>Vehículo operativo nuevamente</dt><dd>${esc(dtTxt(v.fo))}</dd></div>`:''}
         <div><dt>Sistema afectado</dt><dd>${esc(v.sistema||'—')}</dd></div>
         <div><dt>Conductor</dt><dd>${esc(v.conductor||'—')}</dd></div>
         <div><dt>Taller asignado</dt><dd>${esc(v.tallerNombre||'—')}</dd></div>
+        <div><dt>Técnico que atendió</dt><dd>${esc(v.tecnico||'—')}</dd></div>
         <div><dt>Reportado por</dt><dd>${esc(v.por||'—')}</dd></div>
         ${v.desc?`<div style="grid-column:1/-1"><dt>Descripción de la falla</dt><dd style="font-weight:400">${esc(v.desc)}</dd></div>`:''}
       </dl></div>
+    <div class="pubc pubat"><h2 style="margin:0;font-size:1.1rem">Atención del taller</h2>
+      ${op?`<div class="pubfin">✓ Varada finalizada el ${esc(dtTxt(v.fo))}${v.tecnico?` · Técnico: ${esc(v.tecnico)}`:''}</div>`
+      :`<p class="mnota" style="margin:6px 0 10px">Registra el nombre del técnico que fue a la varada. Cuando el vehículo quede operativo, pulsa «Finalizar varada»: se registrará la fecha y hora de ese momento.</p>
+      <label>Nombre del técnico que fue a la varada<input id="pubtec" maxlength="80" autocomplete="name" value="${esc(v.tecnico||'')}"></label>
+      <div class="pubbtns"><button type="button" class="btn ghost" id="pubtecb">Guardar técnico</button><button type="button" class="btn pubfinb" id="pubfinb">Finalizar varada</button></div>`}
+      <p class="err" id="puberr" role="alert" style="margin:8px 0 0">${msg?esc(msg):''}</p></div>
     <div class="pubc"><h2 style="margin:0;font-size:1.1rem">Ubicación del vehículo</h2>
       ${co?`<iframe class="pubmap" src="https://maps.google.com/maps?q=${u.lat},${u.lng}&z=16&output=embed" title="Mapa de la ubicación" loading="lazy"></iframe><small class="mnota">${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</small>`:`<p class="mnota" style="margin:8px 0 0">${u.texto?esc(u.texto):'No se registró la ubicación.'}</p>`}
       ${ver||ir?`<div class="pubbtns">${ir?`<a class="btn" href="${ir}" target="_blank" rel="noopener">Cómo llegar</a>`:''}${ver?`<a class="btn ghost" href="${esc(ver)}" target="_blank" rel="noopener">Abrir en Google Maps</a>`:''}</div>`:''}</div>
     ${v.foto?`<div class="pubc"><h2 style="margin:0;font-size:1.1rem">Foto del vehículo</h2><img class="pubfoto" src="${v.foto}" alt="Foto del vehículo ${esc(v.placa)}"></div>`:''}
     <p class="pubpie">Información enviada por Flota Llanos · Grupo Empresarial León León e Hijos</p></div>`;
+  if(op)return;
+  const escribir=async(fin)=>{
+    const tec=$('pubtec').value.trim().replace(/\s+/g,' ');
+    if(fin&&!tec){$('puberr').textContent='Escribe el nombre del técnico antes de finalizar la varada.';$('pubtec').focus();return}
+    if(fin&&!confirm(`¿Finalizar la varada de ${v.placa}? Se registrará que el vehículo quedó operativo ahora (${dtTxt(ahoraDT())}). Esta acción no se puede deshacer desde este enlace.`))return;
+    const b1=$('pubtecb'),b2=$('pubfinb');b1.disabled=b2.disabled=true;$('puberr').textContent='';
+    const ch={tecnico:tec};if(fin){ch.fo=ahoraDT();ch.finTaller=serverTimestamp();ch.finPor='Taller'}
+    try{const b=writeBatch(db);b.update(doc(db,'varadas',v.varada),{...ch,prueba:t});b.update(doc(db,'compartidos',t),ch);await b.commit();
+      pintarPublica(t,{...v,...ch},fin?'':'Técnico guardado.')}
+    catch(x){console.error(x);$('puberr').textContent=x&&x.code==='permission-denied'?'Esta varada ya fue finalizada o el enlace fue desactivado. Recarga la página.':'No se pudo guardar. Revisa tu conexión a internet e inténtalo de nuevo.';b1.disabled=b2.disabled=false}
+  };
+  $('pubtecb').onclick=()=>escribir(false);$('pubfinb').onclick=()=>escribir(true);
 }
 const tokPub=new URLSearchParams(location.search).get('v');
 if(tokPub)vistaPublica(tokPub);
@@ -1946,6 +1973,7 @@ function renderVar(){
       <div><dt>${op?'Tiempo fuera de servicio':'Lleva varado'}</dt><dd style="color:${op?'inherit':'var(--bad)'}"${op?'':` data-vdur="${esc(v.fv)}"`}>${durTxt(t)}</dd></div>
       <div><dt>¿Se llevó al taller?</dt><dd>${v.taller==='si'?'Sí':'No'}</dd></div>
       <div><dt>Taller</dt><dd>${esc(v.tallerNombre||'—')}</dd></div>
+      <div><dt>Técnico</dt><dd>${esc(v.tecnico||'—')}${v.finPor==='Taller'&&v.fo?' <span class="pill o" style="font-size:.72rem">Finalizada por el taller</span>':''}</dd></div>
       <div><dt>Sistema afectado</dt><dd>${esc(sistemaDe(v))}</dd></div>
       <div><dt>Conductor</dt><dd>${esc(v.conductor||'—')}</dd></div>
       ${v.desc?`<div style="grid-column:1/-1"><dt>Descripción</dt><dd style="font-weight:400">${esc(v.desc)}</dd></div>`:''}
@@ -2501,12 +2529,12 @@ async function construirXlsxVar(JSZip,D){
   // Gráficas
   const graf=[[{v:`Varadas · ${D.sede} · ${D.periodo}`,s:7}],[{v:`Generado el ${D.generado} por ${D.por}. Los datos de las gráficas están en la hoja «Resumen».`,s:10}]];
   // Base de datos
-  const reg=[[h('Placa'),h('Sede'),h('Fecha y hora de la varada'),h('Operativo nuevamente'),h('Estado'),h('Horas fuera de servicio'),h('Tiempo fuera de servicio'),h('Sistema afectado'),h('Conductor'),h('¿Se llevó al taller?'),h('Taller'),h('Ubicación'),h('Coordenadas'),h('Descripción'),h('Reportado por'),h('Última edición'),h('Foto')]];
+  const reg=[[h('Placa'),h('Sede'),h('Fecha y hora de la varada'),h('Operativo nuevamente'),h('Estado'),h('Horas fuera de servicio'),h('Tiempo fuera de servicio'),h('Sistema afectado'),h('Conductor'),h('¿Se llevó al taller?'),h('Taller'),h('Técnico'),h('Ubicación'),h('Coordenadas'),h('Descripción'),h('Reportado por'),h('Última edición'),h('Foto')]];
   D.registros.forEach(v=>{const op=!!v.fo,hrs=v.horas,url=v.url;
-    reg.push([C(v.placa,11),C(D.sede),v.fvS!==null?{v:v.fvS,s:12}:C(v.fv),op&&v.foS!==null?{v:v.foS,s:12}:C(op?v.fo:'Sigue varado',op?4:6),C(op?'Operativo':'Varado',op?5:6),C(hrs),C(v.durTxt),C(v.sistema),C(v.conductor||''),C(v.taller==='si'?'Sí':'No'),C(v.tallerNombre||''),
+    reg.push([C(v.placa,11),C(D.sede),v.fvS!==null?{v:v.fvS,s:12}:C(v.fv),op&&v.foS!==null?{v:v.foS,s:12}:C(op?v.fo:'Sigue varado',op?4:6),C(op?'Operativo':'Varado',op?5:6),C(hrs),C(v.durTxt),C(v.sistema),C(v.conductor||''),C(v.taller==='si'?'Sí':'No'),C(v.tallerNombre||''),C(v.tecnico||''),
       url?{f:`HYPERLINK("${url.replace(/"/g,'%22')}","Abrir en Google Maps")`,v:'Abrir en Google Maps',s:4}:C(''),C(v.coord||''),C(v.desc||''),C(v.por||''),C(v.editadoPor||''),C(v.foto?'Sí':'No')])});
   const hojas=[['Gráficas',hojaXML(graf,{cols:[16],dibujo:true})],['Resumen',hojaXML(filasR,{cols:[20,9,3,12,9,3,24,9,3,8,9,3,15,12,13,3,26,9,15,3,20,12,3,20,18,14],congelar:true})],
-    ['Varadas',hojaXML(reg,{cols:[11,14,20,20,12,12,16,20,24,12,20,22,20,34,22,22,7],congelar:true,filtro:`A1:Q${Math.max(2,reg.length)}`})]];
+    ['Varadas',hojaXML(reg,{cols:[11,14,20,20,12,12,16,20,24,12,20,22,22,20,34,22,22,7],congelar:true,filtro:`A1:R${Math.max(2,reg.length)}`})]];
   const est=ESTILOS.replace('<numFmts count="1"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/></numFmts>','<numFmts count="2"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/><numFmt numFmtId="165" formatCode="dd/mm/yyyy hh:mm"/></numFmts>')
     .replace('<cellXfs count="12">','<cellXfs count="13">').replace('</cellXfs>','<xf numFmtId="165" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf>\n</cellXfs>');
   const g=[];const col=(c,n)=>`'Resumen'!$${colL(c)}$2:$${colL(c)}$${Math.max(2,ult(n))}`,hd=c=>`'Resumen'!$${colL(c)}$1`;
@@ -2532,7 +2560,7 @@ ${g.map((_,i)=>`<Override PartName="/xl/charts/chart${i+1}.xml" ContentType="app
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
   z.file('xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>${hojas.map(([n],i)=>`<sheet name="${XE(n)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets>
-<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">'Varadas'!$A$1:$Q$${Math.max(2,reg.length)}</definedName></definedNames><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
+<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">'Varadas'!$A$1:$R$${Math.max(2,reg.length)}</definedName></definedNames><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
   z.file('xl/_rels/workbook.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hojas.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${hojas.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
   z.file('xl/styles.xml',est);
@@ -2563,7 +2591,7 @@ function datosVar(){
     semanas:sem.map(w=>{const d=new Date(w);return{l:`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`,rep:todo.filter(v=>semanaDe(dtMs(v.fv))===w).length,sol:todo.filter(v=>v.fo&&semanaDe(dtMs(v.fo))===w).length}}),
     tiempos:[...ab,...so].map(x=>({l:`${normP(x.v.placa)} · ${dtTxt(x.v.fv).slice(0,10)}`,h:hrs(x.t),estado:x.e})),
     registros:del.slice().sort((a,b)=>dtMs(b.fv)-dtMs(a.fv)).map(v=>{const op=!!v.fo,t=op?dtMs(v.fo)-dtMs(v.fv):now-dtMs(v.fv),u=v.ubic||{};
-      return{placa:normP(v.placa),fv:dtTxt(v.fv),fo:dtTxt(v.fo),fvS:serialDT(v.fv),foS:serialDT(v.fo),horas:t>=0?hrs(t):'',durTxt:t>=0?durTxt(t):'',sistema:sistemaDe(v),conductor:v.conductor?nomProp(v.conductor):'',taller:v.taller,tallerNombre:v.tallerNombre||'',
+      return{placa:normP(v.placa),fv:dtTxt(v.fv),fo:dtTxt(v.fo),fvS:serialDT(v.fv),foS:serialDT(v.fo),horas:t>=0?hrs(t):'',durTxt:t>=0?durTxt(t):'',sistema:sistemaDe(v),conductor:v.conductor?nomProp(v.conductor):'',taller:v.taller,tallerNombre:v.tallerNombre||'',tecnico:v.tecnico||'',
         url:mapsUrl(u)||'',coord:tieneCoord(u)?`${u.lat.toFixed(6)}, ${u.lng.toFixed(6)}`:'',desc:v.desc||'',por:v.por||'',editadoPor:v.editadoPor||'',foto:!!v.foto}})};
 }
 $('vxls').onclick=async()=>{
@@ -2615,6 +2643,7 @@ function abrirVar(v){
   vedit=v||null;$('vfrm').reset();$('verr').textContent='';
   $('vdlgt').textContent=v?`Editar varada · ${v.placa}`:`Reportar varada · ${sede}`;
   $('vplaca').value=v?v.placa:'';$('vfv').value=v?v.fv:ahoraDT();$('vfo').value=v?v.fo||'':'';
+  $('vtec').value=v?v.tecnico||'':'';
   const sd=v?sistemaDe(v):'';
   if(!sd||sd==='Sin clasificar'){$('vsis').value='';$('vsiso').value=''}
   else if(SISTEMAS.includes(sd)&&sd!=='Otro'){$('vsis').value=sd;$('vsiso').value=''}
@@ -2639,7 +2668,7 @@ $('vfrm').onsubmit=async e=>{
   let tallerNombre=$('vtn').value;
   if(tallerNombre==='Otro'){tallerNombre=$('vtno').value.trim().replace(/\s+/g,' ');if(!tallerNombre){$('verr').textContent='Escribe el nombre del taller.';return}tallerNombre=tallerNombre.charAt(0).toUpperCase()+tallerNombre.slice(1)}
   if(taller==='si'&&!tallerNombre){$('verr').textContent='Elige a qué taller se llevó el vehículo.';return}
-  const data={placa,fv,fo,taller,ubic,foto:vfotoD,marca:vfotoMarca,desc:$('vdesc').value.trim(),sistema,conductor,tallerNombre};
+  const data={tecnico:$('vtec').value.trim().replace(/\s+/g,' '),placa,fv,fo,taller,ubic,foto:vfotoD,marca:vfotoMarca,desc:$('vdesc').value.trim(),sistema,conductor,tallerNombre};
   if(JSON.stringify(data).length>950000){$('verr').textContent='La foto pesa demasiado. Quita la foto e inténtalo de nuevo.';return}
   $('vsave').disabled=true;$('verr').textContent='';
   try{const comp=(vedit&&vedit.comp)||tokenComp();let vid,full;
