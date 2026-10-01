@@ -102,18 +102,25 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .vcols.t div{flex:1 1 0;min-width:68px;max-width:96px;font-size:.8rem;white-space:nowrap}.vcl.t span{flex:1 1 0;min-width:68px;max-width:96px;font-size:.74rem;overflow-wrap:break-word}.vcl.t,.vcols.t{gap:8px;justify-content:flex-start}
 .vcols small{font-weight:600;font-size:.72rem;color:var(--mut)}
 .ralbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:12px}.ralbar label{margin:0}.ralbar select{width:auto;min-width:200px;max-width:100%}
-.ralgrid{display:grid;grid-template-columns:minmax(260px,330px) 1fr;gap:14px;align-items:start}
+.ralgrid{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:14px;align-items:start}
 @media (max-width:900px){.ralgrid{grid-template-columns:1fr}}
 .ralrank{display:flex;flex-direction:column;max-height:calc(min(560px,62vh) + 46px);min-height:320px}
 .rbars{overflow-y:auto;display:grid;gap:4px;margin-top:6px;padding-right:4px;scrollbar-width:thin}
-.rbar{display:grid;grid-template-columns:22px 74px 1fr auto;gap:8px;align-items:center;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:8px;padding:6px 8px;cursor:pointer;color:var(--ink);font:inherit}
+.rbar{display:grid;grid-template-columns:22px var(--lw,74px) minmax(40px,1fr) auto;gap:8px;align-items:center;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:8px;padding:6px 8px;cursor:pointer;color:var(--ink);font:inherit}
 .rbar:hover{background:var(--soft)}
 .rbar[aria-selected="true"]{background:var(--soft);border-color:var(--acc)}
 .rbar .rk{font-size:.75rem;color:var(--mut);text-align:right}
-.rbar .pl{font-weight:700;letter-spacing:.04em;font-size:.88rem}
+.rbar .pl{font-weight:700;letter-spacing:.02em;font-size:.86rem;max-width:160px;overflow-wrap:break-word;line-height:1.2}
 .rbar .tr{height:14px;background:var(--line);border-radius:7px;overflow:hidden}
 .rbar .tr i{display:block;height:100%;border-radius:7px}
-.rbar b{font-variant-numeric:tabular-nums;font-size:.9rem}
+.rbar b{font-variant-numeric:tabular-nums;font-size:.85rem;white-space:nowrap}
+.ralord{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0 4px;font-size:.8rem;color:var(--mut)}
+.ralord button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:3px 10px;font:inherit;font-size:.8rem;cursor:pointer}
+.ralord button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
+.raltab th.s{cursor:pointer}.raltab th.s:hover{color:var(--ink)}
+.raltab td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.raltab td.ub{min-width:180px}
+#ralcolsn:empty{display:none}
 .ralmaph{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}.ralmaph b{font-size:1.05rem}.ralmaph .btn{padding:7px 12px;font-size:.9rem}
 .ralmapw{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--soft)}
 #ralmap{height:min(560px,62vh);min-height:320px;width:100%}
@@ -577,18 +584,25 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 <section id="ralv" hidden aria-label="Ralentí">
   <div class="ralbar">
     <label>Archivo<select id="ralsel"></select></label>
-    <label>Placa<select id="ralpl"><option value="">Todas las placas</option></select></label>
+    <label><span id="rallblsel">Dispositivo</span><select id="ralpl"></select></label>
     <button type="button" class="del" id="raldel" hidden>Eliminar este archivo</button>
   </div>
+  <div class="tabs" role="group" aria-label="Vista" id="raltabs">
+    <button class="tab" data-rv="disp" aria-pressed="true">Por dispositivo</button>
+    <button class="tab" data-rv="cons" aria-pressed="false">Consolidado de todos los dispositivos</button>
+  </div>
   <div class="pprog" id="ralprog" role="status"></div>
+  <small class="mnota" id="ralcolsn"></small>
   <div class="kpis" id="ralkpi"></div>
   <div class="ralgrid">
-    <div class="dc ralrank"><h2>Placas con más reportes</h2><small>Toca una placa para ver sus ubicaciones en el mapa</small><div id="ralpls" class="rbars" role="listbox" aria-label="Placas"></div></div>
-    <div><div class="ralmaph"><b id="ralmapt"></b><button type="button" class="btn ghost" id="raltodas">Ver todas las placas</button></div>
+    <div class="dc ralrank"><h2 id="ralrkt">Dispositivos</h2>
+      <div class="ralord" role="group" aria-label="Ordenar por"><span>Ordenar por</span><button type="button" data-ro="n" aria-pressed="true">Reportes</button><button type="button" data-ro="dur" aria-pressed="false">Duración total</button></div>
+      <small id="ralrks"></small><div id="ralpls" class="rbars" role="listbox"></div></div>
+    <div><div class="ralmaph"><b id="ralmapt"></b><button type="button" class="btn ghost" id="raltodas">Ver consolidado</button></div>
       <div class="ralmapw"><div id="ralmap" role="region" aria-label="Mapa de ubicaciones de ralentí"></div><div class="ralmsg" id="ralmsg" hidden></div></div>
       <div class="cleg" id="ralleg"></div></div>
   </div>
-  <div class="dc" style="margin-top:14px"><h2>Registros</h2><small id="ralrsub"></small><div id="raltab" class="raltab"></div></div>
+  <div class="dc" style="margin-top:14px"><h2 id="raltt">Registros</h2><small id="ralrsub"></small><div id="raltab" class="raltab"></div></div>
   <input type="file" id="ralfile" accept=".xlsx,.xls,.csv" hidden>
 </section>
 <section id="kmv" hidden aria-label="Kilometrajes">
@@ -2112,8 +2126,8 @@ const RPAL=['#e11d48','#2563eb','#16a34a','#d97706','#7c3aed','#0891b2','#db2777
 const nh=t=>sinTilde(t).replace(/[^a-z0-9]/g,'');
 function detectarCols(cols){
   const f=(...ks)=>cols.findIndex(c=>ks.some(k=>nh(c)===k))>=0?cols.findIndex(c=>ks.some(k=>nh(c)===k)):cols.findIndex(c=>ks.some(k=>nh(c).includes(k)));
-  return{ubi:f('ubicacion','ubicación','location','posicion','direccion','coordenadas'),pla:f('placa','vehiculo','patente','unidad','movil'),
-    fec:f('fechayhora','fechahora','fecha','hora','inicio','date'),lat:f('latitud','lat'),lng:f('longitud','lon','lng','long'),dur:f('duracion','tiempo','ralenti','minutos')};
+  return{dis:f('dispositivo','device','equipo','dispositivogps','idgps'),ubi:f('ubicacion','ubicación','location','posicion','direccion','coordenadas'),pla:f('placa','vehiculo','patente','unidad','movil'),
+    fec:f('horadeinicio','horainicio','fechadeinicio','fechainicio','fechayhoradeinicio','inicio','fechayhora','fechahora','fecha','hora','date'),lat:f('latitud','lat'),lng:f('longitud','lon','lng','long'),dur:f('duracion','duraciondelralenti','tiempoderalenti','tiempo','minutos')};
 }
 function coordsFila(r,cc){
   if(cc.lat>=0&&cc.lng>=0){const la=parseFloat(String(r[cc.lat]).replace(',','.')),lo=parseFloat(String(r[cc.lng]).replace(',','.'));if(Math.abs(la)<=90&&Math.abs(lo)<=180&&(la||lo))return{lat:la,lng:lo}}
@@ -2147,7 +2161,8 @@ async function subirRal(f){
     await setDoc(ref,{sede,nombre:f.name,cols,filas:filas.length,conCoord:conC,partes:partes.length,listo:false,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});
     for(let k=0;k<partes.length;k++){ralProg(`Cargando ${f.name}… ${Math.round(k/partes.length*100)}%`);await setDoc(doc(db,'ralenti',ref.id,'partes',String(k).padStart(3,'0')),{i:k,d:JSON.stringify(partes[k])})}
     await updateDoc(ref,{listo:true});ralCache[ref.id]={cols,filas};ralSel=ref.id;
-    ralProg(`«${f.name}» quedó cargado: ${filas.length} registros, ${conC} con ubicación en el mapa${filas.length-conC?` y ${filas.length-conC} sin coordenadas`:''}.`);
+    const fl=[['Dispositivo',cc.dis],['Hora de inicio',cc.fec],['Duración',cc.dur]].filter(x=>x[1]<0).map(x=>'«'+x[0]+'»');
+    ralProg(`«${f.name}» quedó cargado: ${filas.length} registros, ${conC} con ubicación en el mapa${filas.length-conC?` y ${filas.length-conC} sin coordenadas`:''}.${fl.length?` No se encontró: ${fl.join(', ')}.`:''}`);
   }catch(x){if(x!==0)ralProg('No se pudo cargar el archivo. '+(x&&x.code?ERR(x.code):'Revisa que sea un Excel válido y tu conexión a internet.'))}
   ralSubiendo=false;$('raladd').disabled=false;renderRal();
 }
@@ -2162,36 +2177,75 @@ async function cargarLeaflet(){
   return cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js','https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'],'L');
 }
 function ralMsg(t){$('ralmsg').hidden=!t;$('ralmsg').innerHTML=t||''}
+let ralVista='disp',ralOrden='n';
+function durSeg(t,hdr){
+  t=String(t??'').trim().toLowerCase();if(!t)return null;const h=sinTilde(hdr||'');
+  if(/^-?\d+([.,]\d+)?$/.test(t)){const v=Number(t.replace(',','.'));if(v<1&&/[.,]/.test(t)&&!/seg|min|hora/.test(h))return Math.round(v*86400);return Math.round(v*(/seg/.test(h)?1:/hora/.test(h)?3600:60))}
+  let m=t.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?(?:[.,]\d+)?$/);if(m)return m[3]!==undefined?(+m[1])*3600+(+m[2])*60+(+m[3]):(+m[1]>23||/min/.test(h)?(+m[1])*60+(+m[2]):(+m[1])*3600+(+m[2])*60);
+  let s=0,ok=false;t.replace(/(\d+(?:[.,]\d+)?)\s*(d[ií]as?|d\b|h(?:oras?|rs?)?\b|m(?:in(?:utos?)?)?\b|s(?:eg(?:undos?)?)?\b)/g,(x,n,u)=>{ok=true;n=Number(n.replace(',','.'));s+=u.startsWith('d')?n*86400:u.startsWith('h')?n*3600:u.startsWith('m')?n*60:n;return x});
+  return ok?Math.round(s):null}
+const durF=sec=>{if(sec===null||sec===undefined)return '—';sec=Math.round(sec);const d=Math.floor(sec/86400),h=Math.floor(sec%86400/3600),m=Math.floor(sec%3600/60),x=sec%60;
+  return d?`${d} d ${h} h`:h?`${h} h ${String(m).padStart(2,'0')} min`:m?`${m} min${x?` ${String(x).padStart(2,'0')} s`:''}`:`${x} s`};
+function iniMs(t){t=String(t||'').trim();if(!t)return NaN;let m=t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if(m)return new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0)).getTime();
+  m=t.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})(?:[ ,]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap])?\.?\s*m?\.?)?/i);
+  if(m){let y=+m[3];if(y<100)y+=2000;let h=+(m[4]||0);if(m[7]){const p=m[7].toLowerCase();if(p==='p'&&h<12)h+=12;if(p==='a'&&h===12)h=0}return new Date(y,m[2]-1,+m[1],h,+(m[5]||0),+(m[6]||0)).getTime()}
+  const d=Date.parse(t);return isNaN(d)?NaN:d}
 async function renderRal(){
   if(!cur||$('ralv').hidden)return;
   const ar=ralArch.filter(a=>(a.sede||SEDES[0])===sede&&(a.listo||cur.rol==='admin')).sort((a,b)=>(b.creado?.seconds||0)-(a.creado?.seconds||0));
   if(!ralSel||!ar.some(a=>a.id===ralSel))ralSel=(ar.find(a=>a.listo)||ar[0]||{}).id||'';
-  const f=d=>d&&d.toDate?d.toDate().toLocaleDateString('es-CO'):'';
-  $('ralsel').innerHTML=ar.length?ar.map(a=>`<option value="${a.id}"${a.id===ralSel?' selected':''}>${esc(a.nombre)}${a.creado?' · '+f(a.creado):''}${a.listo?'':' (carga incompleta)'}</option>`).join(''):'<option value="">Sin archivos cargados</option>';
+  const fch=d=>d&&d.toDate?d.toDate().toLocaleDateString('es-CO'):'';
+  $('ralsel').innerHTML=ar.length?ar.map(a=>`<option value="${a.id}"${a.id===ralSel?' selected':''}>${esc(a.nombre)}${a.creado?' · '+fch(a.creado):''}${a.listo?'':' (carga incompleta)'}</option>`).join(''):'<option value="">Sin archivos cargados</option>';
   const a=ar.find(x=>x.id===ralSel);$('raldel').hidden=!(a&&cur.rol==='admin');
-  if(!a){$('ralmapt').textContent='';$('raltodas').hidden=true;$('ralkpi').innerHTML='';$('ralpls').innerHTML='<p class="empty" style="margin:0">Sin datos.</p>';$('raltab').innerHTML='';$('ralleg').innerHTML='';$('ralrsub').textContent='';
-    ralMsg(`Aún no hay archivos de ralentí para ${esc(sede)}.${canEdit()?' Usa «Cargar Excel» para subir el primero. Debe tener una columna llamada <b>Ubicación</b> con las coordenadas (latitud, longitud).':''}`);if(ralCapa)ralCapa.clearLayers();return}
-  if(!a.listo){ralMsg('Este archivo no terminó de cargarse. El administrador puede eliminarlo y volver a cargarlo.');return}
+  const limpiar=()=>{$('ralmapt').textContent='';$('raltodas').hidden=true;$('ralkpi').innerHTML='';$('ralpls').innerHTML='<p class="empty" style="margin:0">Sin datos.</p>';$('raltab').innerHTML='';$('ralleg').innerHTML='';$('ralrsub').textContent='';$('ralcolsn').textContent='';$('ralpl').innerHTML='';if(ralCapa)ralCapa.clearLayers()};
+  if(!a){limpiar();ralMsg(`Aún no hay archivos de ralentí para ${esc(sede)}.${canEdit()?' Usa «Cargar Excel» para subir el primero. Debe tener las columnas <b>Dispositivo</b>, <b>Ubicación</b>, <b>Hora de inicio</b> y <b>Duración</b>.':''}`);return}
+  if(!a.listo){limpiar();ralMsg('Este archivo no terminó de cargarse. El administrador puede eliminarlo y volver a cargarlo.');return}
   let D;try{if(!ralCache[a.id])ralMsg('Cargando datos…');D=await datosRal(a)}catch(x){ralMsg('No se pudieron cargar los datos del archivo. Revisa tu conexión.');return}
   if(a.id!==ralSel)return;
-  const cc=detectarCols(D.cols),pl=r=>cc.pla>=0?normP(r[cc.pla])||String(r[cc.pla]||'').trim()||'Sin placa':'Sin placa';
-  const placas=[...new Set(D.filas.map(pl))].sort(cmpP),color=p=>RPAL[placas.indexOf(p)%RPAL.length];
-  const cnt=cuenta(D.filas.map(pl),x=>x);
-  if(ralPlacaArch!==a.id||(ralPlaca&&ralPlaca!=='__todas'&&!placas.includes(ralPlaca))){ralPlacaArch=a.id;ralPlaca=cnt.length?cnt[0][0]:'__todas'}
-  const fpl=ralPlaca==='__todas'?'':ralPlaca;
-  $('ralpl').innerHTML='<option value="">Todas las placas</option>'+placas.map(p=>`<option${p===fpl?' selected':''}>${esc(p)}</option>`).join('');$('ralpl').value=fpl;
-  $('ralmapt').textContent=fpl?`Ubicaciones reportadas de ${fpl}`:'Ubicaciones de todas las placas';$('raltodas').hidden=!fpl;
-  const filas=D.filas.map((r,i)=>({r,i,p:pl(r),c:coordsFila(r,cc)})).filter(x=>!fpl||x.p===fpl);
-  const conC=filas.filter(x=>x.c);
-  $('ralkpi').innerHTML=[[filas.length,fpl?`Registros de ${fpl}`:'Registros en el archivo',''],[fpl?1:placas.length,'Placas',''],[conC.length,'Con ubicación en el mapa',''],[filas.length-conC.length,'Sin coordenadas',filas.length-conC.length?'badc':'']]
-    .map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
-  const mx=Math.max(1,...cnt.map(x=>x[1]));
-  $('ralpls').innerHTML=cnt.map(([l,n],k)=>`<button type="button" class="rbar" role="option" aria-selected="${l===fpl}" data-rpl="${esc(l)}" title="Ver ubicaciones de ${esc(l)}"><span class="rk">${k+1}</span><span class="pl">${esc(l)}</span><span class="tr"><i style="width:${n/mx*100}%;background:${color(l)}"></i></span><b>${n}</b></button>`).join('');
+  const cc=detectarCols(D.cols),porDis=cc.dis>=0,hD=cc.dur>=0?D.cols[cc.dur]:'';
+  const falt=[['Dispositivo',porDis],['Ubicación',cc.ubi>=0||(cc.lat>=0&&cc.lng>=0)],['Hora de inicio',cc.fec>=0],['Duración',cc.dur>=0]].filter(x=>!x[1]).map(x=>x[0]);
+  $('ralcolsn').textContent=falt.length?`Este archivo no tiene ${falt.length>1?'las columnas':'la columna'} ${falt.map(x=>'«'+x+'»').join(', ')}.${!porDis?' Se agrupa por placa.':''}`:'';
+  const U=porDis?{uno:'dispositivo',Uno:'Dispositivo',Varios:'Dispositivos',todos:'todos los dispositivos'}:{uno:'placa',Uno:'Placa',Varios:'Placas',todos:'todas las placas'};
+  const key=r=>porDis?String(r[cc.dis]||'').trim().replace(/\s+/g,' ')||'Sin dispositivo':cc.pla>=0?normP(r[cc.pla])||String(r[cc.pla]||'').trim()||'Sin placa':'Sin placa';
+  const ev=D.filas.map((r,i)=>({i,r,k:key(r),c:coordsFila(r,cc),ini:cc.fec>=0?String(r[cc.fec]||''):'',ms:cc.fec>=0?iniMs(r[cc.fec]):NaN,dur:cc.dur>=0?durSeg(r[cc.dur],hD):null,ubi:cc.ubi>=0?String(r[cc.ubi]||''):''}));
+  // consolidado por dispositivo
+  const G={};ev.forEach(e=>{const g=G[e.k]=G[e.k]||{k:e.k,n:0,tot:0,cd:0,max:null,pri:NaN,ult:NaN,priT:'',ultT:'',conC:0};g.n++;if(e.c)g.conC++;
+    if(e.dur!==null){g.tot+=e.dur;g.cd++;if(g.max===null||e.dur>g.max)g.max=e.dur}
+    if(!isNaN(e.ms)){if(isNaN(g.pri)||e.ms<g.pri){g.pri=e.ms;g.priT=e.ini}if(isNaN(g.ult)||e.ms>g.ult){g.ult=e.ms;g.ultT=e.ini}}});
+  const grupos=Object.values(G).map(g=>({...g,prom:g.cd?g.tot/g.cd:null}));
+  const orden=(x,y)=>ralOrden==='dur'?(y.tot-x.tot||y.n-x.n):(y.n-x.n||y.tot-x.tot)||cmpP(x.k,y.k);
+  grupos.sort(orden);const keys=grupos.map(g=>g.k),alfa=[...keys].sort(cmpP),color=k=>RPAL[alfa.indexOf(k)%RPAL.length];
+  if(ralPlacaArch!==a.id||(ralPlaca&&ralPlaca!=='__todas'&&!keys.includes(ralPlaca))){ralPlacaArch=a.id;ralPlaca=grupos.length?grupos[0].k:'__todas'}
+  if(ralVista==='disp'&&ralPlaca==='__todas')ralPlaca=grupos.length?grupos[0].k:'__todas';
+  const cons=ralVista==='cons',sel=cons?'':ralPlaca;
+  $('raltabs').querySelectorAll('[data-rv]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.rv===ralVista));
+document.querySelectorAll('.ralord [data-ro]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ro===ralOrden));
+  $('rallblsel').textContent=U.Uno;$('ralpl').innerHTML=alfa.map(k=>`<option${k===sel?' selected':''}>${esc(k)}</option>`).join('');$('ralpl').disabled=cons;if(sel)$('ralpl').value=sel;
+  $('ralrkt').textContent=`${U.Varios} · ${ralOrden==='dur'?'duración total':'reportes'}`;
+  $('ralrks').textContent=cons?`Toca ${porDis?'un':'una'} ${U.uno} para ver su detalle`:`Toca ${porDis?'un':'una'} ${U.uno} para ver sus ubicaciones, horas y duraciones`;
+  $('ralpls').setAttribute('aria-label',U.Varios);$('ralpls').style.setProperty('--lw',porDis?'140px':'74px');
+  const mx=Math.max(1,...grupos.map(g=>ralOrden==='dur'?g.tot:g.n));
+  $('ralpls').innerHTML=grupos.map((g,k)=>{const v=ralOrden==='dur'?g.tot:g.n;return `<button type="button" class="rbar" role="option" aria-selected="${g.k===sel}" data-rpl="${esc(g.k)}" title="${esc(g.k)}: ${g.n} reportes · ${durF(g.tot)}"><span class="rk">${k+1}</span><span class="pl">${esc(g.k)}</span><span class="tr"><i style="width:${v/mx*100}%;background:${color(g.k)}"></i></span><b>${ralOrden==='dur'?durF(g.tot):g.n}</b></button>`}).join('');
   const selB=$('ralpls').querySelector('[aria-selected="true"]');if(selB)selB.scrollIntoView({block:'nearest'});
-  const mostrar=filas.slice(0,400),ci=D.cols.map((c,i)=>i);
-  $('ralrsub').textContent=`${filas.length} registro${filas.length===1?'':'s'}${filas.length>400?' · se muestran los primeros 400 (todos están en el mapa)':''}. Toca un registro para ubicarlo en el mapa.`;
-  $('raltab').innerHTML=`<table><thead><tr>${D.cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${mostrar.map(x=>`<tr class="${x.c?'c':'sin'}" data-ri="${x.i}">${ci.map(i=>`<td>${i===cc.ubi&&!x.c&&x.r[i]?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.r[i])}" target="_blank" rel="noopener">${esc(x.r[i])}</a>`:esc(x.r[i])}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-  $('ralleg').innerHTML=(fpl?[fpl]:placas.slice(0,16)).map(p=>`<span><i style="background:${color(p)}"></i>${esc(p)}</span>`).join('')+(!fpl&&placas.length>16?`<span>y ${placas.length-16} placas más</span>`:'');
+  const vis=cons?ev:ev.filter(e=>e.k===sel),conC=vis.filter(e=>e.c),durs=vis.filter(e=>e.dur!==null),tot=durs.reduce((s,e)=>s+e.dur,0);
+  const kp=cons?[[grupos.length,U.Varios,''],[ev.length,'Reportes de ralentí',''],[durF(tot),'Duración total',''],[durs.length?durF(tot/durs.length):'—','Duración promedio por reporte',''],[grupos.length?durF(tot/grupos.length):'—',`Promedio por ${U.uno}`,'']]
+    :[[vis.length,'Reportes',''],[durF(tot),'Duración total',''],[durs.length?durF(tot/durs.length):'—','Duración promedio',''],[durs.length?durF(Math.max(...durs.map(e=>e.dur))):'—','Ralentí más largo',''],...(vis.length-conC.length?[[vis.length-conC.length,'Sin coordenadas','badc']]:[])];
+  $('ralkpi').innerHTML=kp.map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
+  $('ralmapt').textContent=cons?`Ubicaciones de ${U.todos}`:`Ubicaciones reportadas por ${porDis?'el dispositivo':'la placa'} ${sel}`;$('raltodas').hidden=cons;$('raltodas').textContent='Ver consolidado';
+  // tabla
+  const gmap=e=>e.c?`https://www.google.com/maps/search/?api=1&query=${e.c.lat},${e.c.lng}`:e.ubi?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.ubi)}`:'';
+  if(cons){
+    $('raltt').textContent=`Consolidado por ${U.uno}`;$('ralrsub').textContent=`${grupos.length} ${U.Varios.toLowerCase()} · ${ev.length} reportes · ${durF(tot)} de ralentí en total. Toca una fila para ver el detalle.`;
+    $('raltab').innerHTML=`<table><thead><tr><th>#</th><th>${U.Uno}</th><th>Reportes</th><th>Duración total</th><th>Promedio</th><th>Más largo</th><th>Primera hora de inicio</th><th>Última hora de inicio</th><th>Con ubicación</th></tr></thead><tbody>${grupos.map((g,k)=>`<tr class="c" data-rg="${esc(g.k)}"><td class="num">${k+1}</td><td><b>${esc(g.k)}</b></td><td class="num">${g.n}</td><td class="num">${durF(g.tot)}</td><td class="num">${durF(g.prom)}</td><td class="num">${durF(g.max)}</td><td>${esc(g.priT||'—')}</td><td>${esc(g.ultT||'—')}</td><td class="num">${g.conC}</td></tr>`).join('')}
+      <tr><td></td><td><b>Total</b></td><td class="num"><b>${ev.length}</b></td><td class="num"><b>${durF(tot)}</b></td><td class="num"><b>${durs.length?durF(tot/durs.length):'—'}</b></td><td></td><td></td><td></td><td class="num"><b>${conC.length}</b></td></tr></tbody></table>`;
+  }else{
+    const ord=vis.slice().sort((x,y)=>isNaN(x.ms)||isNaN(y.ms)?x.i-y.i:x.ms-y.ms),mostrar=ord.slice(0,1000);
+    $('raltt').textContent=`Ubicaciones de ${sel}`;$('ralrsub').textContent=`${vis.length} reporte${vis.length===1?'':'s'} ordenados por hora de inicio${vis.length>1000?' · se muestran los primeros 1000 (todos están en el mapa)':''}. Toca un reporte para ubicarlo en el mapa.`;
+    $('raltab').innerHTML=`<table><thead><tr><th>#</th><th>Hora de inicio</th><th>Duración</th><th>Ubicación</th></tr></thead><tbody>${mostrar.map((e,k)=>`<tr class="${e.c?'c':'sin'}" data-ri="${e.i}"><td class="num">${k+1}</td><td>${esc(e.ini||'—')}</td><td class="num">${durF(e.dur)}</td><td class="ub">${e.ubi||e.c?`${esc(e.ubi||`${e.c.lat}, ${e.c.lng}`)}${gmap(e)?` · <a href="${gmap(e)}" target="_blank" rel="noopener">Google Maps</a>`:''}`:'—'}</td></tr>`).join('')}</tbody></table>`;
+  }
+  $('ralleg').innerHTML=(cons?alfa.slice(0,16):[sel]).map(k=>`<span><i style="background:${color(k)}"></i>${esc(k)}</span>`).join('')+(cons&&alfa.length>16?`<span>y ${alfa.length-16} más</span>`:'')+(durs.length?'<span>El tamaño de cada punto indica la duración del ralentí</span>':'');
+  // mapa
   let L;try{L=await cargarLeaflet()}catch(x){ralMsg('No se pudo cargar el mapa. Revisa tu conexión a internet.');return}
   if(!ralMapa){
     ralMapa=L.map('ralmap',{zoomControl:true}).setView([4.142,-73.626],11);
@@ -2201,18 +2255,23 @@ async function renderRal(){
     ralCapa=L.layerGroup().addTo(ralMapa);
   }
   ralCapa.clearLayers();ralMk={};
-  if(!conC.length){ralMsg(filas.length?'Ningún registro tiene coordenadas en la columna «Ubicación». El mapa necesita latitud y longitud (por ejemplo: 4.14211, -73.62664). Los registros sí aparecen en la tabla de abajo.':'No hay registros.');return}
+  if(!conC.length){ralMsg(vis.length?'Ningún reporte tiene coordenadas en la columna «Ubicación». El mapa necesita latitud y longitud (por ejemplo: 4.14211, -73.62664). Los reportes sí aparecen en la tabla de abajo.':'No hay reportes.');return}
   ralMsg('');
-  const pts=[];conC.forEach(x=>{const m=L.circleMarker([x.c.lat,x.c.lng],{radius:7,color:'#fff',weight:1.5,fillColor:color(x.p),fillOpacity:.9});
-    m.bindPopup(`<div class="ralpop"><b>${esc(x.p)}</b><table>${D.cols.map((c,i)=>x.r[i]?`<tr><td>${esc(c)}</td><td>${esc(x.r[i])}</td></tr>`:'').join('')}</table><a href="https://www.google.com/maps/search/?api=1&query=${x.c.lat},${x.c.lng}" target="_blank" rel="noopener">Abrir en Google Maps</a></div>`);
-    m.addTo(ralCapa);ralMk[x.i]=m;pts.push([x.c.lat,x.c.lng])});
+  const dmax=Math.max(1,...conC.map(e=>e.dur||0)),pts=[];
+  conC.forEach(e=>{const rad=e.dur!==null?6+Math.sqrt(e.dur/dmax)*12:7;
+    const m=L.circleMarker([e.c.lat,e.c.lng],{radius:rad,color:'#fff',weight:1.5,fillColor:color(e.k),fillOpacity:.85});
+    m.bindPopup(`<div class="ralpop"><b>${esc(e.k)}</b><table><tr><td>Hora de inicio</td><td>${esc(e.ini||'—')}</td></tr><tr><td>Duración</td><td>${durF(e.dur)}</td></tr><tr><td>Ubicación</td><td>${esc(e.ubi||`${e.c.lat}, ${e.c.lng}`)}</td></tr></table><a href="${gmap(e)}" target="_blank" rel="noopener">Abrir en Google Maps</a></div>`);
+    m.addTo(ralCapa);ralMk[e.i]=m;pts.push([e.c.lat,e.c.lng])});
   setTimeout(()=>{ralMapa.invalidateSize();if(pts.length===1)ralMapa.setView(pts[0],15);else ralMapa.fitBounds(pts,{padding:[30,30],maxZoom:16})},50);
 }
 $('ralsel').onchange=()=>{ralSel=$('ralsel').value;renderRal()};
-$('ralpl').onchange=()=>{ralPlaca=$('ralpl').value||'__todas';renderRal()};
-$('ralpls').onclick=e=>{const b=e.target.closest('[data-rpl]');if(!b)return;ralPlaca=b.dataset.rpl;renderRal();if(window.matchMedia('(max-width:900px)').matches)$('ralmap').scrollIntoView({behavior:'smooth',block:'center'})};
-$('raltodas').onclick=()=>{ralPlaca='__todas';renderRal()};
-$('raltab').onclick=e=>{const tr=e.target.closest('tr[data-ri]');if(!tr||e.target.closest('a'))return;const m=ralMk[tr.dataset.ri];if(m&&ralMapa){ralMapa.setView(m.getLatLng(),16);m.openPopup();$('ralmap').scrollIntoView({behavior:'smooth',block:'center'})}};
+$('ralpl').onchange=()=>{ralPlaca=$('ralpl').value;ralVista='disp';renderRal()};
+$('ralpls').onclick=e=>{const b=e.target.closest('[data-rpl]');if(!b)return;ralPlaca=b.dataset.rpl;ralVista='disp';renderRal();if(window.matchMedia('(max-width:900px)').matches)$('ralmap').scrollIntoView({behavior:'smooth',block:'center'})};
+$('raltodas').onclick=()=>{ralVista='cons';renderRal()};
+$('raltabs').onclick=e=>{const b=e.target.closest('[data-rv]');if(!b)return;ralVista=b.dataset.rv;renderRal()};
+document.querySelector('.ralord').onclick=e=>{const b=e.target.closest('[data-ro]');if(!b)return;ralOrden=b.dataset.ro;renderRal()};
+$('raltab').onclick=e=>{if(e.target.closest('a'))return;const g=e.target.closest('tr[data-rg]');if(g){ralPlaca=g.dataset.rg;ralVista='disp';renderRal();window.scrollTo({top:0,behavior:'smooth'});return}
+  const tr=e.target.closest('tr[data-ri]');if(!tr)return;const m=ralMk[tr.dataset.ri];if(m&&ralMapa){ralMapa.setView(m.getLatLng(),16);m.openPopup();$('ralmap').scrollIntoView({behavior:'smooth',block:'center'})}};
 $('raldel').onclick=async()=>{const a=ralArch.find(x=>x.id===ralSel);if(!a||cur.rol!=='admin'||!confirm(`¿Eliminar el archivo «${a.nombre}» y todos sus registros?`))return;
   try{const ps=await getDocs(collection(db,'ralenti',a.id,'partes'));const b=writeBatch(db);ps.docs.forEach(p=>b.delete(p.ref));await b.commit();await deleteDoc(doc(db,'ralenti',a.id));delete ralCache[a.id];ralSel='';ralProg('')}
   catch(x){alert(ERR(x.code))}};
