@@ -102,6 +102,19 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .vcols.t div{flex:1 1 0;min-width:68px;max-width:96px;font-size:.8rem;white-space:nowrap}.vcl.t span{flex:1 1 0;min-width:68px;max-width:96px;font-size:.74rem;overflow-wrap:break-word}.vcl.t,.vcols.t{gap:8px;justify-content:flex-start}
 .vcols small{font-weight:600;font-size:.72rem;color:var(--mut)}
 .ralbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:12px}.ralbar label{margin:0}.ralbar select{width:auto;min-width:200px;max-width:100%}
+.ralgrid{display:grid;grid-template-columns:minmax(260px,330px) 1fr;gap:14px;align-items:start}
+@media (max-width:900px){.ralgrid{grid-template-columns:1fr}}
+.ralrank{display:flex;flex-direction:column;max-height:calc(min(560px,62vh) + 46px);min-height:320px}
+.rbars{overflow-y:auto;display:grid;gap:4px;margin-top:6px;padding-right:4px;scrollbar-width:thin}
+.rbar{display:grid;grid-template-columns:22px 74px 1fr auto;gap:8px;align-items:center;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:8px;padding:6px 8px;cursor:pointer;color:var(--ink);font:inherit}
+.rbar:hover{background:var(--soft)}
+.rbar[aria-selected="true"]{background:var(--soft);border-color:var(--acc)}
+.rbar .rk{font-size:.75rem;color:var(--mut);text-align:right}
+.rbar .pl{font-weight:700;letter-spacing:.04em;font-size:.88rem}
+.rbar .tr{height:14px;background:var(--line);border-radius:7px;overflow:hidden}
+.rbar .tr i{display:block;height:100%;border-radius:7px}
+.rbar b{font-variant-numeric:tabular-nums;font-size:.9rem}
+.ralmaph{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}.ralmaph b{font-size:1.05rem}.ralmaph .btn{padding:7px 12px;font-size:.9rem}
 .ralmapw{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--soft)}
 #ralmap{height:min(560px,62vh);min-height:320px;width:100%}
 .ralmsg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--mut);background:var(--card)}
@@ -569,12 +582,13 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   </div>
   <div class="pprog" id="ralprog" role="status"></div>
   <div class="kpis" id="ralkpi"></div>
-  <div class="ralmapw"><div id="ralmap" role="region" aria-label="Mapa de ubicaciones de ralentí"></div><div class="ralmsg" id="ralmsg" hidden></div></div>
-  <div class="cleg" id="ralleg"></div>
-  <div class="dgrid" style="margin-top:14px">
-    <div class="dc"><h2>Eventos por placa</h2><small>Toca una placa para verla sola en el mapa</small><div id="ralpls"></div></div>
-    <div class="dc"><h2>Registros</h2><small id="ralrsub"></small><div id="raltab" class="raltab"></div></div>
+  <div class="ralgrid">
+    <div class="dc ralrank"><h2>Placas con más reportes</h2><small>Toca una placa para ver sus ubicaciones en el mapa</small><div id="ralpls" class="rbars" role="listbox" aria-label="Placas"></div></div>
+    <div><div class="ralmaph"><b id="ralmapt"></b><button type="button" class="btn ghost" id="raltodas">Ver todas las placas</button></div>
+      <div class="ralmapw"><div id="ralmap" role="region" aria-label="Mapa de ubicaciones de ralentí"></div><div class="ralmsg" id="ralmsg" hidden></div></div>
+      <div class="cleg" id="ralleg"></div></div>
   </div>
+  <div class="dc" style="margin-top:14px"><h2>Registros</h2><small id="ralrsub"></small><div id="raltab" class="raltab"></div></div>
   <input type="file" id="ralfile" accept=".xlsx,.xls,.csv" hidden>
 </section>
 <section id="kmv" hidden aria-label="Kilometrajes">
@@ -2093,7 +2107,7 @@ $('kmfrm').onsubmit=async e=>{e.preventDefault();const t=Number($('kmtol').value
   catch(x){$('kmerr').textContent=ERR(x.code)}$('kmsave').disabled=false};
 
 /* ---------- Ralentí ---------- */
-let ralArch=[],unsubR=null,ralSel='',ralDatos=null,ralCache={},ralMapa=null,ralCapa=null,ralMk=[],ralSubiendo=false;
+let ralPlaca=null,ralPlacaArch='',ralArch=[],unsubR=null,ralSel='',ralDatos=null,ralCache={},ralMapa=null,ralCapa=null,ralMk=[],ralSubiendo=false;
 const RPAL=['#e11d48','#2563eb','#16a34a','#d97706','#7c3aed','#0891b2','#db2777','#65a30d','#ea580c','#0f766e','#4f46e5','#b91c1c','#0369a1','#a16207','#9333ea','#15803d'];
 const nh=t=>sinTilde(t).replace(/[^a-z0-9]/g,'');
 function detectarCols(cols){
@@ -2155,22 +2169,25 @@ async function renderRal(){
   const f=d=>d&&d.toDate?d.toDate().toLocaleDateString('es-CO'):'';
   $('ralsel').innerHTML=ar.length?ar.map(a=>`<option value="${a.id}"${a.id===ralSel?' selected':''}>${esc(a.nombre)}${a.creado?' · '+f(a.creado):''}${a.listo?'':' (carga incompleta)'}</option>`).join(''):'<option value="">Sin archivos cargados</option>';
   const a=ar.find(x=>x.id===ralSel);$('raldel').hidden=!(a&&cur.rol==='admin');
-  if(!a){$('ralkpi').innerHTML='';$('ralpls').innerHTML='';$('raltab').innerHTML='';$('ralleg').innerHTML='';$('ralrsub').textContent='';
+  if(!a){$('ralmapt').textContent='';$('raltodas').hidden=true;$('ralkpi').innerHTML='';$('ralpls').innerHTML='<p class="empty" style="margin:0">Sin datos.</p>';$('raltab').innerHTML='';$('ralleg').innerHTML='';$('ralrsub').textContent='';
     ralMsg(`Aún no hay archivos de ralentí para ${esc(sede)}.${canEdit()?' Usa «Cargar Excel» para subir el primero. Debe tener una columna llamada <b>Ubicación</b> con las coordenadas (latitud, longitud).':''}`);if(ralCapa)ralCapa.clearLayers();return}
   if(!a.listo){ralMsg('Este archivo no terminó de cargarse. El administrador puede eliminarlo y volver a cargarlo.');return}
   let D;try{if(!ralCache[a.id])ralMsg('Cargando datos…');D=await datosRal(a)}catch(x){ralMsg('No se pudieron cargar los datos del archivo. Revisa tu conexión.');return}
   if(a.id!==ralSel)return;
   const cc=detectarCols(D.cols),pl=r=>cc.pla>=0?normP(r[cc.pla])||String(r[cc.pla]||'').trim()||'Sin placa':'Sin placa';
   const placas=[...new Set(D.filas.map(pl))].sort(cmpP),color=p=>RPAL[placas.indexOf(p)%RPAL.length];
-  const sel=$('ralpl').value;$('ralpl').innerHTML='<option value="">Todas las placas</option>'+placas.map(p=>`<option${p===sel?' selected':''}>${esc(p)}</option>`).join('');
-  const fpl=placas.includes(sel)?sel:'';
+  const cnt=cuenta(D.filas.map(pl),x=>x);
+  if(ralPlacaArch!==a.id||(ralPlaca&&ralPlaca!=='__todas'&&!placas.includes(ralPlaca))){ralPlacaArch=a.id;ralPlaca=cnt.length?cnt[0][0]:'__todas'}
+  const fpl=ralPlaca==='__todas'?'':ralPlaca;
+  $('ralpl').innerHTML='<option value="">Todas las placas</option>'+placas.map(p=>`<option${p===fpl?' selected':''}>${esc(p)}</option>`).join('');$('ralpl').value=fpl;
+  $('ralmapt').textContent=fpl?`Ubicaciones reportadas de ${fpl}`:'Ubicaciones de todas las placas';$('raltodas').hidden=!fpl;
   const filas=D.filas.map((r,i)=>({r,i,p:pl(r),c:coordsFila(r,cc)})).filter(x=>!fpl||x.p===fpl);
   const conC=filas.filter(x=>x.c);
   $('ralkpi').innerHTML=[[filas.length,fpl?`Registros de ${fpl}`:'Registros en el archivo',''],[fpl?1:placas.length,'Placas',''],[conC.length,'Con ubicación en el mapa',''],[filas.length-conC.length,'Sin coordenadas',filas.length-conC.length?'badc':'']]
     .map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
-  const cnt=cuenta(D.filas.map(pl),x=>x);
-  $('ralpls').innerHTML=bars(cnt.slice(0,15).map(([l,n])=>({l,n,t:`${n}`})))+(cnt.length>15?`<small class="mnota">Se muestran 15 de ${cnt.length} placas. Usa el selector «Placa» para ver las demás.</small>`:'');
-  $('ralpls').querySelectorAll('.bar').forEach((b,k)=>{b.style.cursor='pointer';b.title='Ver solo esta placa';b.onclick=()=>{$('ralpl').value=cnt[k][0];renderRal()}});
+  const mx=Math.max(1,...cnt.map(x=>x[1]));
+  $('ralpls').innerHTML=cnt.map(([l,n],k)=>`<button type="button" class="rbar" role="option" aria-selected="${l===fpl}" data-rpl="${esc(l)}" title="Ver ubicaciones de ${esc(l)}"><span class="rk">${k+1}</span><span class="pl">${esc(l)}</span><span class="tr"><i style="width:${n/mx*100}%;background:${color(l)}"></i></span><b>${n}</b></button>`).join('');
+  const selB=$('ralpls').querySelector('[aria-selected="true"]');if(selB)selB.scrollIntoView({block:'nearest'});
   const mostrar=filas.slice(0,400),ci=D.cols.map((c,i)=>i);
   $('ralrsub').textContent=`${filas.length} registro${filas.length===1?'':'s'}${filas.length>400?' · se muestran los primeros 400 (todos están en el mapa)':''}. Toca un registro para ubicarlo en el mapa.`;
   $('raltab').innerHTML=`<table><thead><tr>${D.cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${mostrar.map(x=>`<tr class="${x.c?'c':'sin'}" data-ri="${x.i}">${ci.map(i=>`<td>${i===cc.ubi&&!x.c&&x.r[i]?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.r[i])}" target="_blank" rel="noopener">${esc(x.r[i])}</a>`:esc(x.r[i])}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
@@ -2191,8 +2208,10 @@ async function renderRal(){
     m.addTo(ralCapa);ralMk[x.i]=m;pts.push([x.c.lat,x.c.lng])});
   setTimeout(()=>{ralMapa.invalidateSize();if(pts.length===1)ralMapa.setView(pts[0],15);else ralMapa.fitBounds(pts,{padding:[30,30],maxZoom:16})},50);
 }
-$('ralsel').onchange=()=>{ralSel=$('ralsel').value;$('ralpl').value='';renderRal()};
-$('ralpl').onchange=()=>renderRal();
+$('ralsel').onchange=()=>{ralSel=$('ralsel').value;renderRal()};
+$('ralpl').onchange=()=>{ralPlaca=$('ralpl').value||'__todas';renderRal()};
+$('ralpls').onclick=e=>{const b=e.target.closest('[data-rpl]');if(!b)return;ralPlaca=b.dataset.rpl;renderRal();if(window.matchMedia('(max-width:900px)').matches)$('ralmap').scrollIntoView({behavior:'smooth',block:'center'})};
+$('raltodas').onclick=()=>{ralPlaca='__todas';renderRal()};
 $('raltab').onclick=e=>{const tr=e.target.closest('tr[data-ri]');if(!tr||e.target.closest('a'))return;const m=ralMk[tr.dataset.ri];if(m&&ralMapa){ralMapa.setView(m.getLatLng(),16);m.openPopup();$('ralmap').scrollIntoView({behavior:'smooth',block:'center'})}};
 $('raldel').onclick=async()=>{const a=ralArch.find(x=>x.id===ralSel);if(!a||cur.rol!=='admin'||!confirm(`¿Eliminar el archivo «${a.nombre}» y todos sus registros?`))return;
   try{const ps=await getDocs(collection(db,'ralenti',a.id,'partes'));const b=writeBatch(db);ps.docs.forEach(p=>b.delete(p.ref));await b.commit();await deleteDoc(doc(db,'ralenti',a.id));delete ralCache[a.id];ralSel='';ralProg('')}
