@@ -684,7 +684,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 <dialog id="mdlg">
   <form id="mfrm">
     <h2 id="mtit">Cantidad de placas</h2>
-    <p class="mnota">Las placas que deben tener sus dos calibraciones cada mes. El cumplimiento se calcula sobre la cantidad de placas de esta lista: solo cuentan las que tienen las dos calibraciones.</p>
+    <div class="mall" style="margin:0 0 8px"><label style="margin:0">Mes<select id="mmes"></select></label><button type="button" class="btn ghost" id="pcopy">Copiar del mes anterior</button></div>
+    <p class="mnota">Cada mes tiene su propia lista: agregar o quitar placas aquí solo cambia el mes elegido. Son las placas que deben tener sus dos calibraciones en ese mes. El cumplimiento se calcula sobre la cantidad de placas de esta lista: solo cuentan las que tienen las dos calibraciones.</p>
     <label>Añadir placas a mano<textarea id="ptxt" rows="3" placeholder="Una placa por línea, o separadas por comas. Ej: LJV124, TKW456"></textarea></label>
     <div class="mall">
       <button type="button" class="btn ghost" id="padd">Añadir a la lista</button>
@@ -1050,14 +1051,15 @@ function calSede(){return cals.filter(c=>(c.sede||SEDES[0])===sede&&c.anio===can
 function metaDe(){return (metas[sede+'_'+canio]||{}).meses||{}}
 const cmpP=(a,b)=>String(a).localeCompare(String(b),'es',{numeric:true,sensitivity:'base'});
 const normP=p=>String(p||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-function placasDe(){return [...((metas[sede+'_'+canio]||{}).placas||[])].sort(cmpP)}
+function placasMes(m){const d=metas[sede+'_'+canio]||{},pm=d.placasMes||{};const l=Object.prototype.hasOwnProperty.call(pm,String(m))?pm[String(m)]:(d.placas||[]);return [...(l||[])].sort(cmpP)}
+function placasDe(){const st=new Set();for(let m=1;m<=12;m++)placasMes(m).forEach(p=>st.add(p));return [...st].sort(cmpP)}
 const colP=p=>p===null?'var(--mut)':`hsl(${Math.round(Math.min(100,Math.max(0,p))*1.2)},62%,40%)`;
 const pctTxt=p=>p===null?'—':Math.round(p)+'%';
 function calcCal(){
   const del=calSede(),meta=metaDe(),lista=placasDe();
-  const S=MESES.map((_,k)=>{const m=k+1,r=del.filter(c=>c.mes===m),comp=r.filter(c=>c.f1&&c.f2),okSet=new Set(comp.map(c=>normP(c.placa)));
+  const S=MESES.map((_,k)=>{const m=k+1,lista=placasMes(m),r=del.filter(c=>c.mes===m),comp=r.filter(c=>c.f1&&c.f2),okSet=new Set(comp.map(c=>normP(c.placa)));
     const mt=lista.length||Number(meta[m])||0,ok=lista.length?lista.filter(p=>okSet.has(p)).length:comp.length;
-    return{m,n:r.length,ok,comp:comp.length,fuera:lista.length?[...okSet].filter(p=>!lista.includes(p)).length:0,inc:r.length-comp.length,mt,pct:mt?ok/mt*100:null,falt:lista.filter(p=>!okSet.has(p))}});
+    return{m,n:r.length,ok,comp:comp.length,fuera:lista.length?[...okSet].filter(p=>!lista.includes(p)).length:0,inc:r.length-comp.length,mt,pct:mt?ok/mt*100:null,falt:lista.filter(p=>!okSet.has(p)),lista}});
   return {del,meta,lista,S};
 }
 function renderCal(){
@@ -1074,7 +1076,7 @@ function renderCal(){
   const s=S[cmes-1],v=del.filter(c=>c.mes===cmes).sort((a,b)=>cmpP(normP(a.placa),normP(b.placa))||String(a.f1).localeCompare(String(b.f1)));
   $('ctit').textContent=`${MESES[cmes-1]} ${canio}`;
   $('csub').textContent=`${sede} · ${s.n} registro${s.n===1?'':'s'} · ${s.comp} completa${s.comp===1?'':'s'} · ${s.inc} incompleta${s.inc===1?'':'s'}${s.mt?' · Cumplimiento '+pctTxt(s.pct)+' ('+s.ok+' de '+s.mt+' placas)':''}${s.fuera?' · '+s.fuera+' completa'+(s.fuera>1?'s':'')+' con placa que no está en la lista':''}`;
-  const faltHtml=lista.length?`<div class="dc" style="margin-top:14px"><h2>Placas que aún no cumplen en ${MESES[cmes-1]}</h2><small>Placas de la lista sin sus dos calibraciones este mes: ${s.falt.length} de ${lista.length}</small>
+  const faltHtml=s.lista.length?`<div class="dc" style="margin-top:14px"><h2>Placas que aún no cumplen en ${MESES[cmes-1]}</h2><small>Placas de la lista de ${MESES[cmes-1].toLowerCase()} sin sus dos calibraciones: ${s.falt.length} de ${s.lista.length}</small>
     ${s.falt.length?`<div class="chips">${s.falt.map(p=>`<span class="chip" style="cursor:default"><b>${esc(p)}</b></span>`).join('')}</div>`:'<p class="empty" style="margin:0">Todas las placas de la lista tienen sus dos calibraciones este mes.</p>'}</div>`:'';
   renderPpt();
   if(!v.length){$('calist').innerHTML=`<div class="empty">No hay calibraciones en ${MESES[cmes-1]} ${canio} para ${esc(sede)}.${canEdit()?' Usa «Registrar calibración» para agregar la primera.':''}</div>`+faltHtml;return}
@@ -1197,7 +1199,7 @@ async function construirXlsxCal(JSZip,D){
     reg.push([{v:c.placa,s:11},{v:M[c.mes-1],s:4},{v:D.anio,s:4},{v:D.sede,s:4},{d:c.f1,s:2},c.f2?{d:c.f2,s:2}:{v:'Pendiente',s:6},{v:ok?'Completa':'Incompleta',s:ok?5:6},d===''?{v:'',s:4}:{v:d,s:4},{v:c.por||'',s:4},{v:c.editadoPor||'',s:4},{v:c.nfotos,s:4}])});
   // Cumplimiento por placa
   const mat=[[h('Placa'),...M.map(m=>h(m.slice(0,3))),h('Meses que cumple')]];
-  D.matriz.forEach((p,i)=>{const r=i+2;mat.push([{v:p.placa,s:11},...p.meses.map(b=>({v:b?'Cumple':'No cumple',s:b?5:6})),{f:`COUNTIF(B${r}:M${r},"Cumple")`,v:p.meses.filter(Boolean).length,s:4}])});
+  D.matriz.forEach((p,i)=>{const r=i+2;mat.push([{v:p.placa,s:11},...p.meses.map(b=>b===null?{v:'No aplica',s:4}:{v:b?'Cumple':'No cumple',s:b?5:6}),{f:`COUNTIF(B${r}:M${r},"Cumple")`,v:p.meses.filter(b=>b===true).length,s:4}])});
   // Placas incompletas
   const inc=[[h('Placa'),h('Mes'),h('Primera calibración'),h('Reportado por')]];
   D.registros.filter(c=>!(c.f1&&c.f2)).forEach(c=>inc.push([{v:c.placa,s:11},{v:M[c.mes-1],s:4},{d:c.f1,s:2},{v:c.por||'',s:4}]));
@@ -1281,7 +1283,7 @@ function construirPptCal(PptxGenJS,D){
      catAxisLabelColor:MU,valAxisLabelColor:MU,catAxisLabelFontSize:11,valAxisLabelFontSize:10,valGridLine:{color:'E3E8E4',size:0.5},catGridLine:{style:'none'},
      showTitle:true,title:'Registros completos e incompletos por mes',titleFontSize:14,titleColor:TX,barGapWidthPct:60});
   // 3 cumplimiento por mes
-  s=pres.addSlide();cab(s,'Cumplimiento por mes',`${D.sede} · ${D.anio} · ${D.nPlacas?D.nPlacas+' placas en la lista':'Sin lista de placas cargada'}`);
+  s=pres.addSlide();cab(s,'Cumplimiento por mes',`${D.sede} · ${D.anio} · ${D.nPlacas?'Cada mes con su propia lista de placas':'Sin lista de placas cargada'}`);
   s.addChart(pres.charts.BAR,[{name:'Cumplimiento',labels:M.map(m=>m.slice(0,3)),values:S.map(x=>x.mt?+(x.ok/x.mt).toFixed(4):0)}],
     {x:0.4,y:1.2,w:7.4,h:5.9,barDir:'col',chartColors:[V2],showLegend:false,showValue:true,dataLabelPosition:'outEnd',dataLabelFormatCode:'0%',dataLabelColor:TX,dataLabelFontSize:10,
      valAxisMaxVal:1,valAxisMinVal:0,valAxisLabelFormatCode:'0%',catAxisLabelColor:MU,valAxisLabelColor:MU,valGridLine:{color:'E3E8E4',size:0.5},catGridLine:{style:'none'},
@@ -1304,8 +1306,8 @@ function construirPptCal(PptxGenJS,D){
   paginar('Placas incompletas','Tienen solo la primera calibración',['Placa','Mes','Primera calibración','Reportado por'],[2.2,2.2,2.6,5.3],
     incs.map(c=>[{text:c.placa,options:{bold:true,color:RO}},{text:M[c.mes-1]},{text:D.fd(c.f1),options:{align:'center'}},{text:c.por||'—'}]),16);
   // 5 cumplimiento por placa
-  if(D.matriz.length)paginar('Cumplimiento por placa',`${D.sede} · ${D.anio} · ✓ = tiene sus dos calibraciones en el mes`,['Placa',...M.map(m=>m.slice(0,3)),'Total'],[1.5,...M.map(()=>0.8),1.1],
-    D.matriz.map(p=>[{text:p.placa,options:{bold:true}},...p.meses.map(b=>({text:b?'✓':'✗',options:{align:'center',bold:true,color:b?OK:RO,fill:{color:b?'DCF1E5':ROC}}})),{text:String(p.meses.filter(Boolean).length),options:{align:'center',bold:true}}]),16);
+  if(D.matriz.length)paginar('Cumplimiento por placa',`${D.sede} · ${D.anio} · ✓ = tiene sus dos calibraciones · · = no está en la lista de ese mes`,['Placa',...M.map(m=>m.slice(0,3)),'Total'],[1.5,...M.map(()=>0.8),1.1],
+    D.matriz.map(p=>[{text:p.placa,options:{bold:true}},...p.meses.map(b=>b===null?{text:'·',options:{align:'center',color:'9AA3A9'}}:({text:b?'✓':'✗',options:{align:'center',bold:true,color:b?OK:RO,fill:{color:b?'DCF1E5':ROC}}})),{text:String(p.meses.filter(b=>b===true).length),options:{align:'center',bold:true}}]),16);
   // 6 base de datos
   paginar('Registros de calibración','Base de datos completa',['Placa','Mes','Primera calibración','Segunda calibración','Estado','Reportado por','Última edición'],[1.5,1.5,1.9,1.9,1.4,2.05,2.05],
     D.registros.map(c=>{const ok=c.f1&&c.f2;return [{text:c.placa,options:{bold:true}},{text:M[c.mes-1]},{text:D.fd(c.f1),options:{align:'center'}},{text:c.f2?D.fd(c.f2):'Pendiente',options:{align:'center',color:c.f2?TX:RO}},est(ok),{text:c.por||'—'},{text:c.editadoPor||'—'}]}),16);
@@ -1323,7 +1325,7 @@ function datosCal(){
   const conMeta=S.filter(s=>s.m<=hasta&&s.mt),acu=conMeta.length?conMeta.reduce((a,s)=>a+s.ok,0)/conMeta.reduce((a,s)=>a+s.mt,0)*100:null;
   const registros=del.map(c=>({placa:normP(c.placa)||c.placa,mes:c.mes,f1:c.f1||'',f2:c.f2||'',por:c.por||'',editadoPor:c.editadoPor||'',nfotos:c.fotos?Object.values(c.fotos).filter(Boolean).length:0}))
     .sort((a,b)=>cmpP(a.placa,b.placa)||a.mes-b.mes);
-  const matriz=lista.map(p=>({placa:p,meses:MESES.map((_,k)=>registros.some(c=>c.placa===p&&c.mes===k+1&&c.f1&&c.f2))}));
+  const matriz=lista.map(p=>({placa:p,meses:MESES.map((_,k)=>S[k].lista.includes(p)?registros.some(c=>c.placa===p&&c.mes===k+1&&c.f1&&c.f2):null)}));
   return {sede,anio:canio,generado:new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}),por:cur.nombre,meses:MESES,S,registros,matriz,acu,
     hastaTxt:hasta&&hasta<12?MESES[hasta-1].toLowerCase():'',nPlacas:lista.length,fd};
 }
@@ -2026,7 +2028,7 @@ function pintarKmP(){$('kmcount').textContent=kmpl.length+' placa'+(kmpl.length=
 function sumarKmP(arr){const antes=kmpl.length,st=new Set(kmpl);arr.map(normP).filter(p=>p.length>=4&&p.length<=10&&!/^PLACAS?$/.test(p)).forEach(p=>{if(!st.has(p)){st.add(p);kmpl.push(p)}});kmpl.sort(cmpP);pintarKmP();return kmpl.length-antes}
 $('kmvehb').onclick=()=>{if(cur.rol!=='admin')return;kmpl=kmPlacas();$('kmtxt').value='';$('kmerr').textContent='';$('kmtol').value=kmTol();$('kmtit').textContent=`Vehículos para kilometraje · ${sede}`;pintarKmP();$('kmdlg').showModal()};
 $('kmadd').onclick=()=>{const n=sumarKmP($('kmtxt').value.split(/[\n,;\t]+/));$('kmerr').textContent=n?'':'No se agregaron placas nuevas. Revisa que no estén repetidas.';if(n)$('kmtxt').value=''};
-$('kmcal').onclick=()=>{const src=Object.values(metas).filter(m=>(m.sede||'')===sede).flatMap(m=>m.placas||[]);const n=sumarKmP(src);$('kmerr').textContent=src.length?(n?`Se agregaron ${n} placa${n===1?'':'s'} de Calibraciones.`:'Las placas de Calibraciones ya están en la lista.'):'No hay placas cargadas en Calibraciones para esta sede.'};
+$('kmcal').onclick=()=>{const src=Object.values(metas).filter(m=>(m.sede||'')===sede).flatMap(m=>[...(m.placas||[]),...Object.values(m.placasMes||{}).flat()]);const n=sumarKmP(src);$('kmerr').textContent=src.length?(n?`Se agregaron ${n} placa${n===1?'':'s'} de Calibraciones.`:'Las placas de Calibraciones ya están en la lista.'):'No hay placas cargadas en Calibraciones para esta sede.'};
 $('kmxls').onclick=()=>$('kmfile').click();
 $('kmfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;$('kmerr').textContent='Leyendo archivo…';
   try{let vals;if(/\.csv$/i.test(f.name))vals=(await f.text()).split(/\r?\n/).map(l=>l.split(/[;,\t]/)[0]);
@@ -2325,14 +2327,18 @@ function pintarPlacas(){
 function sumarPlacas(arr){
   const antes=plist.length,set=new Set(plist);
   arr.map(normP).filter(p=>p.length>=4&&p.length<=10&&!/^PLACAS?$/.test(p)).forEach(p=>{if(!set.has(p)){set.add(p);plist.push(p)}});
-  plist.sort(cmpP);
+  plist.sort(cmpP);if(plist.length!==antes)pdirty=true;
   pintarPlacas();return plist.length-antes;
 }
+let pmes=1,pdirty=false;
+function cargarMesPlacas(m){pmes=m;$('mmes').value=String(m);plist=placasMes(m);pdirty=false;$('ptxt').value='';$('merr').textContent='';
+  $('mtit').textContent=`Cantidad de placas · ${MESES[m-1]} ${canio} · ${sede}`;$('pcopy').disabled=m===1;pintarPlacas()}
+$('mmes').innerHTML=MESES.map((n,k)=>`<option value="${k+1}">${n}</option>`).join('');
+$('mmes').onchange=()=>{const m=Number($('mmes').value);if(pdirty&&!confirm(`Tienes cambios sin guardar en ${MESES[pmes-1]}. ¿Descartarlos y cambiar de mes?`)){$('mmes').value=String(pmes);return}cargarMesPlacas(m)};
+$('pcopy').onclick=()=>{if(pmes<2)return;const src=placasMes(pmes-1);if(!src.length){$('merr').textContent=`${MESES[pmes-2]} no tiene placas cargadas.`;return}const n=sumarPlacas(src);$('merr').textContent=n?`Se copiaron ${n} placa${n===1?'':'s'} de ${MESES[pmes-2].toLowerCase()}. Pulsa «Guardar placas» para confirmar.`:`Las placas de ${MESES[pmes-2].toLowerCase()} ya están en la lista.`};
 $('cmetab').onclick=()=>{
   if(cur.rol!=='admin')return;
-  plist=[...placasDe()];$('ptxt').value='';$('merr').textContent='';
-  $('mtit').textContent=`Cantidad de placas · ${sede} ${canio}`;
-  pintarPlacas();$('mdlg').showModal();
+  cargarMesPlacas(cmes||(canio===hoyD.getFullYear()?hoyD.getMonth()+1:1));$('mdlg').showModal();
 };
 $('padd').onclick=()=>{
   const n=sumarPlacas($('ptxt').value.split(/[\n,;\t]+/));
@@ -2352,11 +2358,11 @@ $('pfile').onchange=async e=>{
     $('merr').textContent=n?`Se agregaron ${n} placa${n===1?'':'s'} del archivo.`:'El archivo no tenía placas nuevas. Revisa que estén en la primera columna.';
   }catch(x){$('merr').textContent='No se pudo leer el archivo. Usa un Excel (.xlsx) con las placas en la primera columna, o revisa tu conexión a internet.'}
 };
-$('plist').onclick=e=>{const b=e.target.closest('[data-pk]');if(b){plist.splice(Number(b.dataset.pk),1);pintarPlacas()}};
-$('pclear').onclick=()=>{if(confirm('¿Quitar todas las placas de la lista?')){plist=[];pintarPlacas()}};
+$('plist').onclick=e=>{const b=e.target.closest('[data-pk]');if(b){plist.splice(Number(b.dataset.pk),1);pdirty=true;pintarPlacas()}};
+$('pclear').onclick=()=>{if(confirm(`¿Quitar todas las placas de ${MESES[pmes-1].toLowerCase()}?`)){plist=[];pdirty=true;pintarPlacas()}};
 $('mfrm').onsubmit=async e=>{
   e.preventDefault();$('psave').disabled=true;
-  try{await setDoc(doc(db,'metas',sede+'_'+canio),{sede,anio:canio,placas:plist,meses:{},por:cur.nombre,editado:serverTimestamp()});$('mdlg').close()}
+  try{await setDoc(doc(db,'metas',sede+'_'+canio),{sede,anio:canio,placasMes:{[String(pmes)]:plist},por:cur.nombre,editado:serverTimestamp()},{merge:true});pdirty=false;$('mdlg').close()}
   catch(x){$('merr').textContent=ERR(x.code)}
   $('psave').disabled=false;
 };
