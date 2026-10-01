@@ -114,6 +114,9 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .rbar .tr{height:14px;background:var(--line);border-radius:7px;overflow:hidden}
 .rbar .tr i{display:block;height:100%;border-radius:7px}
 .rbar b{font-variant-numeric:tabular-nums;font-size:.85rem;white-space:nowrap}
+.raldir{display:flex;gap:12px;align-items:end;flex-wrap:wrap;background:var(--soft);border-radius:10px;padding:12px 14px;margin:0 0 12px}
+.raldir .raldq{flex:1 1 320px;margin:0}.raldir .raldq input{margin-top:4px}
+.ralck{display:flex;align-items:center;gap:6px;margin:0;font-weight:600;font-size:.88rem}.ralck input[type=checkbox]{width:auto;margin:0;accent-color:var(--acc)}.ralck input[type=number]{width:80px;margin:0;padding:6px 8px}
 .ralord{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0 4px;font-size:.8rem;color:var(--mut)}
 .ralord button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:3px 10px;font:inherit;font-size:.8rem;cursor:pointer}
 .ralord button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
@@ -591,6 +594,12 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <div class="tabs" role="group" aria-label="Vista" id="raltabs">
     <button class="tab" data-rv="disp" aria-pressed="true">Por dispositivo</button>
     <button class="tab" data-rv="cons" aria-pressed="false">Consolidado de todos los dispositivos</button>
+    <button class="tab" data-rv="dir" aria-pressed="false">📍 Dispositivos en una dirección</button>
+  </div>
+  <div class="raldir" id="raldirw" hidden>
+    <label class="raldq">Dirección<input id="raldir" autocomplete="off" placeholder="Ej: Anillo Vial, Cl. 1 #N° 39 01, Villavicencio, Meta"></label>
+    <label class="ralck"><input type="checkbox" id="ralcerca"> Incluir reportes cercanos a menos de <input type="number" id="ralrad" min="20" max="2000" step="10" value="100" inputmode="numeric"> m</label>
+    <button type="button" class="btn" id="raldirb">Buscar</button>
   </div>
   <div class="pprog" id="ralprog" role="status"></div>
   <small class="mnota" id="ralcolsn"></small>
@@ -2217,6 +2226,21 @@ function iniMs(t){t=fIni(t);t=String(t||'').trim();if(!t)return NaN;let m=t.matc
   m=t.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})(?:[ ,]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap])?\.?\s*m?\.?)?/i);
   if(m){let y=+m[3];if(y<100)y+=2000;let h=+(m[4]||0);if(m[7]){const p=m[7].toLowerCase();if(p==='p'&&h<12)h+=12;if(p==='a'&&h===12)h=0}return new Date(y,m[2]-1,+m[1],h,+(m[5]||0),+(m[6]||0)).getTime()}
   const d=Date.parse(t);return isNaN(d)?NaN:d}
+const DIR_DEF='Anillo Vial, Cl. 1 #N° 39 01, Villavicencio, Meta';
+let ralDirSel='';
+const tokDir=t=>sinTilde(t).replace(/n\s*[°º]/g,' ').replace(/\bno\.?(?=\s*\d)/g,' ').replace(/#/g,' ').replace(/\bcalle\b/g,'cl').replace(/\b(carrera|cra|kra|kr)\b/g,'cr').replace(/\bavenida\b/g,'av').replace(/\bdiagonal\b/g,'dg').replace(/\btransversal\b/g,'tv')
+  .replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(Boolean).map(x=>/^\d+$/.test(x)?String(Number(x)):x);
+const STOPD=new Set(['villavicencio','meta','colombia','n','no','numero','de','la','el','y','sur','norte']);
+function coincideDir(q,estricto){const qt=tokDir(q).filter(x=>!STOPD.has(x)),qn=qt.filter(x=>/^\d+$/.test(x)),qw=qt.filter(x=>!/^\d+$/.test(x));
+  const tipos=qw.filter(x=>['cl','cr','av','dg','tv','kr'].includes(x)),pal=estricto?qw:tipos;
+  return u=>{if(!u)return false;const ut=tokDir(u),un=ut.filter(x=>/^\d+$/.test(x));if(!pal.every(w=>ut.includes(w)))return false;if(!qn.length)return true;
+    for(let i=0;i+qn.length<=un.length;i++)if(qn.every((x,k)=>un[i+k]===x))return true;return false}}
+const distM=(a,b)=>{const R=6371000,r=Math.PI/180,dl=(b.lat-a.lat)*r,dn=(b.lng-a.lng)*r,x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
+function filtrarDir(ev){const q=$('raldir').value.trim();if(!q)return{lista:[],modo:''};
+  let m=ev.filter(e=>coincideDir(q,true)(e.ubi)),modo='exacta';if(!m.length){m=ev.filter(e=>coincideDir(q,false)(e.ubi));modo=m.length?'aproximada':''}
+  if($('ralcerca').checked){const cs=m.filter(e=>e.c);if(cs.length){const c={lat:cs.reduce((a,e)=>a+e.c.lat,0)/cs.length,lng:cs.reduce((a,e)=>a+e.c.lng,0)/cs.length},rad=Math.max(20,Number($('ralrad').value)||100),ya=new Set(m);
+    ev.forEach(e=>{if(!ya.has(e)&&e.c&&distM(c,e.c)<=rad){m.push(e);e._cerca=true}})}}
+  return{lista:m,modo}}
 async function renderRal(){
   if(!cur||$('ralv').hidden)return;
   const ar=ralArch.filter(a=>(a.sede||SEDES[0])===sede&&(a.listo||cur.rol==='admin')).sort((a,b)=>(b.creado?.seconds||0)-(a.creado?.seconds||0));
@@ -2239,33 +2263,43 @@ async function renderRal(){
   const key=r=>porDis?String(r[cc.dis]||'').trim().replace(/\s+/g,' ')||'Sin dispositivo':cc.pla>=0?normP(r[cc.pla])||String(r[cc.pla]||'').trim()||'Sin placa':'Sin placa';
   const ev=D.filas.map((r,i)=>({i,r,k:key(r),c:coordsFila(r,cc),ini:cc.fec>=0?String(r[cc.fec]||''):'',ms:cc.fec>=0?iniMs(r[cc.fec]):NaN,dur:(()=>{let d=cc.dur>=0?durSeg(r[cc.dur],hD):null;if(d===null&&cc.fin>=0&&cc.fec>=0){const a1=iniMs(r[cc.fec]),b1=iniMs(r[cc.fin]);if(!isNaN(a1)&&!isNaN(b1)&&b1>=a1)d=Math.round((b1-a1)/1000)}return d})(),durT:cc.dur>=0?String(r[cc.dur]||'').trim():'',ubi:cc.ubi>=0?String(r[cc.ubi]||''):''}));
   // consolidado por dispositivo
-  const G={};ev.forEach(e=>{const g=G[e.k]=G[e.k]||{k:e.k,n:0,tot:0,cd:0,max:null,pri:NaN,ult:NaN,priT:'',ultT:'',conC:0};g.n++;if(e.c)g.conC++;
+  ev.forEach(e=>{delete e._cerca});
+  const agrupar=lst=>{const G={};lst.forEach(e=>{const g=G[e.k]=G[e.k]||{k:e.k,n:0,tot:0,cd:0,max:null,pri:NaN,ult:NaN,priT:'',ultT:'',conC:0};g.n++;if(e.c)g.conC++;
     if(e.dur!==null){g.tot+=e.dur;g.cd++;g.prom=g.tot/g.cd;if(g.max===null||e.dur>g.max){g.max=e.dur;g.maxT=e.ini}}
-    if(!isNaN(e.ms)){if(isNaN(g.pri)||e.ms<g.pri){g.pri=e.ms;g.priT=e.ini}if(isNaN(g.ult)||e.ms>g.ult){g.ult=e.ms;g.ultT=e.ini}}});
-  const grupos=Object.values(G).map(g=>({...g,prom:g.cd?g.tot/g.cd:null}));
+    if(!isNaN(e.ms)){if(isNaN(g.pri)||e.ms<g.pri){g.pri=e.ms;g.priT=e.ini}if(isNaN(g.ult)||e.ms>g.ult){g.ult=e.ms;g.ultT=e.ini}}});return G};
+  const G=agrupar(ev),dirM=ralVista==='dir';
+  $('raldirw').hidden=!dirM;if(dirM&&!$('raldir').value){try{$('raldir').value=localStorage.getItem('ral-dir')||DIR_DEF}catch(x){$('raldir').value=DIR_DEF}}
+  const FD=dirM?filtrarDir(ev):null,evR=dirM?FD.lista:ev;
+  const grupos=Object.values(dirM?agrupar(evR):G).map(g=>({...g,prom:g.cd?g.tot/g.cd:null}));
   const met=g=>ralOrden==='dur'?g.tot:ralOrden==='prom'?(g.prom||0):ralOrden==='max'?(g.max||0):g.n;
   const orden=(x,y)=>(met(y)-met(x))||(y.n-x.n)||cmpP(x.k,y.k);
-  grupos.sort(orden);const keys=grupos.map(g=>g.k),alfa=[...keys].sort(cmpP),color=k=>RPAL[alfa.indexOf(k)%RPAL.length];
+  grupos.sort(orden);const keys=Object.keys(G),alfa=[...keys].sort(cmpP),color=k=>RPAL[alfa.indexOf(k)%RPAL.length];if(dirM&&ralDirSel&&!grupos.some(g=>g.k===ralDirSel))ralDirSel='';
   if(ralPlacaArch!==a.id||(ralPlaca&&ralPlaca!=='__todas'&&!keys.includes(ralPlaca))){ralPlacaArch=a.id;ralPlaca=grupos.length?grupos[0].k:'__todas'}
   if(ralVista==='disp'&&ralPlaca==='__todas')ralPlaca=grupos.length?grupos[0].k:'__todas';
-  const cons=ralVista==='cons',sel=cons?'':ralPlaca;
+  const cons=ralVista==='cons',sel=cons?'':dirM?ralDirSel:ralPlaca;
   $('raltabs').querySelectorAll('[data-rv]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.rv===ralVista));
 document.querySelectorAll('.ralord [data-ro]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ro===ralOrden));
-  $('rallblsel').textContent=U.Uno;$('ralpl').innerHTML=alfa.map(k=>`<option${k===sel?' selected':''}>${esc(k)}</option>`).join('');$('ralpl').disabled=cons;if(sel)$('ralpl').value=sel;
+  $('rallblsel').textContent=U.Uno;$('ralpl').innerHTML=alfa.map(k=>`<option${k===sel?' selected':''}>${esc(k)}</option>`).join('');$('ralpl').disabled=cons||dirM;if(sel)$('ralpl').value=sel;
   $('ralrkt').textContent=`${U.Varios} · ${{dur:'duración total',prom:'promedio de ralentí',max:'ralentí más largo',n:'reportes'}[ralOrden]}`;
-  $('ralrks').textContent=cons?`Toca ${porDis?'un':'una'} ${U.uno} para ver su detalle`:`Toca ${porDis?'un':'una'} ${U.uno} para ver sus ubicaciones, horas y duraciones`;
+  $('ralrks').textContent=dirM?`${porDis?'Dispositivos':'Placas'} con reportes en la dirección. Toca uno para ver solo sus reportes allí`:cons?`Toca ${porDis?'un':'una'} ${U.uno} para ver su detalle`:`Toca ${porDis?'un':'una'} ${U.uno} para ver sus ubicaciones, horas y duraciones`;
   $('ralpls').setAttribute('aria-label',U.Varios);$('ralpls').style.setProperty('--lw',porDis?'140px':'74px');
   const mx=Math.max(1,...grupos.map(met));
   $('ralpls').innerHTML=grupos.map((g,k)=>{const v=met(g);return `<button type="button" class="rbar" role="option" aria-selected="${g.k===sel}" data-rpl="${esc(g.k)}" title="${esc(g.k)}: ${g.n} reportes · ${durF(g.tot)}"><span class="rk">${k+1}</span><span class="pl">${esc(g.k)}</span><span class="tr"><i style="width:${v/mx*100}%;background:${color(g.k)}"></i></span><b>${ralOrden==='n'?g.n:durF(v)}</b></button>`}).join('');
   const selB=$('ralpls').querySelector('[aria-selected="true"]');if(selB)selB.scrollIntoView({block:'nearest'});
-  const vis=cons?ev:ev.filter(e=>e.k===sel),conC=vis.filter(e=>e.c),durs=vis.filter(e=>e.dur!==null),tot=durs.reduce((s,e)=>s+e.dur,0);
-  const kp=cons?[[grupos.length,U.Varios,''],[ev.length,'Reportes de ralentí',''],[durF(tot),'Duración total',''],[durs.length?durF(tot/durs.length):'—','Duración promedio por reporte',''],[grupos.length?durF(tot/grupos.length):'—',`Promedio por ${U.uno}`,'']]
+  const vis=dirM?(sel?evR.filter(e=>e.k===sel):evR):cons?ev:ev.filter(e=>e.k===sel),conC=vis.filter(e=>e.c),durs=vis.filter(e=>e.dur!==null),tot=durs.reduce((s,e)=>s+e.dur,0);
+  const dq=$('raldir').value.trim();
+  const kp=dirM?[[grupos.length,`${U.Varios} en la dirección`,''],[evR.length,'Reportes en la dirección',''],[durF(evR.filter(e=>e.dur!==null).reduce((s,e)=>s+e.dur,0)),'Duración total en la dirección',''],[sel?vis.length:(evR.filter(e=>e._cerca).length),sel?`Reportes de ${sel}`:'Agregados por cercanía','']]:cons?[[grupos.length,U.Varios,''],[ev.length,'Reportes de ralentí',''],[durF(tot),'Duración total',''],[durs.length?durF(tot/durs.length):'—','Duración promedio por reporte',''],[grupos.length?durF(tot/grupos.length):'—',`Promedio por ${U.uno}`,'']]
     :[[vis.length,'Reportes',''],[durF(tot),'Duración total',''],[durs.length?durF(tot/durs.length):'—','Duración promedio',''],[durs.length?durF(Math.max(...durs.map(e=>e.dur))):'—','Ralentí más largo',''],...(vis.length-conC.length?[[vis.length-conC.length,'Sin coordenadas','badc']]:[])];
   $('ralkpi').innerHTML=kp.map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
-  $('ralmapt').textContent=cons?`Ubicaciones de ${U.todos}`:`Ubicaciones reportadas por ${porDis?'el dispositivo':'la placa'} ${sel}`;$('raltodas').hidden=cons;$('raltodas').textContent='Ver consolidado';
+  $('ralmapt').textContent=dirM?`Reportes en: ${dq}${sel?` · ${sel}`:''}`:cons?`Ubicaciones de ${U.todos}`:`Ubicaciones reportadas por ${porDis?'el dispositivo':'la placa'} ${sel}`;$('raltodas').hidden=cons||(dirM&&!sel);$('raltodas').textContent=dirM?`Ver todos en la dirección`:'Ver consolidado';
   // tabla
   const gmap=e=>e.c?`https://www.google.com/maps/search/?api=1&query=${e.c.lat},${e.c.lng}`:e.ubi?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.ubi)}`:'';
-  if(cons){
+  if(dirM){
+    const ord=vis.slice().sort((x,y)=>cmpP(x.k,y.k)||(isNaN(x.ms)||isNaN(y.ms)?x.i-y.i:x.ms-y.ms)),mostrar=ord.slice(0,1000);
+    $('raltt').textContent=`Reportes en la dirección${sel?` · ${sel}`:''}`;
+    $('ralrsub').textContent=!dq?'Escribe una dirección y pulsa «Buscar».':evR.length?`${vis.length} reporte${vis.length===1?'':'s'} de ${sel?1:grupos.length} ${(sel?1:grupos.length)===1?U.uno:U.Varios.toLowerCase()} · coincidencia ${FD.modo}${$('ralcerca').checked?` y cercanía de ${$('ralrad').value} m`:''}. Toca un reporte para ubicarlo en el mapa.`:'No se encontraron reportes en esa dirección. Revisa cómo está escrita en la columna Ubicación del Excel o activa «Incluir reportes cercanos».';
+    $('raltab').innerHTML=vis.length?`<table><thead><tr><th>#</th><th>${U.Uno}</th><th>Hora de inicio</th><th>Duración</th><th>Ubicación</th></tr></thead><tbody>${mostrar.map((e,k)=>`<tr class="${e.c?'c':'sin'}" data-ri="${e.i}"><td class="num">${k+1}</td><td><b>${esc(e.k)}</b></td><td>${esc(fIni(e.ini)||'—')}</td><td class="num">${esc(e.durT||(e.dur!==null?durF(e.dur):'—'))}</td><td class="ub">${esc(e.ubi||'—')}${e._cerca?' <small style="color:var(--mut)">(cercano)</small>':''}</td></tr>`).join('')}</tbody></table>`:'';
+  }else if(cons){
     $('raltt').textContent=`Consolidado por ${U.uno}`;$('ralrsub').textContent=`${grupos.length} ${U.Varios.toLowerCase()} · ${ev.length} reportes · ${durF(tot)} de ralentí en total. Toca una fila para ver el detalle.`;
     $('raltab').innerHTML=`<table><thead><tr><th>#</th><th>${U.Uno}</th><th>Reportes</th><th>Duración total</th><th>Promedio</th><th>Más largo</th><th>Primera hora de inicio</th><th>Última hora de inicio</th><th>Con ubicación</th></tr></thead><tbody>${grupos.map((g,k)=>`<tr class="c" data-rg="${esc(g.k)}"><td class="num">${k+1}</td><td><b>${esc(g.k)}</b></td><td class="num">${g.n}</td><td class="num">${durF(g.tot)}</td><td class="num">${durF(g.prom)}</td><td class="num">${durF(g.max)}</td><td>${esc(fIni(g.priT)||'—')}</td><td>${esc(fIni(g.ultT)||'—')}</td><td class="num">${g.conC}</td></tr>`).join('')}
       <tr><td></td><td><b>Total</b></td><td class="num"><b>${ev.length}</b></td><td class="num"><b>${durF(tot)}</b></td><td class="num"><b>${durs.length?durF(tot/durs.length):'—'}</b></td><td></td><td></td><td></td><td class="num"><b>${conC.length}</b></td></tr></tbody></table>`;
@@ -2274,7 +2308,7 @@ document.querySelectorAll('.ralord [data-ro]').forEach(b=>b.setAttribute('aria-p
     $('raltt').textContent=`Ubicaciones de ${sel}`;$('ralrsub').textContent=`${vis.length} reporte${vis.length===1?'':'s'} ordenados por hora de inicio${vis.length>1000?' · se muestran los primeros 1000 (todos están en el mapa)':''}. Toca un reporte para ubicarlo en el mapa.`;
     $('raltab').innerHTML=`<table><thead><tr><th>#</th><th>Hora de inicio</th><th>Duración</th><th>Ubicación</th></tr></thead><tbody>${mostrar.map((e,k)=>`<tr class="${e.c?'c':'sin'}" data-ri="${e.i}"><td class="num">${k+1}</td><td>${esc(fIni(e.ini)||'—')}</td><td class="num">${esc(e.durT||(e.dur!==null?durF(e.dur):'—'))}</td><td class="ub">${e.ubi||e.c?`${esc(e.ubi||`${e.c.lat}, ${e.c.lng}`)}${gmap(e)?` · <a href="${gmap(e)}" target="_blank" rel="noopener">Google Maps</a>`:''}`:'—'}</td></tr>`).join('')}</tbody></table>`;
   }
-  $('ralleg').innerHTML=(cons?alfa.slice(0,16):[sel]).map(k=>`<span><i style="background:${color(k)}"></i>${esc(k)}</span>`).join('')+(cons&&alfa.length>16?`<span>y ${alfa.length-16} más</span>`:'')+(durs.length?'<span>El tamaño de cada punto indica la duración del ralentí</span>':'');
+  $('ralleg').innerHTML=(dirM?(sel?[sel]:grupos.map(g=>g.k).slice(0,16)):cons?alfa.slice(0,16):[sel]).map(k=>`<span><i style="background:${color(k)}"></i>${esc(k)}</span>`).join('')+(cons&&alfa.length>16?`<span>y ${alfa.length-16} más</span>`:'')+(durs.length?'<span>El tamaño de cada punto indica la duración del ralentí</span>':'');
   // mapa
   let L;try{L=await cargarLeaflet()}catch(x){ralMsg('No se pudo cargar el mapa. Revisa tu conexión a internet.');return}
   if(!ralMapa){
@@ -2285,7 +2319,7 @@ document.querySelectorAll('.ralord [data-ro]').forEach(b=>b.setAttribute('aria-p
     ralCapa=L.layerGroup().addTo(ralMapa);
   }
   ralCapa.clearLayers();ralMk={};
-  if(!conC.length){ralMsg(vis.length?'Ningún reporte tiene coordenadas en la columna «Ubicación». El mapa necesita latitud y longitud (por ejemplo: 4.14211, -73.62664). Los reportes sí aparecen en la tabla de abajo.':'No hay reportes.');return}
+  if(!conC.length){if(dirM&&!vis.length){ralMsg(dq?'No hay reportes en esa dirección.':'Escribe una dirección y pulsa «Buscar».');return}ralMsg(vis.length?'Ningún reporte tiene coordenadas en la columna «Ubicación». El mapa necesita latitud y longitud (por ejemplo: 4.14211, -73.62664). Los reportes sí aparecen en la tabla de abajo.':'No hay reportes.');return}
   ralMsg('');
   const dmax=Math.max(1,...conC.map(e=>e.dur||0)),pts=[];
   conC.forEach(e=>{const rad=e.dur!==null?6+Math.sqrt(e.dur/dmax)*12:7;
@@ -2303,8 +2337,11 @@ $('rcfrm').onsubmit=async e=>{e.preventDefault();const a=ralArch.find(x=>x.id===
   if(mapa.ubi<0){$('rcerr').textContent='Elige la columna de Ubicación.';return}$('rcsave').disabled=true;
   try{await updateDoc(doc(db,'ralenti',a.id),{mapa});$('rcdlg').close()}catch(x){$('rcerr').textContent=ERR(x.code)}$('rcsave').disabled=false};
 $('ralpl').onchange=()=>{ralPlaca=$('ralpl').value;ralVista='disp';renderRal()};
-$('ralpls').onclick=e=>{const b=e.target.closest('[data-rpl]');if(!b)return;ralPlaca=b.dataset.rpl;ralVista='disp';renderRal();if(window.matchMedia('(max-width:900px)').matches)$('ralmap').scrollIntoView({behavior:'smooth',block:'center'})};
-$('raltodas').onclick=()=>{ralVista='cons';renderRal()};
+$('ralpls').onclick=e=>{const b=e.target.closest('[data-rpl]');if(!b)return;if(ralVista==='dir'){ralDirSel=ralDirSel===b.dataset.rpl?'':b.dataset.rpl;renderRal();return}ralPlaca=b.dataset.rpl;ralVista='disp';renderRal();if(window.matchMedia('(max-width:900px)').matches)$('ralmap').scrollIntoView({behavior:'smooth',block:'center'})};
+$('raltodas').onclick=()=>{if(ralVista==='dir'){ralDirSel='';renderRal();return}ralVista='cons';renderRal()};
+const ralBuscarDir=()=>{ralDirSel='';try{localStorage.setItem('ral-dir',$('raldir').value.trim())}catch(x){}renderRal()};
+$('raldirb').onclick=ralBuscarDir;$('raldir').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ralBuscarDir()}});
+let ralRadPrev='100';$('ralcerca').onchange=()=>renderRal();$('ralrad').oninput=()=>{clearTimeout(window.__rrt);window.__rrt=setTimeout(()=>{if($('ralrad').value!==ralRadPrev){ralRadPrev=$('ralrad').value;if($('ralcerca').checked)renderRal()}},500)};
 $('raltabs').onclick=e=>{const b=e.target.closest('[data-rv]');if(!b)return;ralVista=b.dataset.rv;renderRal()};
 document.querySelector('.ralord').onclick=e=>{const b=e.target.closest('[data-ro]');if(!b)return;ralOrden=b.dataset.ro;renderRal()};
 $('raltab').onclick=e=>{if(e.target.closest('a'))return;const g=e.target.closest('tr[data-rg]');if(g){ralPlaca=g.dataset.rg;ralVista='disp';renderRal();window.scrollTo({top:0,behavior:'smooth'});return}
