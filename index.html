@@ -2140,7 +2140,7 @@ const nh=t=>sinTilde(t).replace(/[^a-z0-9]/g,'');
 function detectarCols(cols,mapa){
   const f=(...ks)=>cols.findIndex(c=>ks.some(k=>nh(c)===k))>=0?cols.findIndex(c=>ks.some(k=>nh(c)===k)):cols.findIndex(c=>ks.some(k=>nh(c).includes(k)));
   const r={dis:f('dispositivo','device','equipo','dispositivogps','idgps'),ubi:f('ubicacion','ubicación','location','posicion','direccion','coordenadas'),pla:f('placa','vehiculo','patente','unidad','movil'),
-    fec:f('horadeinicio','horainicio','fechadeinicio','fechainicio','fechayhoradeinicio','horainicial','fechainicial','iniciodelralenti','inicioralenti','inicio','comienzo','desde','start','fechayhora','fechahora','fecha','hora','date'),lat:f('latitud','lat'),lng:f('longitud','lon','lng','long'),dur:f('duracion','duraciondelralenti','tiempoderalenti','tiempo','minutos')};;
+    fec:f('horadeinicio','horainicio','fechadeinicio','fechainicio','fechayhoradeinicio','horainicial','fechainicial','iniciodelralenti','inicioralenti','inicio','comienzo','desde','start','fechayhora','fechahora','fecha','hora','date'),lat:f('latitud','lat'),lng:f('longitud','lon','lng','long'),dur:f('duracion','duraciondelralenti','tiempoderalenti','tiempoenralenti','tiempo','minutos'),fin:f('horadefin','horafin','horafinal','fechadefin','fechafin','fechafinal','findelevento','fin','hasta','end')};;
   if(mapa)['dis','ubi','fec','dur'].forEach(k=>{if(Number.isInteger(mapa[k])&&mapa[k]<cols.length)r[k]=mapa[k]});
   return r
 }
@@ -2194,10 +2194,13 @@ async function cargarLeaflet(){
 function ralMsg(t){$('ralmsg').hidden=!t;$('ralmsg').innerHTML=t||''}
 let ralVista='disp',ralOrden='n';
 function durSeg(t,hdr){
-  t=String(t??'').trim().toLowerCase();if(!t)return null;const h=sinTilde(hdr||'');
+  t=String(t??'').trim().toLowerCase().replace(/\u00a0/g,' ');if(!t||t==='-'||t==='—')return null;const h=sinTilde(hdr||'');
+  t=t.replace(/\s*(a\.?\s*m\.?|p\.?\s*m\.?)$/,m=>{if(/^12:/.test(t.trim()))return '';return ''}).replace(/^12:(\d{2}:\d{2})$/,'0:$1').trim();
   if(/^-?\d+([.,]\d+)?$/.test(t)){const v=Number(t.replace(',','.'));if(v<1&&/[.,]/.test(t)&&!/seg|min|hora/.test(h))return Math.round(v*86400);return Math.round(v*(/seg/.test(h)?1:/hora/.test(h)?3600:60))}
-  let m=t.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?(?:[.,]\d+)?$/);if(m)return m[3]!==undefined?(+m[1])*3600+(+m[2])*60+(+m[3]):(+m[1]>23||/min/.test(h)?(+m[1])*60+(+m[2]):(+m[1])*3600+(+m[2])*60);
-  let s=0,ok=false;t.replace(/(\d+(?:[.,]\d+)?)\s*(d[ií]as?|d\b|h(?:oras?|rs?)?\b|m(?:in(?:utos?)?)?\b|s(?:eg(?:undos?)?)?\b)/g,(x,n,u)=>{ok=true;n=Number(n.replace(',','.'));s+=u.startsWith('d')?n*86400:u.startsWith('h')?n*3600:u.startsWith('m')?n*60:n;return x});
+  let m=t.match(/^(?:(\d+)\s*d[ií]?a?s?\s+)?(\d+):(\d{1,2})(?::(\d{1,2}))?(?:[.,]\d+)?(?:\s*(h|hrs?|horas?|min|minutos?))?$/);
+  if(m){const d=+(m[1]||0)*86400;if(m[4]!==undefined)return d+(+m[2])*3600+(+m[3])*60+(+m[4]);
+    const u=m[5]||'';return d+(u.startsWith('m')||+m[2]>23||(/min/.test(h)&&!u)?(+m[2])*60+(+m[3]):(+m[2])*3600+(+m[3])*60)}
+  let s=0,ok=false;t.replace(/(\d+(?:[.,]\d+)?)\s*(d[ií]as?|d|h(?:oras?|rs?)?|m(?:in(?:utos?)?)?|s(?:eg(?:undos?)?)?)(?![a-zñ])/g,(x,n,u)=>{ok=true;n=Number(n.replace(',','.'));s+=u.startsWith('d')?n*86400:u.startsWith('h')?n*3600:u.startsWith('m')?n*60:n;return x});
   return ok?Math.round(s):null}
 const durF=sec=>{if(sec===null||sec===undefined)return '—';sec=Math.round(sec);const d=Math.floor(sec/86400),h=Math.floor(sec%86400/3600),m=Math.floor(sec%3600/60),x=sec%60;
   return d?`${d} d ${h} h`:h?`${h} h ${String(m).padStart(2,'0')} min`:m?`${m} min${x?` ${String(x).padStart(2,'0')} s`:''}`:`${x} s`};
@@ -2223,9 +2226,11 @@ async function renderRal(){
   const falt=[['Dispositivo',porDis],['Ubicación',cc.ubi>=0||(cc.lat>=0&&cc.lng>=0)],['Hora de inicio',cc.fec>=0],['Duración',cc.dur>=0]].filter(x=>!x[1]).map(x=>x[0]);
   $('ralcolsn').textContent=falt.length?`No se identificó ${falt.length>1?'las columnas':'la columna'} ${falt.map(x=>'«'+x+'»').join(', ')}.${!porDis?' Se agrupa por placa.':''}${canEdit()?' Usa «Elegir columnas» para indicarlas.':''}`:'';
   $('ralcolb').hidden=!canEdit();
+  const durMal=cc.dur>=0&&D.filas.length&&D.filas.every(r=>!String(r[cc.dur]||'').trim()||durSeg(r[cc.dur],D.cols[cc.dur])===null)&&D.filas.some(r=>String(r[cc.dur]||'').trim());
+  if(durMal)$('ralcolsn').textContent=($('ralcolsn').textContent+` La columna «${D.cols[cc.dur]}» no tiene un formato de duración reconocible (por ejemplo «${String((D.filas.find(r=>String(r[cc.dur]||'').trim())||[])[cc.dur]).slice(0,30)}»); se muestra tal como viene.${canEdit()?' Si no es la columna correcta, usa «Elegir columnas».':''}`).trim();
   const U=porDis?{uno:'dispositivo',Uno:'Dispositivo',Varios:'Dispositivos',todos:'todos los dispositivos'}:{uno:'placa',Uno:'Placa',Varios:'Placas',todos:'todas las placas'};
   const key=r=>porDis?String(r[cc.dis]||'').trim().replace(/\s+/g,' ')||'Sin dispositivo':cc.pla>=0?normP(r[cc.pla])||String(r[cc.pla]||'').trim()||'Sin placa':'Sin placa';
-  const ev=D.filas.map((r,i)=>({i,r,k:key(r),c:coordsFila(r,cc),ini:cc.fec>=0?String(r[cc.fec]||''):'',ms:cc.fec>=0?iniMs(r[cc.fec]):NaN,dur:cc.dur>=0?durSeg(r[cc.dur],hD):null,ubi:cc.ubi>=0?String(r[cc.ubi]||''):''}));
+  const ev=D.filas.map((r,i)=>({i,r,k:key(r),c:coordsFila(r,cc),ini:cc.fec>=0?String(r[cc.fec]||''):'',ms:cc.fec>=0?iniMs(r[cc.fec]):NaN,dur:(()=>{let d=cc.dur>=0?durSeg(r[cc.dur],hD):null;if(d===null&&cc.fin>=0&&cc.fec>=0){const a1=iniMs(r[cc.fec]),b1=iniMs(r[cc.fin]);if(!isNaN(a1)&&!isNaN(b1)&&b1>=a1)d=Math.round((b1-a1)/1000)}return d})(),durT:cc.dur>=0?String(r[cc.dur]||'').trim():'',ubi:cc.ubi>=0?String(r[cc.ubi]||''):''}));
   // consolidado por dispositivo
   const G={};ev.forEach(e=>{const g=G[e.k]=G[e.k]||{k:e.k,n:0,tot:0,cd:0,max:null,pri:NaN,ult:NaN,priT:'',ultT:'',conC:0};g.n++;if(e.c)g.conC++;
     if(e.dur!==null){g.tot+=e.dur;g.cd++;if(g.max===null||e.dur>g.max)g.max=e.dur}
@@ -2259,7 +2264,7 @@ document.querySelectorAll('.ralord [data-ro]').forEach(b=>b.setAttribute('aria-p
   }else{
     const ord=vis.slice().sort((x,y)=>isNaN(x.ms)||isNaN(y.ms)?x.i-y.i:x.ms-y.ms),mostrar=ord.slice(0,1000);
     $('raltt').textContent=`Ubicaciones de ${sel}`;$('ralrsub').textContent=`${vis.length} reporte${vis.length===1?'':'s'} ordenados por hora de inicio${vis.length>1000?' · se muestran los primeros 1000 (todos están en el mapa)':''}. Toca un reporte para ubicarlo en el mapa.`;
-    $('raltab').innerHTML=`<table><thead><tr><th>#</th><th>Hora de inicio</th><th>Duración</th><th>Ubicación</th></tr></thead><tbody>${mostrar.map((e,k)=>`<tr class="${e.c?'c':'sin'}" data-ri="${e.i}"><td class="num">${k+1}</td><td>${esc(fIni(e.ini)||'—')}</td><td class="num">${durF(e.dur)}</td><td class="ub">${e.ubi||e.c?`${esc(e.ubi||`${e.c.lat}, ${e.c.lng}`)}${gmap(e)?` · <a href="${gmap(e)}" target="_blank" rel="noopener">Google Maps</a>`:''}`:'—'}</td></tr>`).join('')}</tbody></table>`;
+    $('raltab').innerHTML=`<table><thead><tr><th>#</th><th>Hora de inicio</th><th>Duración</th><th>Ubicación</th></tr></thead><tbody>${mostrar.map((e,k)=>`<tr class="${e.c?'c':'sin'}" data-ri="${e.i}"><td class="num">${k+1}</td><td>${esc(fIni(e.ini)||'—')}</td><td class="num">${e.dur!==null?durF(e.dur):esc(e.durT||'—')}</td><td class="ub">${e.ubi||e.c?`${esc(e.ubi||`${e.c.lat}, ${e.c.lng}`)}${gmap(e)?` · <a href="${gmap(e)}" target="_blank" rel="noopener">Google Maps</a>`:''}`:'—'}</td></tr>`).join('')}</tbody></table>`;
   }
   $('ralleg').innerHTML=(cons?alfa.slice(0,16):[sel]).map(k=>`<span><i style="background:${color(k)}"></i>${esc(k)}</span>`).join('')+(cons&&alfa.length>16?`<span>y ${alfa.length-16} más</span>`:'')+(durs.length?'<span>El tamaño de cada punto indica la duración del ralentí</span>':'');
   // mapa
@@ -2277,7 +2282,7 @@ document.querySelectorAll('.ralord [data-ro]').forEach(b=>b.setAttribute('aria-p
   const dmax=Math.max(1,...conC.map(e=>e.dur||0)),pts=[];
   conC.forEach(e=>{const rad=e.dur!==null?6+Math.sqrt(e.dur/dmax)*12:7;
     const m=L.circleMarker([e.c.lat,e.c.lng],{radius:rad,color:'#fff',weight:1.5,fillColor:color(e.k),fillOpacity:.85});
-    m.bindPopup(`<div class="ralpop"><b>${esc(e.k)}</b><table><tr><td>Hora de inicio</td><td>${esc(fIni(e.ini)||'—')}</td></tr><tr><td>Duración</td><td>${durF(e.dur)}</td></tr></table><a href="${gmap(e)}" target="_blank" rel="noopener">Abrir en Google Maps</a></div>`);
+    m.bindPopup(`<div class="ralpop"><b>${esc(e.k)}</b><table><tr><td>Hora de inicio</td><td>${esc(fIni(e.ini)||'—')}</td></tr><tr><td>Duración</td><td>${e.dur!==null?durF(e.dur):esc(e.durT||'—')}</td></tr><tr><td>Ubicación</td><td>${esc(e.ubi||`${e.c.lat}, ${e.c.lng}`)}</td></tr></table><a href="${gmap(e)}" target="_blank" rel="noopener">Abrir en Google Maps</a></div>`);
     m.addTo(ralCapa);ralMk[e.i]=m;pts.push([e.c.lat,e.c.lng])});
   setTimeout(()=>{ralMapa.invalidateSize();if(pts.length===1)ralMapa.setView(pts[0],15);else ralMapa.fitBounds(pts,{padding:[30,30],maxZoom:16})},50);
 }
