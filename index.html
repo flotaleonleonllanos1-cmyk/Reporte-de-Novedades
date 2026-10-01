@@ -97,6 +97,22 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 #vmapf{width:100%;height:190px;border:1px solid var(--line);border-radius:10px;margin-top:8px}
 .vbody>div{flex:1;min-width:220px}
 .vubok{font-size:.85rem;color:var(--ok);font-weight:600}
+.btn.wa{background:#1fa855;color:#fff;border-color:#1fa855}
+#shdlg{width:min(560px,96vw)}#shurl{font-size:.85rem}
+#pub{min-height:100vh;background:linear-gradient(180deg,#9a4a0b 0 210px,var(--bg) 210px);padding:18px 14px 40px}
+.pubw{max-width:760px;margin:0 auto;display:grid;gap:14px}
+.pubh{color:#fff;display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.pubh small{display:block;letter-spacing:.22em;font-weight:300;opacity:.9}
+.pubh h1{margin:4px 0 0;font-size:1.6rem}
+.pubc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.pubtop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pubpl{font-size:2rem;font-weight:800;letter-spacing:.06em}
+.pubg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 18px;margin-top:14px}
+.pubg dt{font-size:.78rem;color:var(--mut)}.pubg dd{margin:2px 0 0;font-weight:600;font-size:1rem}
+.pubmap{width:100%;height:300px;border:0;border-radius:10px;margin-top:10px;background:var(--soft)}
+.pubfoto{width:100%;max-height:420px;object-fit:contain;border-radius:10px;background:#111;margin-top:10px}
+.pubbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.pubpie{text-align:center;color:var(--mut);font-size:.82rem}
 .vtabdash{margin-left:auto}
 .vdh{font-size:.92rem;margin:0 0 4px}
 .vcols.t div{flex:1 1 0;min-width:68px;max-width:96px;font-size:.8rem;white-space:nowrap}.vcl.t span{flex:1 1 0;min-width:68px;max-width:96px;font-size:.74rem;overflow-wrap:break-word}.vcl.t,.vcols.t{gap:8px;justify-content:flex-start}
@@ -494,6 +510,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </style>
 </head>
 <body>
+<section id="pub" hidden aria-label="Reporte de varada"></section>
 <section id="login">
   <div class="marca" aria-hidden="true"><span class="a">Flota Llanos</span><span class="b">Flota Llanos</span><span class="c">Flota Llanos</span><span class="d">Flota Llanos</span><span class="e">Flota Llanos</span><span class="f">Flota Llanos</span><span class="g">Flota Llanos</span><span class="h">Flota Llanos</span></div>
   <div class="lwrap">
@@ -866,6 +883,14 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <div class="pvtop"><div><b id="khtit">Historial</b><small>Últimas 12 semanas</small></div><button type="button" class="btn" onclick="this.closest('dialog').close()">Cerrar</button></div>
   <div class="tscroll" id="khbody"></div>
 </dialog>
+<dialog id="shdlg">
+  <h2 id="shtit">Enviar al taller</h2>
+  <p class="mnota">Con este enlace el taller puede ver la varada (placa, ubicación, conductor, sistema afectado, foto y demás datos) sin necesidad de usuario ni contraseña.</p>
+  <label>Enlace de la varada<input id="shurl" readonly></label>
+  <div class="mall" style="margin-top:10px"><button type="button" class="btn" id="shcopy">Copiar enlace</button><a class="btn wa" id="shwa" target="_blank" rel="noopener">Enviar por WhatsApp</a><a class="btn ghost" id="shver" target="_blank" rel="noopener">Ver como el taller</a></div>
+  <small class="mnota" id="shmsg" style="margin-top:8px"></small>
+  <div class="foot"><button type="button" class="del" id="shoff" hidden>Desactivar este enlace</button><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cerrar</button></div>
+</dialog>
 <dialog id="mapdlg">
   <div class="pvtop"><div><b id="maptit">Ubicación</b><small id="mapsub"></small></div><div class="hb"><a class="btn ghost" id="mapab" target="_blank" rel="noopener">Abrir en Google Maps</a><button type="button" class="btn" onclick="this.closest('dialog').close()">Cerrar</button></div></div>
   <iframe id="mapfr" class="pvframe" title="Mapa de la ubicación" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
@@ -1068,8 +1093,55 @@ async function entrar(user){
   $('cadd').hidden=!canEdit();
   modulo('ini');
 }
+
+/* ---------- Enlace público de la varada para el taller ---------- */
+function tokenComp(){const a=new Uint8Array(18);crypto.getRandomValues(a);return Array.from(a,b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('')}
+const urlComp=t=>location.origin+location.pathname+'?v='+t;
+async function publicarComp(v){
+  if(!v.comp)return;
+  await setDoc(doc(db,'compartidos',v.comp),{tipo:'varada',varada:v.id,sede:v.sede||sede,placa:v.placa||'',fv:v.fv||'',fo:v.fo||'',taller:v.taller||'no',tallerNombre:v.tallerNombre||'',
+    sistema:sistemaDe(v),conductor:v.conductor||'',desc:v.desc||'',ubic:v.ubic||{},foto:v.foto||'',por:v.por||'',editadoPor:v.editadoPor||'',actualizado:serverTimestamp()});
+}
+function abrirCompartir(v,recien){
+  const u=urlComp(v.comp),txt=`Hola, les compartimos el reporte de la varada del vehículo ${v.placa}${sistemaDe(v)&&sistemaDe(v)!=='Sin clasificar'?` (${sistemaDe(v)})`:''}. Allí encuentran la ubicación, el conductor y los demás datos: ${u}`;
+  $('shtit').textContent=`Enviar al taller · ${v.placa}`;$('shurl').value=u;$('shwa').href='https://wa.me/?text='+encodeURIComponent(txt);$('shver').href=u;
+  $('shmsg').textContent=recien?'La varada quedó guardada. Copia el enlace o envíalo directamente por WhatsApp.':'Si editas la varada, el enlace se actualiza solo con los nuevos datos.';
+  $('shoff').hidden=!(cur&&cur.rol==='admin');$('shoff').dataset.v=v.id;$('shoff').dataset.t=v.comp;$('shdlg').showModal();
+}
+$('shcopy').onclick=async()=>{try{await navigator.clipboard.writeText($('shurl').value);$('shmsg').textContent='Enlace copiado. Ya puedes pegarlo en WhatsApp.'}catch(x){$('shurl').select();document.execCommand('copy');$('shmsg').textContent='Enlace copiado.'}};
+$('shoff').onclick=async()=>{if(cur.rol!=='admin'||!confirm('¿Desactivar este enlace? El taller ya no podrá abrirlo. Después puedes generar uno nuevo con «Enviar al taller».'))return;
+  try{await deleteDoc(doc(db,'compartidos',$('shoff').dataset.t));await updateDoc(doc(db,'varadas',$('shoff').dataset.v),{comp:''});$('shdlg').close()}catch(x){alert(ERR(x.code))}};
+async function vistaPublica(t){
+  document.documentElement.classList.add('tema-var');$('login').hidden=true;$('app').hidden=true;const P=$('pub');P.hidden=false;
+  P.innerHTML='<div class="pubw"><div class="pubc"><p class="empty" style="margin:0">Cargando el reporte de la varada…</p></div></div>';
+  let v;try{const d=await getDoc(doc(db,'compartidos',t));if(!d.exists())throw{code:'no'};v=d.data()}
+  catch(x){P.innerHTML='<div class="pubw"><div class="pubh"><div><small>FLOTA LLANOS</small><h1>Reporte de varada</h1></div></div><div class="pubc"><p class="empty" style="margin:0">Este enlace no existe o fue desactivado. Pide a Flota Llanos un enlace nuevo.</p></div></div>';return}
+  const u=v.ubic||{},co=typeof u.lat==='number'&&typeof u.lng==='number',op=!!v.fo,t0=dtMs(v.fv),dur=op?dtMs(v.fo)-t0:Date.now()-t0;
+  const ver=co?`https://www.google.com/maps/search/?api=1&query=${u.lat},${u.lng}`:enlaceSeguro(u.texto),ir=co?`https://www.google.com/maps/dir/?api=1&destination=${u.lat},${u.lng}`:'';
+  document.title=`Varada ${v.placa} · Flota Llanos`;
+  P.innerHTML=`<div class="pubw">
+    <div class="pubh"><div><small>FLOTA LLANOS</small><h1>Reporte de varada</h1></div><span style="opacity:.9">Sede ${esc(v.sede||'')}</span></div>
+    <div class="pubc"><div class="pubtop"><span class="pubpl">${esc(v.placa)}</span><span class="pill ${op?'o':'b'}" style="font-size:.95rem;padding:4px 12px">${op?'Operativo':'Varado'}</span></div>
+      <dl class="pubg">
+        <div><dt>Fecha y hora de la varada</dt><dd>${esc(dtTxt(v.fv))}</dd></div>
+        <div><dt>${op?'Tiempo fuera de servicio':'Lleva varado'}</dt><dd>${durTxt(dur)}</dd></div>
+        ${op?`<div><dt>Operativo nuevamente</dt><dd>${esc(dtTxt(v.fo))}</dd></div>`:''}
+        <div><dt>Sistema afectado</dt><dd>${esc(v.sistema||'—')}</dd></div>
+        <div><dt>Conductor</dt><dd>${esc(v.conductor||'—')}</dd></div>
+        <div><dt>Taller asignado</dt><dd>${esc(v.tallerNombre||'—')}</dd></div>
+        <div><dt>Reportado por</dt><dd>${esc(v.por||'—')}</dd></div>
+        ${v.desc?`<div style="grid-column:1/-1"><dt>Descripción de la falla</dt><dd style="font-weight:400">${esc(v.desc)}</dd></div>`:''}
+      </dl></div>
+    <div class="pubc"><h2 style="margin:0;font-size:1.1rem">Ubicación del vehículo</h2>
+      ${co?`<iframe class="pubmap" src="https://maps.google.com/maps?q=${u.lat},${u.lng}&z=16&output=embed" title="Mapa de la ubicación" loading="lazy"></iframe><small class="mnota">${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</small>`:`<p class="mnota" style="margin:8px 0 0">${u.texto?esc(u.texto):'No se registró la ubicación.'}</p>`}
+      ${ver||ir?`<div class="pubbtns">${ir?`<a class="btn" href="${ir}" target="_blank" rel="noopener">Cómo llegar</a>`:''}${ver?`<a class="btn ghost" href="${esc(ver)}" target="_blank" rel="noopener">Abrir en Google Maps</a>`:''}</div>`:''}</div>
+    ${v.foto?`<div class="pubc"><h2 style="margin:0;font-size:1.1rem">Foto del vehículo</h2><img class="pubfoto" src="${v.foto}" alt="Foto del vehículo ${esc(v.placa)}"></div>`:''}
+    <p class="pubpie">Información enviada por Flota Llanos · Grupo Empresarial León León e Hijos</p></div>`;
+}
+const tokPub=new URLSearchParams(location.search).get('v');
+if(tokPub)vistaPublica(tokPub);
 onAuthStateChanged(auth,async user=>{
-  if(creando)return;
+  if(creando||tokPub)return;
   if(user)await entrar(user);
   else{salir();await checkSetup()}
 });
@@ -1867,7 +1939,7 @@ function renderVar(){
   if(!vis.length){$('vlist').innerHTML=`<div class="empty">No hay varadas ${vfiltro==='varado'?'abiertas ':vfiltro==='operativo'?'cerradas ':''}en ${esc(sede)}.${canEdit()?' Usa «Reportar varada» para registrar una.':''}</div>`;return}
   $('vlist').innerHTML=vis.map(v=>{const op=!!v.fo,t=op?dtMs(v.fo)-dtMs(v.fv):ahora-dtMs(v.fv),mu=mapsUrl(v.ubic);return `<article class="vcard ${op?'ok':''}">
     <div class="top"><div><span class="placa">${esc(v.placa)}</span> <span class="pill ${op?'o':'b'}">${op?'Operativo':'Varado'}</span><div class="rpor">Reportado por <b>${esc(v.por||'—')}</b>${v.editadoPor?` · Última edición: ${esc(v.editadoPor)}`:''}</div></div>
-      <div class="acts">${canEdit()?`<button class="btn ghost" data-ved="${v.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="del" data-vdel="${v.id}">Eliminar</button>`:''}</div></div>
+      <div class="acts">${canEdit()||v.comp?`<button class="btn ghost" data-vsh="${v.id}">Enviar al taller</button>`:''}${canEdit()?`<button class="btn ghost" data-ved="${v.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="del" data-vdel="${v.id}">Eliminar</button>`:''}</div></div>
     <div class="vbody"><div><dl class="vgrid">
       <div><dt>Fecha y hora de la varada</dt><dd>${dtTxt(v.fv)}</dd></div>
       <div><dt>Operativo nuevamente</dt><dd>${op?dtTxt(v.fo):'<span style="color:var(--bad)">Sigue varado</span>'}</dd></div>
@@ -2570,20 +2642,27 @@ $('vfrm').onsubmit=async e=>{
   const data={placa,fv,fo,taller,ubic,foto:vfotoD,marca:vfotoMarca,desc:$('vdesc').value.trim(),sistema,conductor,tallerNombre};
   if(JSON.stringify(data).length>950000){$('verr').textContent='La foto pesa demasiado. Quita la foto e inténtalo de nuevo.';return}
   $('vsave').disabled=true;$('verr').textContent='';
-  try{if(vedit)await updateDoc(doc(db,'varadas',vedit.id),{...data,editadoPor:cur.nombre,editado:serverTimestamp()});
-    else await addDoc(collection(db,'varadas'),{...data,sede,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});
-    $('vdlg').close()}catch(x){$('verr').textContent=ERR(x.code)}
+  try{const comp=(vedit&&vedit.comp)||tokenComp();let vid,full;
+    if(vedit){vid=vedit.id;await updateDoc(doc(db,'varadas',vid),{...data,comp,editadoPor:cur.nombre,editado:serverTimestamp()});full={...vedit,...data,comp,editadoPor:cur.nombre}}
+    else{const ref=doc(collection(db,'varadas'));vid=ref.id;full={...data,comp,sede,por:cur.nombre,uid:cur.uid};await setDoc(ref,{...full,creado:serverTimestamp()})}
+    $('vdlg').close();
+    try{await publicarComp({...full,id:vid});abrirCompartir({...full,id:vid},true)}catch(y){console.error(y);alert('La varada quedó guardada, pero no se pudo crear el enlace para el taller. '+ERR(y.code))}
+  }catch(x){$('verr').textContent=ERR(x.code)}
   $('vsave').disabled=false;
 };
 $('vlist').onclick=e=>{
   const im=e.target.closest('.vfot');if(im){$('bigimg').src=im.src;$('big').showModal();return}
   const ed=e.target.closest('[data-ved]');if(ed&&canEdit()){abrirVar(varadas.find(v=>v.id===ed.dataset.ved));return}
+  const sh=e.target.closest('[data-vsh]');if(sh){const v=varadas.find(q=>q.id===sh.dataset.vsh);if(!v)return;
+    if(v.comp){abrirCompartir(v,false);return}
+    if(!canEdit())return;const comp=tokenComp();sh.disabled=true;
+    updateDoc(doc(db,'varadas',v.id),{comp}).then(()=>publicarComp({...v,comp})).then(()=>abrirCompartir({...v,comp},false)).catch(x=>alert(ERR(x.code))).finally(()=>sh.disabled=false);return}
   const mp=e.target.closest('[data-vmap]');if(mp){const v=varadas.find(q=>q.id===mp.dataset.vmap);const u=v.ubic||{},url=mapsUrl(u);
     if(u.lat!==null&&u.lat!==undefined){$('maptit').textContent=`Ubicación · ${v.placa}`;$('mapsub').textContent=`${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}`;$('mapab').href=url;
       $('mapfr').src=`https://maps.google.com/maps?q=${u.lat},${u.lng}&z=17&output=embed`;$('mapdlg').showModal()}
     else if(url)window.open(url,'_blank','noopener');return}
   const d=e.target.closest('[data-vdel]');
-  if(d&&cur.rol==='admin'&&confirm('¿Eliminar este reporte de varada?'))deleteDoc(doc(db,'varadas',d.dataset.vdel)).catch(x=>alert(ERR(x.code)));
+  if(d&&cur.rol==='admin'&&confirm('¿Eliminar este reporte de varada?')){const vv=varadas.find(q=>q.id===d.dataset.vdel);deleteDoc(doc(db,'varadas',d.dataset.vdel)).then(()=>{if(vv&&vv.comp)deleteDoc(doc(db,'compartidos',vv.comp)).catch(()=>{})}).catch(x=>alert(ERR(x.code)))}
 };
 $('mapdlg').addEventListener('close',()=>{$('mapfr').src='about:blank'});
 function resumenCal(S,del){
