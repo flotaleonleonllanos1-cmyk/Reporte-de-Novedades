@@ -67,6 +67,11 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .mi[data-m="cal"]::after{animation-delay:1s}
 .mi[data-m="var"]::after{animation-delay:2s}
 .mi[data-m="km"]::after{animation-delay:3s}
+.mi[data-m="ral"]::after{animation-delay:4s}
+.ralico{display:inline-flex;width:28px;flex:none}
+.ralico .aguja{transform-origin:16px 18px;animation:agujaRal 1.6s ease-in-out infinite}
+@keyframes agujaRal{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(6deg)}}
+@media (prefers-reduced-motion:reduce){.ralico .aguja{animation:none}}
 .kmbar{display:inline-flex;width:28px;justify-content:center;flex:none}
 .kmbar rect{transition:opacity .2s}
 .icv{width:26px;height:26px;margin:0 1px}
@@ -96,6 +101,20 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .vdh{font-size:.92rem;margin:0 0 4px}
 .vcols.t div{flex:1 1 0;min-width:68px;max-width:96px;font-size:.8rem;white-space:nowrap}.vcl.t span{flex:1 1 0;min-width:68px;max-width:96px;font-size:.74rem;overflow-wrap:break-word}.vcl.t,.vcols.t{gap:8px;justify-content:flex-start}
 .vcols small{font-weight:600;font-size:.72rem;color:var(--mut)}
+.ralbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:12px}.ralbar label{margin:0}.ralbar select{width:auto;min-width:200px;max-width:100%}
+.ralmapw{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--soft)}
+#ralmap{height:min(560px,62vh);min-height:320px;width:100%}
+.ralmsg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--mut);background:var(--card)}
+.raltab{max-height:420px;overflow:auto}
+.raltab table{width:100%;border-collapse:collapse;font-size:.85rem}
+.raltab th{position:sticky;top:0;background:var(--card);text-align:left;font-size:.75rem;color:var(--mut);padding:6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.raltab td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}
+.raltab tr.c{cursor:pointer}.raltab tr.c:hover td{background:var(--soft)}
+.raltab tr.sin td{color:var(--mut)}
+.ralpop{font:13px/1.35 system-ui,sans-serif;max-width:260px}.ralpop b{display:block;font-size:14px;margin-bottom:4px}
+.ralpop table{border-collapse:collapse}.ralpop td{padding:1px 6px 1px 0;vertical-align:top}.ralpop td:first-child{color:#666;white-space:nowrap}
+.ralpop a{display:inline-block;margin-top:6px;font-weight:600}
+.leaflet-container{font:inherit}
 .kmsem{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .kmsem>div{display:grid;min-width:210px;text-align:center}.kmsem b{font-size:1.05rem}.kmsem small{color:var(--mut)}
 .kmsem .btn{padding:8px 14px}
@@ -349,6 +368,9 @@ textarea{font:inherit;color:inherit;width:100%;margin-top:4px;padding:9px 10px;b
 html.tema-cal{--bg:#eef4ef;--card:#fff;--ink:#16261c;--mut:#5b7062;--line:#d2e2d6;--acc:#1f6b3f;--acc2:#2f8a52;--soft:#e2f1e6;--band1:#2f8a52;--band2:#1f6b3f}
 html.tema-cal[data-theme="dark"]{--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}
 @media (prefers-color-scheme:dark){html.tema-cal:not([data-theme="light"]){--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}}
+html.tema-ral{--acc:#0f766e;--acc2:#14b8a6;--soft:#ddf3f0;--band1:#14b8a6;--band2:#115e59}
+html.tema-ral[data-theme="dark"]{--acc:#14b8a6;--acc2:#2dd4bf;--soft:#123b37}
+@media (prefers-color-scheme:dark){html.tema-ral:not([data-theme="light"]){--acc:#14b8a6;--acc2:#2dd4bf;--soft:#123b37}}
 html.tema-km{--acc:#1d4ed8;--acc2:#3b82f6;--soft:#e7eefc;--band1:#6366f1;--band2:#3730a3}
 html.tema-km[data-theme="dark"]{--acc:#3b82f6;--acc2:#60a5fa;--soft:#172554}
 @media (prefers-color-scheme:dark){html.tema-km:not([data-theme="light"]){--acc:#3b82f6;--acc2:#60a5fa;--soft:#172554}}
@@ -508,6 +530,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="grp">
       <button type="button" class="mi" data-m="km" aria-pressed="false" aria-expanded="false" title="Kilometrajes"><span class="kmbar" aria-hidden="true"><svg viewBox="0 0 16 32" width="16" height="30"><rect x="1" y="1" width="14" height="30" rx="4" fill="#0f172a" stroke="rgba(255,255,255,.6)" stroke-width="1"/><rect x="3" y="3.5" width="10" height="5" rx="1.5" fill="#ef4444"/><rect x="3" y="9.5" width="10" height="5" rx="1.5" fill="#f97316"/><rect x="3" y="15.5" width="10" height="5" rx="1.5" fill="#facc15"/><rect x="3" y="21.5" width="10" height="7" rx="1.5" fill="#22c55e"/></svg></span><span class="lbl">Kilometrajes</span></button>
     </div>
+    <div class="grp">
+      <button type="button" class="mi" data-m="ral" aria-pressed="false" aria-expanded="false" title="Ralentí"><span class="ralico" aria-hidden="true"><svg viewBox="0 0 32 32" width="28" height="28"><circle cx="16" cy="17" r="13" fill="#0f172a" stroke="rgba(255,255,255,.7)" stroke-width="1.2"/>
+<path d="M6 21a10.5 10.5 0 0 1 20 0" fill="none" stroke="#22c55e" stroke-width="2.6" stroke-dasharray="11 30"/><path d="M6 21a10.5 10.5 0 0 1 20 0" fill="none" stroke="#facc15" stroke-width="2.6" stroke-dasharray="0 11 9 30"/><path d="M6 21a10.5 10.5 0 0 1 20 0" fill="none" stroke="#ef4444" stroke-width="2.6" stroke-dasharray="0 20 13 30"/>
+<g class="aguja"><line x1="16" y1="18" x2="9.5" y2="13" stroke="#fff" stroke-width="2" stroke-linecap="round"/></g><circle cx="16" cy="18" r="2.2" fill="#fff"/><text x="16" y="27.5" text-anchor="middle" font-size="5" font-weight="700" fill="#cbd5e1" font-family="Arial">RPM</text></svg></span><span class="lbl">Ralentí</span></button>
+    </div>
   </nav>
   <div class="sidefoot">
     <button type="button" class="si" id="adminb" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Admin</span></button>
@@ -520,6 +547,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <button type="button" class="sidemob" id="sidemob" aria-label="Abrir menú"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   <h1 id="vtit">Novedades / Solucionadas</h1>
   <button class="btn" id="add">+ Añadir novedad</button>
+  <button class="btn" id="raladd" hidden>Cargar Excel</button>
   <button class="btn ghost" id="kmvehb" hidden>Vehículos y alertas</button>
   <button class="btn ghost" id="vcondb" hidden>Conductores</button>
   <button class="btn" id="vadd" hidden>+ Reportar varada</button>
@@ -533,6 +561,22 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </div>
 <div id="list"></div>
 </div>
+<section id="ralv" hidden aria-label="Ralentí">
+  <div class="ralbar">
+    <label>Archivo<select id="ralsel"></select></label>
+    <label>Placa<select id="ralpl"><option value="">Todas las placas</option></select></label>
+    <button type="button" class="del" id="raldel" hidden>Eliminar este archivo</button>
+  </div>
+  <div class="pprog" id="ralprog" role="status"></div>
+  <div class="kpis" id="ralkpi"></div>
+  <div class="ralmapw"><div id="ralmap" role="region" aria-label="Mapa de ubicaciones de ralentí"></div><div class="ralmsg" id="ralmsg" hidden></div></div>
+  <div class="cleg" id="ralleg"></div>
+  <div class="dgrid" style="margin-top:14px">
+    <div class="dc"><h2>Eventos por placa</h2><small>Toca una placa para verla sola en el mapa</small><div id="ralpls"></div></div>
+    <div class="dc"><h2>Registros</h2><small id="ralrsub"></small><div id="raltab" class="raltab"></div></div>
+  </div>
+  <input type="file" id="ralfile" accept=".xlsx,.xls,.csv" hidden>
+</section>
 <section id="kmv" hidden aria-label="Kilometrajes">
   <div class="kmsem">
     <button type="button" class="btn ghost" id="kmprev" aria-label="Semana anterior">‹</button>
@@ -935,6 +979,8 @@ function salir(){
   if(unsubV){unsubV();unsubV=null}
   if(unsubL){unsubL();unsubL=null}
   if(unsubK){unsubK();unsubK=null}
+  if(unsubR){unsubR();unsubR=null}
+  ralArch=[];ralSel='';
   kms=[];
   listas={};
   varadas=[];
@@ -962,6 +1008,7 @@ async function entrar(user){
   unsubC=onSnapshot(collection(db,'calibraciones'),snap=>{
     cals=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal();
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
+  unsubR=onSnapshot(collection(db,'ralenti'),snap=>{ralArch=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderRal()},()=>{});
   unsubK=onSnapshot(collection(db,'kilometrajes'),snap=>{kms=snap.docs.map(d=>({id:d.id,...d.data()}));renderKm()},x=>{if(!$('kmv').hidden)$('kmlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
   unsubL=onSnapshot(collection(db,'listas'),snap=>{listas={};snap.docs.forEach(d=>listas[d.id]=d.data());renderKm();if($('vdlg').open&&!vedit)llenarConductores($('vcon').value)},()=>{});
   unsubV=onSnapshot(collection(db,'varadas'),snap=>{varadas=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderVar()},x=>{if(!$('varv').hidden)$('vlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
@@ -1010,12 +1057,14 @@ const hoyD=new Date();let canio=hoyD.getFullYear(),cmes=0,metas={},unsubM=null;
 const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral';
+  document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('listv').hidden=cal||ini||vr||km;
-  $('add').hidden=cal||ini||vr||km||!canEdit();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';
+  if(cal||ini||vr||km||ral)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral;
+  $('add').hidden=cal||ini||vr||km||ral||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
   if(cal)renderCal();
@@ -1027,9 +1076,9 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden;
-  $('vtit').textContent=ini?'':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!cal&&$('dash').hidden);
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden;
+  $('vtit').textContent=ini?'':ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!cal&&$('dash').hidden);
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
 function cerrarMenuMovil(){document.querySelector('.shell').classList.remove('abierto');$('velo').hidden=true}
@@ -2042,6 +2091,112 @@ $('kmfrm').onsubmit=async e=>{e.preventDefault();const t=Number($('kmtol').value
   $('kmsave').disabled=true;
   try{await setDoc(doc(db,'listas','km_'+sede),{tipo:'kilometraje',sede,placas:kmpl,tolerancia:Math.round(t),por:cur.nombre,editado:serverTimestamp()});$('kmdlg').close()}
   catch(x){$('kmerr').textContent=ERR(x.code)}$('kmsave').disabled=false};
+
+/* ---------- Ralentí ---------- */
+let ralArch=[],unsubR=null,ralSel='',ralDatos=null,ralCache={},ralMapa=null,ralCapa=null,ralMk=[],ralSubiendo=false;
+const RPAL=['#e11d48','#2563eb','#16a34a','#d97706','#7c3aed','#0891b2','#db2777','#65a30d','#ea580c','#0f766e','#4f46e5','#b91c1c','#0369a1','#a16207','#9333ea','#15803d'];
+const nh=t=>sinTilde(t).replace(/[^a-z0-9]/g,'');
+function detectarCols(cols){
+  const f=(...ks)=>cols.findIndex(c=>ks.some(k=>nh(c)===k))>=0?cols.findIndex(c=>ks.some(k=>nh(c)===k)):cols.findIndex(c=>ks.some(k=>nh(c).includes(k)));
+  return{ubi:f('ubicacion','ubicación','location','posicion','direccion','coordenadas'),pla:f('placa','vehiculo','patente','unidad','movil'),
+    fec:f('fechayhora','fechahora','fecha','hora','inicio','date'),lat:f('latitud','lat'),lng:f('longitud','lon','lng','long'),dur:f('duracion','tiempo','ralenti','minutos')};
+}
+function coordsFila(r,cc){
+  if(cc.lat>=0&&cc.lng>=0){const la=parseFloat(String(r[cc.lat]).replace(',','.')),lo=parseFloat(String(r[cc.lng]).replace(',','.'));if(Math.abs(la)<=90&&Math.abs(lo)<=180&&(la||lo))return{lat:la,lng:lo}}
+  if(cc.ubi<0)return null;let t=String(r[cc.ubi]||'');try{t=decodeURIComponent(t)}catch(x){}
+  const m=t.match(/(-?\d{1,2}[.,]\d{3,})\s*[,;\s]\s*(-?\d{1,3}[.,]\d{3,})/);if(!m)return null;
+  const la=Number(m[1].replace(',','.')),lo=Number(m[2].replace(',','.'));return Math.abs(la)<=90&&Math.abs(lo)<=180?{lat:la,lng:lo}:null;
+}
+function parseCSV(t){const out=[];let row=[],c='',q=false;const sep=(t.split('\n')[0].match(/;/g)||[]).length>(t.split('\n')[0].match(/,/g)||[]).length?';':',';
+  for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}
+    else if(ch==='"')q=true;else if(ch===sep){row.push(c);c=''}else if(ch==='\n'){row.push(c.replace(/\r$/,''));out.push(row);row=[];c=''}else c+=ch}
+  if(c!==''||row.length){row.push(c);out.push(row)}return out}
+async function leerTabla(f){
+  if(/\.csv$/i.test(f.name))return parseCSV((await f.text()).replace(/^\uFEFF/,''));
+  const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true}),ws=wb.Sheets[wb.SheetNames[0]];
+  return X.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:false,dateNF:'dd/mm/yyyy hh:mm'});
+}
+const ralProg=t=>{$('ralprog').textContent=t};
+async function subirRal(f){
+  if(ralSubiendo)return;if(!/\.(xlsx|xls|csv)$/i.test(f.name)){ralProg('Carga un archivo de Excel (.xlsx o .xls) o CSV.');return}
+  ralSubiendo=true;$('raladd').disabled=true;ralProg('Leyendo el archivo…');
+  try{
+    const t=(await leerTabla(f)).map(r=>r.map(v=>String(v??'').trim()));
+    let hi=t.findIndex(r=>{const c=detectarCols(r);return c.ubi>=0||(c.lat>=0&&c.lng>=0)});
+    if(hi<0){ralProg(`No encontré una columna llamada «Ubicación» (ni Latitud/Longitud). Columnas encontradas: ${(t[0]||[]).filter(Boolean).join(', ')||'ninguna'}.`);throw 0}
+    const cols=t[hi].map((c,i)=>c||`Columna ${i+1}`),filas=t.slice(hi+1).filter(r=>r.some(v=>v!==''));
+    if(!filas.length){ralProg('El archivo no tiene filas con datos debajo de los títulos.');throw 0}
+    const cc=detectarCols(cols),conC=filas.filter(r=>coordsFila(r,cc)).length;
+    const partes=[];let act=[],tam=0;filas.forEach(r=>{const j=JSON.stringify(r);if(tam+j.length>800000&&act.length){partes.push(act);act=[];tam=0}act.push(r);tam+=j.length+1});if(act.length)partes.push(act);
+    if(partes.length>25){ralProg('El archivo es demasiado grande (más de 20 MB de datos). Divídelo en archivos más pequeños, por ejemplo uno por semana.');throw 0}
+    const ref=doc(collection(db,'ralenti'));
+    await setDoc(ref,{sede,nombre:f.name,cols,filas:filas.length,conCoord:conC,partes:partes.length,listo:false,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});
+    for(let k=0;k<partes.length;k++){ralProg(`Cargando ${f.name}… ${Math.round(k/partes.length*100)}%`);await setDoc(doc(db,'ralenti',ref.id,'partes',String(k).padStart(3,'0')),{i:k,d:JSON.stringify(partes[k])})}
+    await updateDoc(ref,{listo:true});ralCache[ref.id]={cols,filas};ralSel=ref.id;
+    ralProg(`«${f.name}» quedó cargado: ${filas.length} registros, ${conC} con ubicación en el mapa${filas.length-conC?` y ${filas.length-conC} sin coordenadas`:''}.`);
+  }catch(x){if(x!==0)ralProg('No se pudo cargar el archivo. '+(x&&x.code?ERR(x.code):'Revisa que sea un Excel válido y tu conexión a internet.'))}
+  ralSubiendo=false;$('raladd').disabled=false;renderRal();
+}
+$('raladd').onclick=()=>{if(canEdit())$('ralfile').click()};
+$('ralfile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)subirRal(f)};
+async function datosRal(a){if(ralCache[a.id])return ralCache[a.id];
+  const ps=(await getDocs(collection(db,'ralenti',a.id,'partes'))).docs.map(d=>d.data()).sort((x,y)=>x.i-y.i);if(ps.length!==a.partes)throw new Error('incompleto');
+  return ralCache[a.id]={cols:a.cols,filas:ps.flatMap(p=>JSON.parse(p.d))}}
+async function cargarLeaflet(){
+  if(window.L)return window.L;
+  if(!document.getElementById('leafcss')){const l=document.createElement('link');l.id='leafcss';l.rel='stylesheet';l.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(l)}
+  return cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js','https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'],'L');
+}
+function ralMsg(t){$('ralmsg').hidden=!t;$('ralmsg').innerHTML=t||''}
+async function renderRal(){
+  if(!cur||$('ralv').hidden)return;
+  const ar=ralArch.filter(a=>(a.sede||SEDES[0])===sede&&(a.listo||cur.rol==='admin')).sort((a,b)=>(b.creado?.seconds||0)-(a.creado?.seconds||0));
+  if(!ralSel||!ar.some(a=>a.id===ralSel))ralSel=(ar.find(a=>a.listo)||ar[0]||{}).id||'';
+  const f=d=>d&&d.toDate?d.toDate().toLocaleDateString('es-CO'):'';
+  $('ralsel').innerHTML=ar.length?ar.map(a=>`<option value="${a.id}"${a.id===ralSel?' selected':''}>${esc(a.nombre)}${a.creado?' · '+f(a.creado):''}${a.listo?'':' (carga incompleta)'}</option>`).join(''):'<option value="">Sin archivos cargados</option>';
+  const a=ar.find(x=>x.id===ralSel);$('raldel').hidden=!(a&&cur.rol==='admin');
+  if(!a){$('ralkpi').innerHTML='';$('ralpls').innerHTML='';$('raltab').innerHTML='';$('ralleg').innerHTML='';$('ralrsub').textContent='';
+    ralMsg(`Aún no hay archivos de ralentí para ${esc(sede)}.${canEdit()?' Usa «Cargar Excel» para subir el primero. Debe tener una columna llamada <b>Ubicación</b> con las coordenadas (latitud, longitud).':''}`);if(ralCapa)ralCapa.clearLayers();return}
+  if(!a.listo){ralMsg('Este archivo no terminó de cargarse. El administrador puede eliminarlo y volver a cargarlo.');return}
+  let D;try{if(!ralCache[a.id])ralMsg('Cargando datos…');D=await datosRal(a)}catch(x){ralMsg('No se pudieron cargar los datos del archivo. Revisa tu conexión.');return}
+  if(a.id!==ralSel)return;
+  const cc=detectarCols(D.cols),pl=r=>cc.pla>=0?normP(r[cc.pla])||String(r[cc.pla]||'').trim()||'Sin placa':'Sin placa';
+  const placas=[...new Set(D.filas.map(pl))].sort(cmpP),color=p=>RPAL[placas.indexOf(p)%RPAL.length];
+  const sel=$('ralpl').value;$('ralpl').innerHTML='<option value="">Todas las placas</option>'+placas.map(p=>`<option${p===sel?' selected':''}>${esc(p)}</option>`).join('');
+  const fpl=placas.includes(sel)?sel:'';
+  const filas=D.filas.map((r,i)=>({r,i,p:pl(r),c:coordsFila(r,cc)})).filter(x=>!fpl||x.p===fpl);
+  const conC=filas.filter(x=>x.c);
+  $('ralkpi').innerHTML=[[filas.length,fpl?`Registros de ${fpl}`:'Registros en el archivo',''],[fpl?1:placas.length,'Placas',''],[conC.length,'Con ubicación en el mapa',''],[filas.length-conC.length,'Sin coordenadas',filas.length-conC.length?'badc':'']]
+    .map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
+  const cnt=cuenta(D.filas.map(pl),x=>x);
+  $('ralpls').innerHTML=bars(cnt.slice(0,15).map(([l,n])=>({l,n,t:`${n}`})))+(cnt.length>15?`<small class="mnota">Se muestran 15 de ${cnt.length} placas. Usa el selector «Placa» para ver las demás.</small>`:'');
+  $('ralpls').querySelectorAll('.bar').forEach((b,k)=>{b.style.cursor='pointer';b.title='Ver solo esta placa';b.onclick=()=>{$('ralpl').value=cnt[k][0];renderRal()}});
+  const mostrar=filas.slice(0,400),ci=D.cols.map((c,i)=>i);
+  $('ralrsub').textContent=`${filas.length} registro${filas.length===1?'':'s'}${filas.length>400?' · se muestran los primeros 400 (todos están en el mapa)':''}. Toca un registro para ubicarlo en el mapa.`;
+  $('raltab').innerHTML=`<table><thead><tr>${D.cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${mostrar.map(x=>`<tr class="${x.c?'c':'sin'}" data-ri="${x.i}">${ci.map(i=>`<td>${i===cc.ubi&&!x.c&&x.r[i]?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.r[i])}" target="_blank" rel="noopener">${esc(x.r[i])}</a>`:esc(x.r[i])}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  $('ralleg').innerHTML=(fpl?[fpl]:placas.slice(0,16)).map(p=>`<span><i style="background:${color(p)}"></i>${esc(p)}</span>`).join('')+(!fpl&&placas.length>16?`<span>y ${placas.length-16} placas más</span>`:'');
+  let L;try{L=await cargarLeaflet()}catch(x){ralMsg('No se pudo cargar el mapa. Revisa tu conexión a internet.');return}
+  if(!ralMapa){
+    ralMapa=L.map('ralmap',{zoomControl:true}).setView([4.142,-73.626],11);
+    const calle=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(ralMapa);
+    const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imágenes &copy; Esri'});
+    L.control.layers({'Mapa':calle,'Satélite':sat},null,{position:'topright'}).addTo(ralMapa);
+    ralCapa=L.layerGroup().addTo(ralMapa);
+  }
+  ralCapa.clearLayers();ralMk={};
+  if(!conC.length){ralMsg(filas.length?'Ningún registro tiene coordenadas en la columna «Ubicación». El mapa necesita latitud y longitud (por ejemplo: 4.14211, -73.62664). Los registros sí aparecen en la tabla de abajo.':'No hay registros.');return}
+  ralMsg('');
+  const pts=[];conC.forEach(x=>{const m=L.circleMarker([x.c.lat,x.c.lng],{radius:7,color:'#fff',weight:1.5,fillColor:color(x.p),fillOpacity:.9});
+    m.bindPopup(`<div class="ralpop"><b>${esc(x.p)}</b><table>${D.cols.map((c,i)=>x.r[i]?`<tr><td>${esc(c)}</td><td>${esc(x.r[i])}</td></tr>`:'').join('')}</table><a href="https://www.google.com/maps/search/?api=1&query=${x.c.lat},${x.c.lng}" target="_blank" rel="noopener">Abrir en Google Maps</a></div>`);
+    m.addTo(ralCapa);ralMk[x.i]=m;pts.push([x.c.lat,x.c.lng])});
+  setTimeout(()=>{ralMapa.invalidateSize();if(pts.length===1)ralMapa.setView(pts[0],15);else ralMapa.fitBounds(pts,{padding:[30,30],maxZoom:16})},50);
+}
+$('ralsel').onchange=()=>{ralSel=$('ralsel').value;$('ralpl').value='';renderRal()};
+$('ralpl').onchange=()=>renderRal();
+$('raltab').onclick=e=>{const tr=e.target.closest('tr[data-ri]');if(!tr||e.target.closest('a'))return;const m=ralMk[tr.dataset.ri];if(m&&ralMapa){ralMapa.setView(m.getLatLng(),16);m.openPopup();$('ralmap').scrollIntoView({behavior:'smooth',block:'center'})}};
+$('raldel').onclick=async()=>{const a=ralArch.find(x=>x.id===ralSel);if(!a||cur.rol!=='admin'||!confirm(`¿Eliminar el archivo «${a.nombre}» y todos sus registros?`))return;
+  try{const ps=await getDocs(collection(db,'ralenti',a.id,'partes'));const b=writeBatch(db);ps.docs.forEach(p=>b.delete(p.ref));await b.commit();await deleteDoc(doc(db,'ralenti',a.id));delete ralCache[a.id];ralSel='';ralProg('')}
+  catch(x){alert(ERR(x.code))}};
 $('vper').onchange=()=>renderVar();
 
 /* ---------- Sistema "Otro" y lista de conductores ---------- */
@@ -2415,7 +2570,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  renderKm();
+  renderKm();ralSel='';renderRal();
   renderVar();
   aplicarSede();renderCal();
 };
