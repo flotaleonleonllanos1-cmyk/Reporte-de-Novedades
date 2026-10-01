@@ -600,7 +600,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <label class="raldq">Dirección<input id="raldir" autocomplete="off" placeholder="Escribe la dirección"></label>
     <label class="ralck"><input type="checkbox" id="ralcerca"> Incluir reportes cercanos a menos de <input type="number" id="ralrad" min="20" max="2000" step="10" value="100" inputmode="numeric"> m</label>
     <button type="button" class="btn" id="raldirb">Buscar</button>
-    <button type="button" class="btn ghost" id="raldirdef" title="Zona Corbetura Villavicencio, Prox Cd Villavicencio: Cl. 1 #321021">Dirección predeterminada</button>
+    <button type="button" class="btn ghost" id="raldirdef">Dirección predeterminada</button>
   </div>
   <div class="pprog" id="ralprog" role="status"></div>
   <small class="mnota" id="ralcolsn"></small>
@@ -2227,13 +2227,14 @@ function iniMs(t){t=fIni(t);t=String(t||'').trim();if(!t)return NaN;let m=t.matc
   m=t.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})(?:[ ,]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap])?\.?\s*m?\.?)?/i);
   if(m){let y=+m[3];if(y<100)y+=2000;let h=+(m[4]||0);if(m[7]){const p=m[7].toLowerCase();if(p==='p'&&h<12)h+=12;if(p==='a'&&h===12)h=0}return new Date(y,m[2]-1,+m[1],h,+(m[5]||0),+(m[6]||0)).getTime()}
   const d=Date.parse(t);return isNaN(d)?NaN:d}
-const DIR_DEF='Zona Corbetura Villavicencio, Prox Cd Villavicencio: Cl. 1 #321021, Villavicencio, Meta, Colombia';
+const DIRS_DEF={Villavicencio:'Zona Corbetura Villavicencio, Prox Cd Villavicencio: Cl. 1 #321021, Villavicencio, Meta, Colombia',Yopal:'CD Yopal, Prox Cd Yopal, Zona de Cobertura Yopal: Unnamed Road, Yopal, Casanare, Colombia'};
+const dirDef=()=>DIRS_DEF[sede]||DIRS_DEF.Villavicencio;
 let ralDirSel='';
 const tokDir=t=>sinTilde(t).replace(/n\s*[°º]/g,' ').replace(/\bno\.?(?=\s*\d)/g,' ').replace(/#/g,' ').replace(/\bcalle\b/g,'cl').replace(/\b(carrera|cra|kra|kr)\b/g,'cr').replace(/\bavenida\b/g,'av').replace(/\bdiagonal\b/g,'dg').replace(/\btransversal\b/g,'tv')
   .replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(Boolean).map(x=>/^\d+$/.test(x)?String(Number(x)):x);
-const STOPD=new Set(['villavicencio','meta','colombia','n','no','numero','de','la','el','y','sur','norte']);
+const STOPD=new Set(['villavicencio','meta','yopal','casanare','colombia','n','no','numero','de','la','el','y','sur','norte']);
 function coincideDir(q,estricto){const qt=tokDir(q).filter(x=>!STOPD.has(x)),qn=qt.filter(x=>/^\d+$/.test(x)),qw=qt.filter(x=>!/^\d+$/.test(x));
-  const tipos=qw.filter(x=>['cl','cr','av','dg','tv','kr'].includes(x)),pal=estricto?qw:tipos;
+  const tipos=qw.filter(x=>['cl','cr','av','dg','tv','kr'].includes(x)),pal=estricto||(!tipos.length&&!qn.length)?qw:tipos;
   return u=>{if(!u)return false;const ut=tokDir(u),un=ut.filter(x=>/^\d+$/.test(x));if(!pal.every(w=>ut.includes(w)))return false;if(!qn.length)return true;
     for(let i=0;i+qn.length<=un.length;i++)if(qn.every((x,k)=>un[i+k]===x))return true;return false}}
 const distM=(a,b)=>{const R=6371000,r=Math.PI/180,dl=(b.lat-a.lat)*r,dn=(b.lng-a.lng)*r,x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
@@ -2244,6 +2245,7 @@ function filtrarDir(ev){const q=$('raldir').value.trim();if(!q)return{lista:[],m
   return{lista:m,modo}}
 async function renderRal(){
   if(!cur||$('ralv').hidden)return;
+  if($('raldir').dataset.sede!==sede){$('raldir').dataset.sede=sede;ralDirSel='';try{$('raldir').value=localStorage.getItem('ral-dir2-'+sede)||dirDef()}catch(x){$('raldir').value=dirDef()}}
   const ar=ralArch.filter(a=>(a.sede||SEDES[0])===sede&&(a.listo||cur.rol==='admin')).sort((a,b)=>(b.creado?.seconds||0)-(a.creado?.seconds||0));
   if(!ralSel||!ar.some(a=>a.id===ralSel))ralSel=(ar.find(a=>a.listo)||ar[0]||{}).id||'';
   const fch=d=>d&&d.toDate?d.toDate().toLocaleDateString('es-CO'):'';
@@ -2269,7 +2271,7 @@ async function renderRal(){
     if(e.dur!==null){g.tot+=e.dur;g.cd++;g.prom=g.tot/g.cd;if(g.max===null||e.dur>g.max){g.max=e.dur;g.maxT=e.ini}}
     if(!isNaN(e.ms)){if(isNaN(g.pri)||e.ms<g.pri){g.pri=e.ms;g.priT=e.ini}if(isNaN(g.ult)||e.ms>g.ult){g.ult=e.ms;g.ultT=e.ini}}});return G};
   const G=agrupar(ev),dirM=ralVista==='dir';
-  $('raldirw').hidden=!dirM;if(dirM&&!$('raldir').value){try{$('raldir').value=localStorage.getItem('ral-dir2')||DIR_DEF}catch(x){$('raldir').value=DIR_DEF}}
+  $('raldirw').hidden=!dirM;
   const FD=dirM?filtrarDir(ev):null,evR=dirM?FD.lista:ev;
   const grupos=Object.values(dirM?agrupar(evR):G).map(g=>({...g,prom:g.cd?g.tot/g.cd:null}));
   const met=g=>ralOrden==='dur'?g.tot:ralOrden==='prom'?(g.prom||0):ralOrden==='max'?(g.max||0):g.n;
@@ -2340,8 +2342,8 @@ $('rcfrm').onsubmit=async e=>{e.preventDefault();const a=ralArch.find(x=>x.id===
 $('ralpl').onchange=()=>{ralPlaca=$('ralpl').value;ralVista='disp';renderRal()};
 $('ralpls').onclick=e=>{const b=e.target.closest('[data-rpl]');if(!b)return;if(ralVista==='dir'){ralDirSel=ralDirSel===b.dataset.rpl?'':b.dataset.rpl;renderRal();return}ralPlaca=b.dataset.rpl;ralVista='disp';renderRal();if(window.matchMedia('(max-width:900px)').matches)$('ralmap').scrollIntoView({behavior:'smooth',block:'center'})};
 $('raltodas').onclick=()=>{if(ralVista==='dir'){ralDirSel='';renderRal();return}ralVista='cons';renderRal()};
-const ralBuscarDir=()=>{ralDirSel='';try{localStorage.setItem('ral-dir2',$('raldir').value.trim())}catch(x){}renderRal()};
-$('raldirb').onclick=ralBuscarDir;$('raldirdef').onclick=()=>{$('raldir').value=DIR_DEF;ralBuscarDir()};$('raldir').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ralBuscarDir()}});
+const ralBuscarDir=()=>{ralDirSel='';try{localStorage.setItem('ral-dir2-'+sede,$('raldir').value.trim())}catch(x){}renderRal()};
+$('raldirb').onclick=ralBuscarDir;$('raldirdef').onclick=()=>{$('raldir').value=dirDef();ralBuscarDir()};$('raldir').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ralBuscarDir()}});
 let ralRadPrev='100';$('ralcerca').onchange=()=>renderRal();$('ralrad').oninput=()=>{clearTimeout(window.__rrt);window.__rrt=setTimeout(()=>{if($('ralrad').value!==ralRadPrev){ralRadPrev=$('ralrad').value;if($('ralcerca').checked)renderRal()}},500)};
 $('raltabs').onclick=e=>{const b=e.target.closest('[data-rv]');if(!b)return;ralVista=b.dataset.rv;renderRal()};
 document.querySelector('.ralord').onclick=e=>{const b=e.target.closest('[data-ro]');if(!b)return;ralOrden=b.dataset.ro;renderRal()};
