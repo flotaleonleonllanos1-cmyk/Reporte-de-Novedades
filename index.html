@@ -92,6 +92,14 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .shell.mini .side .humo{display:none}
 .vcard{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--bad);border-radius:10px;padding:14px 16px;margin-bottom:12px}
 .vcard.ok{border-left-color:var(--ok)}
+.vmini{display:grid;grid-template-columns:auto 1fr auto auto;gap:6px 18px;align-items:center;padding:10px 14px;cursor:pointer;transition:box-shadow .15s}
+.vmini:hover{box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.vmtop{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:96px}
+.vmdat{display:flex;flex-wrap:wrap;gap:4px 20px;font-size:.88rem;font-weight:600}
+.vmdat span{display:grid}.vmdat small{font-size:.7rem;color:var(--mut);font-weight:400}
+.vmfoto{width:76px;height:56px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+.vmini .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.vmini .acts .btn{padding:6px 10px;font-size:.84rem}
+@media (max-width:760px){.vmini{grid-template-columns:auto 1fr}.vmini .vmdat{grid-column:1/-1;grid-row:2}.vmini .vmfoto{grid-column:2;grid-row:1;justify-self:end}.vmini .acts{grid-column:1/-1;justify-content:flex-start}}
 .vcard .vgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px 16px;margin:10px 0 0}
 .vcard dt{font-size:.78rem;color:var(--mut)}.vcard dd{margin:0;font-weight:600}
 .vcard .vfot{width:130px;height:96px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--line)}
@@ -107,7 +115,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .vubok{font-size:.85rem;color:var(--ok);font-weight:600}
 .phi{width:1em;height:1em;vertical-align:-.15em;flex:none}
 .vtel span{display:inline-flex;align-items:center;gap:6px}
-.telc{display:inline-flex;align-items:center;gap:6px}
+.telc{display:inline-flex;align-items:center;gap:6px;color:var(--acc2);font-weight:700}
 .pubtel{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
 .pubtel a.btn{display:inline-flex;align-items:center;gap:8px}
 .pubtel .phi{width:18px;height:18px}
@@ -2201,6 +2209,7 @@ function verDrive(a){
 }
 
 /* ---------- Varadas ---------- */
+const varAbiertas=new Set();
 let varadas=[],unsubV=null,vfiltro='todas',vedit=null,vfotoD='',vfotoMarca=false,vcoords=null;
 const dtTxt=v=>{if(!v)return '';const[d,t]=String(v).split('T');const[y,m,dd]=d.split('-');return `${dd}/${m}/${y} ${t||''}`.trim()};
 const dtMs=v=>{if(!v)return NaN;const[d,t='00:00']=String(v).split('T');const[y,m,dd]=d.split('-').map(Number);const[h,mi]=t.split(':').map(Number);return new Date(y,m-1,dd,h,mi).getTime()};
@@ -2227,9 +2236,16 @@ function renderVar(){
   if(vfiltro==='dash'){dashVar(del);return}
   const vis=del.filter(v=>vfiltro==='todas'||(vfiltro==='varado'?!v.fo:!!v.fo)).sort((a,b)=>dtMs(b.fv)-dtMs(a.fv));
   if(!vis.length){$('vlist').innerHTML=`<div class="empty">No hay varadas ${vfiltro==='varado'?'abiertas ':vfiltro==='operativo'?'cerradas ':''}en ${esc(sede)}.${canEdit()?' Usa «Reportar varada» para registrar una.':''}</div>`;return}
-  $('vlist').innerHTML=vis.map(v=>{const op=!!v.fo,t=op?dtMs(v.fo)-dtMs(v.fv):ahora-dtMs(v.fv),mu=mapsUrl(v.ubic);return `<article class="vcard ${op?'ok':''}">
+  $('vlist').innerHTML=vis.map(v=>{const op=!!v.fo,t=op?dtMs(v.fo)-dtMs(v.fv):ahora-dtMs(v.fv),mu=mapsUrl(v.ubic),ab=varAbiertas.has(v.id);
+    if(!ab)return `<article class="vcard vmini ${op?'ok':''}" data-vcard="${v.id}">
+      <div class="vmtop"><span class="placa">${esc(v.placa)}</span><span class="pill ${op?'o':'b'}">${op?'Operativo':'Varado'}</span></div>
+      <div class="vmdat"><span><small>Varada</small>${dtTxt(v.fv)}</span><span><small>${op?'Fuera de servicio':'Lleva varado'}</small><b style="color:${op?'inherit':'var(--bad)'}"${op?'':` data-vdur="${esc(v.fv)}"`}>${durTxt(t)}</b></span>
+        <span><small>Sistema</small>${esc(sistemaDe(v))}</span><span><small>Taller</small>${esc(v.tallerNombre||'—')}</span><span><small>Conductor</small>${esc(v.conductor||'—')}</span></div>
+      ${v.foto?`<img class="vmfoto" src="${v.foto}" alt="">`:''}
+      <div class="acts"><button class="btn ghost" data-vtog="${v.id}" aria-expanded="false">Ampliar</button>${canEdit()||v.comp?`<button class="btn ghost" data-vsh="${v.id}">Enviar al taller</button>`:''}${canEdit()?`<button class="btn ghost" data-ved="${v.id}">Editar</button>`:''}</div></article>`;
+    return `<article class="vcard ${op?'ok':''}" data-vcard="${v.id}">
     <div class="top"><div><span class="placa">${esc(v.placa)}</span> <span class="pill ${op?'o':'b'}">${op?'Operativo':'Varado'}</span><div class="rpor">Reportado por <b>${esc(v.por||'—')}</b>${v.editadoPor?` · Última edición: ${esc(v.editadoPor)}`:''}</div></div>
-      <div class="acts">${canEdit()||v.comp?`<button class="btn ghost" data-vsh="${v.id}">Enviar al taller</button>`:''}${canEdit()?`<button class="btn ghost" data-ved="${v.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="del" data-vdel="${v.id}">Eliminar</button>`:''}</div></div>
+      <div class="acts"><button class="btn ghost" data-vtog="${v.id}" aria-expanded="true">Reducir</button>${canEdit()||v.comp?`<button class="btn ghost" data-vsh="${v.id}">Enviar al taller</button>`:''}${canEdit()?`<button class="btn ghost" data-ved="${v.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="del" data-vdel="${v.id}">Eliminar</button>`:''}</div></div>
     <div class="vbody"><div><dl class="vgrid">
       <div><dt>Fecha y hora de la varada</dt><dd>${dtTxt(v.fv)}</dd></div>
       <div><dt>Operativo nuevamente</dt><dd>${op?dtTxt(v.fo):'<span style="color:var(--bad)">Sigue varado</span>'}</dd></div>
@@ -3071,6 +3087,8 @@ $('vfrm').onsubmit=async e=>{
   $('vsave').disabled=false;
 };
 $('vlist').onclick=e=>{
+  const tg=e.target.closest('[data-vtog]');if(tg){const id=tg.dataset.vtog;varAbiertas.has(id)?varAbiertas.delete(id):varAbiertas.add(id);renderVar();return}
+  const mc=e.target.closest('.vmini');if(mc&&!e.target.closest('button,a')){varAbiertas.add(mc.dataset.vcard);renderVar();return}
   const im=e.target.closest('.vfot');if(im){$('bigimg').src=im.src;$('big').showModal();return}
   const ed=e.target.closest('[data-ved]');if(ed&&canEdit()){abrirVar(varadas.find(v=>v.id===ed.dataset.ved));return}
   const sh=e.target.closest('[data-vsh]');if(sh){const v=varadas.find(q=>q.id===sh.dataset.vsh);if(!v)return;
