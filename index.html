@@ -165,6 +165,8 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .blslots{grid-template-columns:1fr 1fr}
 .blslots .prev{min-height:150px}.blslots .prev img{width:100%;max-height:220px;object-fit:contain;background:#111}
 @media (max-width:560px){.blfotos{gap:8px}}
+.pdfcap .acts,.pdfcap .btn,.pdfcap .del,.pdfcap .xl,.pdfcap .ralord,.pdfcap .vmap iframe,.pdfcap .docnav input,.pdfcap .pubbtns,.pdfcap .ver{display:none!important}
+@media print{.side,.topbar .btn,.velo,.sidemob,.acts,.xl,dialog{display:none!important}.shell{display:block}.contenido{max-width:none;padding:0}body{background:#fff}}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
 .docmiga{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:200px;font-size:.92rem}
@@ -235,8 +237,8 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .kmin{display:flex;gap:6px;align-items:center}.kmin input{width:130px;margin:0;text-align:right}.kmin .btn{padding:7px 12px}
 .kmal{font-size:.82rem;line-height:1.3;border-radius:6px;padding:5px 8px;display:inline-block}
 .kmal.r{background:var(--badbg);color:var(--bad);font-weight:600}.kmal.a{background:var(--wipbg);color:var(--wip);font-weight:600}.kmal.o{background:var(--okbg);color:var(--ok)}.kmal.n{color:var(--mut)}
-.kmt tr.al td{background:color-mix(in srgb,var(--wipbg) 45%,transparent)}
-.kmt tr.alr td{background:color-mix(in srgb,var(--badbg) 55%,transparent)}
+.kmt tr.al td{background:var(--wipbg)}
+.kmt tr.alr td{background:var(--badbg)}
 .kmsaved{color:var(--mut);font-size:.78rem;display:block}
 .kmaviso{background:var(--soft);border-radius:8px;padding:9px 14px;font-size:.9rem;margin-bottom:12px}
 .kmin .del{margin-left:4px}
@@ -683,6 +685,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 <div class="topbar">
   <button type="button" class="sidemob" id="sidemob" aria-label="Abrir menú"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   <h1 id="vtit">Novedades / Solucionadas</h1>
+  <button class="btn ghost" id="pdfv" hidden title="Descargar esta vista en PDF">⬇ PDF</button>
   <button class="btn" id="add">+ Añadir novedad</button>
   <button class="btn ghost" id="blplb" hidden>Placas</button>
   <button class="btn" id="bladd" hidden>+ Registrar</button>
@@ -1433,6 +1436,7 @@ function titulo(){
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
   $('vtit').textContent=ini?'':bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':'Conductores'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
   $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!cal&&$('dash').hidden);
+  $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
 
@@ -1516,6 +1520,73 @@ function verDoc(id){
 }
 $('ddprev').onclick=()=>{if($('ddprev').dataset.id)verDoc($('ddprev').dataset.id)};$('ddnext').onclick=()=>{if($('ddnext').dataset.id)verDoc($('ddnext').dataset.id)};
 $('docdlg').addEventListener('close',()=>{$('ddfr').src='about:blank'});
+/* ---------- PDF de la vista actual (solo administrador) ---------- */
+async function pdfDeImagenes(pags){
+  const W=595,H=842,ch=[];let pos=0;const off=[];
+  const put=s=>{const b=typeof s==='string'?Uint8Array.from(l1(s)):s;ch.push(b);pos+=b.length};
+  let n=4;const P=pags.map(p=>({...p,iid:++n,pid:++n,cid:++n,bytes:deB64(p.src.split(',')[1])}));
+  put('%PDF-1.4\n%âãÏÓ\n');
+  const obj=(id,body)=>{off[id]=pos;put(`${id} 0 obj\n`);(Array.isArray(body)?body:[body]).forEach(put);put('\nendobj\n')};
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2,`<< /Type /Pages /Count ${P.length} /Kids [${P.map(p=>p.pid+' 0 R').join(' ')}] >>`);
+  obj(3,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  obj(4,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+  for(const p of P){
+    const aw=W-48,s=aw/p.w,ih=p.h*s,y=H-64-ih;
+    const c=`0.12 0.23 0.54 rg 0 ${H-46} ${W} 46 re f 1 1 1 rg BT /F2 14 Tf 24 ${H-24} Td ${pdfStr(p.titulo)} Tj ET BT /F1 9 Tf 24 ${H-38} Td ${pdfStr(p.sub)} Tj ET `
+      +`q ${aw.toFixed(2)} 0 0 ${ih.toFixed(2)} 24 ${y.toFixed(2)} cm /Im${p.iid} Do Q 0.45 g BT /F1 8 Tf 24 18 Td ${pdfStr(p.pie)} Tj ET`;
+    const cb=Uint8Array.from(l1(c));
+    obj(p.iid,[`<< /Type /XObject /Subtype /Image /Width ${p.w} /Height ${p.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${p.bytes.length} >>\nstream\n`,p.bytes,'\nendstream']);
+    obj(p.pid,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Contents ${p.cid} 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> /XObject << /Im${p.iid} ${p.iid} 0 R >> >> >>`);
+    obj(p.cid,[`<< /Length ${cb.length} >>\nstream\n`,cb,'\nendstream']);
+  }
+  const xr=pos;put(`xref\n0 ${n+1}\n0000000000 65535 f \n`);for(let i=1;i<=n;i++)put(String(off[i]||0).padStart(10,'0')+' 00000 n \n');
+  put(`trailer\n<< /Size ${n+1} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`);
+  return new Blob(ch,{type:'application/pdf'});
+}
+function vistaPDF(){
+  const vis=id=>!$(id).hidden;
+  if(vis('dash'))return{el:$('dash'),titulo:'Dashboard de novedades'};
+  if(vis('listv'))return{el:$('listv'),titulo:'Novedades / Solucionadas'};
+  if(vis('calv'))return{el:$('calv'),titulo:$('vtit').textContent};
+  if(vis('varv'))return{el:$('varv'),titulo:vfiltro==='dash'?'Dashboard de varadas':'Varadas'};
+  if(vis('kmv'))return{el:$('kmv'),titulo:'Kilometrajes'};
+  if(vis('ralv'))return{el:$('ralv'),titulo:'Ralentí'};
+  if(vis('docv'))return{el:$('docv'),titulo:$('vtit').textContent};
+  if(vis('blv'))return{el:$('blv'),titulo:BLN[blTipo].t};
+  return null;
+}
+function expandirTodo(on){
+  if(on){window.__pdfSets=[[novAbiertas,items.map(i=>i.id)],[calAbiertas,cals.map(c=>c.id)],[varAbiertas,varadas.map(v=>v.id)],[blAbiertas,aseo.map(a=>a.id)]].map(([st,ids])=>{const prev=new Set(st);ids.forEach(i=>st.add(i));return[st,prev]})}
+  else (window.__pdfSets||[]).forEach(([st,prev])=>{st.clear();prev.forEach(i=>st.add(i))});
+  render();renderCal();renderVar();renderBL();
+}
+async function descargarVistaPDF(){
+  if(!cur||cur.rol!=='admin')return;const V=vistaPDF();if(!V)return;const b=$('pdfv'),t=b.textContent;b.disabled=true;b.textContent='Preparando PDF…';
+  let h2c;try{h2c=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'],'html2canvas')}
+  catch(x){b.disabled=false;b.textContent=t;if(confirm('No se pudo preparar el PDF directamente (revisa tu conexión). ¿Quieres usar la opción de imprimir y elegir «Guardar como PDF»?'))window.print();return}
+  document.documentElement.classList.add('pdfcap');expandirTodo(true);
+  try{
+    await new Promise(r=>setTimeout(r,450));
+    const el=V.el,r0=el.getBoundingClientRect(),cortes=new Set();
+    el.querySelectorAll('.vcard,.item,.cal,.blc,.dc,.kpis,.dgrid,.tabs,.ralbar,.docbar,.kmsem,.chead,tr,.dli,.dgi,.vmini,.pfile,.chip,.raldir,.xl').forEach(n=>{const r=n.getBoundingClientRect();if(r.height)cortes.add(Math.round(r.bottom-r0.top))});
+    const escala=Math.min(2,Math.max(1,1600/el.offsetWidth));
+    const cv=await h2c(el,{scale:escala,backgroundColor:getComputedStyle(document.body).backgroundColor||'#ffffff',useCORS:true,logging:false,
+      ignoreElements:e=>e.tagName==='IFRAME'});
+    const s=cv.width/el.offsetWidth,altoPag=Math.floor(cv.width*((842-64-34)/(595-48)));
+    const cs=[...cortes].map(c=>Math.round(c*s)).sort((a,b)=>a-b);
+    const pags=[];let y=0;
+    while(y<cv.height-4){let fin=Math.min(cv.height,y+altoPag);const cand=cs.filter(c=>c>y+altoPag*0.35&&c<=fin);if(fin<cv.height&&cand.length)fin=cand[cand.length-1];
+      const pc=document.createElement('canvas');pc.width=cv.width;pc.height=fin-y;const x=pc.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,pc.width,pc.height);x.drawImage(cv,0,y,cv.width,fin-y,0,0,cv.width,fin-y);
+      pags.push({src:pc.toDataURL('image/jpeg',.85),w:pc.width,h:pc.height});y=fin}
+    const gen=new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'});
+    const blob=await pdfDeImagenes(pags.map((p,i)=>({...p,titulo:`FLOTA LLANOS · ${V.titulo}`,sub:`Sede ${sede} · Generado el ${gen} por ${cur.nombre}`,pie:`Página ${i+1} de ${pags.length}`})));
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${V.titulo.replace(/[^\wáéíóúñÁÉÍÓÚÑ ·-]/g,'').replace(/\s*·\s*/g,'_').replace(/\s+/g,'_')}_${sede}_${new Date().toISOString().slice(0,10)}.pdf`;
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  }catch(x){console.error(x);if(confirm('No se pudo generar el PDF de esta vista. ¿Quieres usar la opción de imprimir y elegir «Guardar como PDF»?'))window.print()}
+  finally{document.documentElement.classList.remove('pdfcap');expandirTodo(false);b.disabled=false;b.textContent=t}
+}
+$('pdfv').onclick=descargarVistaPDF;
 function cerrarMenuMovil(){document.querySelector('.shell').classList.remove('abierto');$('velo').hidden=true}
 $('sidemob').onclick=()=>{document.querySelector('.shell').classList.add('abierto');$('velo').hidden=false};
 $('velo').onclick=cerrarMenuMovil;
