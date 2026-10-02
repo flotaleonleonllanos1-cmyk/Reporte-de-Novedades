@@ -117,6 +117,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .pubpie{text-align:center;color:var(--mut);font-size:.82rem}
 .pubc.pubok{border-left:6px solid var(--ok)}
 .btn.pubfinb{background:#15803d;border-color:#15803d;color:#fff;font-size:1.05rem;padding:12px 22px}
+.pubchk{width:72px;height:72px;border-radius:50%;background:var(--ok);color:#fff;font-size:2.4rem;font-weight:800;display:grid;place-items:center;margin:0 auto}
 .pubfin{margin-top:8px;background:var(--okbg);color:var(--ok);font-weight:700;border-radius:10px;padding:12px 14px}
 .pubat label input{margin-top:6px}
 .vtabdash{margin-left:auto}
@@ -1180,6 +1181,18 @@ async function vistaPublica(t){
   catch(x){P.innerHTML='<div class="pubw"><div class="pubh"><div><small>FLOTA LLANOS</small><h1>Reporte de varada</h1></div></div><div class="pubc"><p class="empty" style="margin:0">Este enlace no existe o fue desactivado. Pide a Flota Llanos un enlace nuevo.</p></div></div>';return}
   pintarPublica(t,v);
 }
+function cierrePublico(v){
+  const P=$('pub');let n=3;
+  P.innerHTML=`<div class="pubw"><div class="pubh"><div><small>FLOTA LLANOS</small><h1>Reporte de varada</h1></div></div>
+    <div class="pubc pubok" style="text-align:center;padding:30px 18px"><div class="pubchk" aria-hidden="true">✓</div>
+      <h2 style="margin:10px 0 6px">Varada finalizada</h2>
+      <p style="margin:0 0 4px"><b>${esc(v.placa)}</b> quedó operativo el ${esc(dtTxt(v.fo))}</p>
+      <p style="margin:0;color:var(--mut)">Técnico: ${esc(v.tecnico||'—')}</p>
+      <p class="mnota" id="pubcnt" style="margin:16px 0 0">Esta ventana se cerrará en ${n} segundos…</p></div></div>`;
+  const tm=setInterval(()=>{n--;if(n>0){$('pubcnt').textContent=`Esta ventana se cerrará en ${n} segundo${n>1?'s':''}…`;return}
+    clearInterval(tm);try{window.close()}catch(x){}try{window.open('','_self');window.close()}catch(x){}
+    setTimeout(()=>{if(!window.closed&&$('pubcnt'))$('pubcnt').textContent='Listo, ya puedes cerrar esta ventana. Gracias.'},400)},1000);
+}
 function pintarPublica(t,v,msg){
   const P=$('pub'),u=v.ubic||{},co=typeof u.lat==='number'&&typeof u.lng==='number',op=!!v.fo,t0=dtMs(v.fv),dur=op?dtMs(v.fo)-t0:Date.now()-t0;
   const ver=co?`https://www.google.com/maps/search/?api=1&query=${u.lat},${u.lng}`:enlaceSeguro(u.texto),ir=co?`https://www.google.com/maps/dir/?api=1&destination=${u.lat},${u.lng}`:'';
@@ -1217,7 +1230,7 @@ function pintarPublica(t,v,msg){
     const b1=$('pubtecb'),b2=$('pubfinb');b1.disabled=b2.disabled=true;$('puberr').textContent='';
     const ch={tecnico:tec};if(fin){ch.fo=ahoraDT();ch.finTaller=serverTimestamp();ch.finPor='Taller'}
     try{const b=writeBatch(db);b.update(doc(db,'varadas',v.varada),{...ch,prueba:t});b.update(doc(db,'compartidos',t),ch);await b.commit();
-      pintarPublica(t,{...v,...ch},fin?'':'Técnico guardado.')}
+      if(fin)cierrePublico({...v,...ch});else pintarPublica(t,{...v,...ch},'Técnico guardado.')}
     catch(x){console.error(x);$('puberr').textContent=x&&x.code==='permission-denied'?'Esta varada ya fue finalizada o el enlace fue desactivado. Recarga la página.':'No se pudo guardar. Revisa tu conexión a internet e inténtalo de nuevo.';b1.disabled=b2.disabled=false}
   };
   $('pubtecb').onclick=()=>escribir(false);$('pubfinb').onclick=()=>escribir(true);
