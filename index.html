@@ -69,6 +69,12 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .mi[data-m="km"]::after{animation-delay:3s}
 .mi[data-m="ral"]::after{animation-delay:4s}
 .mi[data-m="doc"]::after{animation-delay:5s}
+.mi[data-m="bar"]::after{animation-delay:6s}.mi[data-m="lav"]::after{animation-delay:7s}
+.bpolvo{animation:polvo 1.8s ease-out infinite}.bpolvo+.bpolvo{animation-delay:.6s}
+@keyframes polvo{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(3px,-4px)}}
+.brillo{transform-box:fill-box;transform-origin:center;animation:brilla 2s ease-in-out infinite}.brillo+.brillo{animation-delay:1s}
+@keyframes brilla{0%,100%{opacity:.2;transform:scale(.6)}50%{opacity:1;transform:scale(1.1)}}
+@media (prefers-reduced-motion:reduce){.bpolvo,.brillo{animation:none}}
 .docico{display:inline-flex;width:28px;justify-content:center;flex:none}
 .ralico{display:inline-flex;width:28px;flex:none}
 .ralico .aguja{transform-origin:16px 18px;animation:agujaRal 1.6s ease-in-out infinite}
@@ -130,6 +136,15 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .vdh{font-size:.92rem;margin:0 0 4px}
 .vcols.t div{flex:1 1 0;min-width:68px;max-width:96px;font-size:.8rem;white-space:nowrap}.vcl.t span{flex:1 1 0;min-width:68px;max-width:96px;font-size:.74rem;overflow-wrap:break-word}.vcl.t,.vcols.t{gap:8px;justify-content:flex-start}
 .vcols small{font-weight:600;font-size:.72rem;color:var(--mut)}
+.blc{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--wip);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.blc.ok{border-left-color:var(--ok)}
+.blfotos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.blfig{margin:0}.blfig figcaption{font-weight:800;letter-spacing:.08em;font-size:.82rem;color:var(--acc);margin-bottom:4px}
+.blfig img{width:100%;aspect-ratio:4/3;object-fit:contain;background:#111;border-radius:8px;border:1px solid var(--line);cursor:zoom-in;display:block}
+.blsin{aspect-ratio:4/3;border:1px dashed var(--line);border-radius:8px;display:grid;place-items:center;text-align:center;color:var(--mut);font-size:.9rem}
+.blslots{grid-template-columns:1fr 1fr}
+.blslots .prev{min-height:150px}.blslots .prev img{width:100%;max-height:220px;object-fit:contain;background:#111}
+@media (max-width:560px){.blfotos{gap:8px}}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
 .docmiga{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:200px;font-size:.92rem}
@@ -442,6 +457,10 @@ textarea{font:inherit;color:inherit;width:100%;margin-top:4px;padding:9px 10px;b
 html.tema-cal{--bg:#eef4ef;--card:#fff;--ink:#16261c;--mut:#5b7062;--line:#d2e2d6;--acc:#1f6b3f;--acc2:#2f8a52;--soft:#e2f1e6;--band1:#2f8a52;--band2:#1f6b3f}
 html.tema-cal[data-theme="dark"]{--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}
 @media (prefers-color-scheme:dark){html.tema-cal:not([data-theme="light"]){--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}}
+html.tema-bar{--acc:#a16207;--acc2:#ca8a04;--soft:#fef3c7;--band1:#ca8a04;--band2:#713f12}
+html.tema-lav{--acc:#0369a1;--acc2:#0ea5e9;--soft:#e0f2fe;--band1:#0ea5e9;--band2:#0c4a6e}
+html.tema-bar[data-theme="dark"]{--acc:#ca8a04;--acc2:#eab308;--soft:#3b2f12}html.tema-lav[data-theme="dark"]{--acc:#0ea5e9;--acc2:#38bdf8;--soft:#0c2a3d}
+@media (prefers-color-scheme:dark){html.tema-bar:not([data-theme="light"]){--acc:#ca8a04;--acc2:#eab308;--soft:#3b2f12}html.tema-lav:not([data-theme="light"]){--acc:#0ea5e9;--acc2:#38bdf8;--soft:#0c2a3d}}
 html.tema-doc{--acc:#7e22ce;--acc2:#a855f7;--soft:#f3e8ff;--band1:#a855f7;--band2:#581c87}
 html.tema-doc[data-theme="dark"]{--acc:#a855f7;--acc2:#c084fc;--soft:#2e1a47}
 @media (prefers-color-scheme:dark){html.tema-doc:not([data-theme="light"]){--acc:#a855f7;--acc2:#c084fc;--soft:#2e1a47}}
@@ -620,6 +639,12 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
         <button type="button" class="si" data-doc="con">Conductores</button>
       </div>
     </div>
+    <div class="grp">
+      <button type="button" class="mi" data-m="bar" aria-pressed="false" aria-expanded="false" title="Barridos"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 32" width="26" height="30"><line x1="22" y1="2" x2="13" y2="18" stroke="#b45309" stroke-width="2.6" stroke-linecap="round"/><path d="M9 16l8 4-3 9c-3 1-8-1-11-4z" fill="#facc15" stroke="rgba(0,0,0,.35)" stroke-width=".8"/><path d="M5 23l3 3M8 21l3 4M11 19l3 5" stroke="#a16207" stroke-width="1"/><circle cx="21" cy="27" r="1.4" fill="#fde68a" class="bpolvo"/><circle cx="24" cy="24" r="1" fill="#fde68a" class="bpolvo"/></svg></span><span class="lbl">Barridos</span></button>
+    </div>
+    <div class="grp">
+      <button type="button" class="mi" data-m="lav" aria-pressed="false" aria-expanded="false" title="Lavadero"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 32" width="26" height="30"><path d="M14 3c4 6 8 10 8 15a8 8 0 0 1-16 0c0-5 4-9 8-15z" fill="#38bdf8" stroke="rgba(255,255,255,.75)" stroke-width="1"/><path d="M10 18a4 4 0 0 0 4 4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M23 5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#fff" class="brillo"/><path d="M5 9l.7 1.4 1.4.7-1.4.7L5 13l-.7-1.4L2.9 11l1.4-.7z" fill="#fff" class="brillo"/></svg></span><span class="lbl">Lavadero</span></button>
+    </div>
   </nav>
   <div class="sidefoot">
     <button type="button" class="si" id="adminb" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Admin</span></button>
@@ -632,6 +657,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <button type="button" class="sidemob" id="sidemob" aria-label="Abrir menú"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   <h1 id="vtit">Novedades / Solucionadas</h1>
   <button class="btn" id="add">+ Añadir novedad</button>
+  <button class="btn ghost" id="blplb" hidden>Placas</button>
+  <button class="btn" id="bladd" hidden>+ Registrar</button>
   <button class="btn" id="raladd" hidden>Cargar Excel</button>
   <button class="btn ghost" id="kmvehb" hidden>Vehículos y alertas</button>
   <button class="btn ghost" id="vcondb" hidden>Conductores</button>
@@ -646,6 +673,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </div>
 <div id="list"></div>
 </div>
+<section id="blv" hidden aria-label="Barridos y Lavadero">
+  <div class="ralbar"><label>Placa<select id="blpl"></select></label><label>Mes<input type="month" id="blmes"></label><button type="button" class="btn" id="blpdf" hidden>Descargar PDF</button></div>
+  <div class="kpis" id="blkpi"></div>
+  <div id="bllist"></div>
+</section>
 <section id="docv" hidden aria-label="Documentos">
   <div class="docbar">
     <div class="tabs" role="group" aria-label="Sección" id="doctabs" style="margin:0">
@@ -961,6 +993,28 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="hb"><button type="button" class="btn ghost" id="ddprev">‹ Anterior</button><button type="button" class="btn ghost" id="ddnext">Siguiente ›</button><a class="btn" id="ddpdf" target="_blank" rel="noopener" download>Descargar PDF</a><a class="btn ghost" id="dddrive" target="_blank" rel="noopener">Abrir en Drive</a><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cerrar</button></div></div>
   <iframe id="ddfr" class="ddfr" title="Vista del documento" allow="autoplay"></iframe>
 </dialog>
+<dialog id="bldlg">
+  <form id="blfrm">
+    <h2 id="bldlgt">Registrar</h2>
+    <label>Placa<select id="blpla" required></select></label><small class="mnota" id="blplnota" hidden></small>
+    <div class="fotos blslots"><div class="foto" id="bl-antes"></div><div class="foto" id="bl-despues"></div></div>
+    <small class="mnota">Las fotos tomadas con la cámara quedan con marca de agua: Flota Llanos, placa, ANTES o DESPUÉS, fecha, hora y ubicación. Puedes guardar con una sola foto y agregar la otra después con «Editar».</small>
+    <div class="err" id="blerr" role="alert"></div>
+    <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="blsave">Guardar</button></div>
+  </form>
+</dialog>
+<dialog id="bpdlg">
+  <form id="bpfrm">
+    <h2 id="bptit">Placas</h2>
+    <p class="mnota">Estas placas aparecerán en la lista desplegable al registrar Barridos y Lavadero en esta sede.</p>
+    <label>Añadir placas a mano<textarea id="bptxt" rows="3" placeholder="Una placa por línea, o separadas por comas"></textarea></label>
+    <div class="mall"><button type="button" class="btn ghost" id="bpadd">Añadir a la lista</button><button type="button" class="btn ghost" id="bpxls">Subir Excel</button><button type="button" class="btn ghost" id="bpcopy">Copiar de Kilometrajes y Calibraciones</button><input type="file" id="bpfile" accept=".xlsx,.xls,.csv" hidden></div>
+    <div class="phead"><b id="bpcount">0 placas</b><button type="button" class="del" id="bpclear">Quitar todas</button></div>
+    <div class="plist" id="bplist"></div>
+    <div class="err" id="bperr" role="alert"></div>
+    <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="bpsave">Guardar placas</button></div>
+  </form>
+</dialog>
 <dialog id="mapdlg">
   <div class="pvtop"><div><b id="maptit">Ubicación</b><small id="mapsub"></small></div><div class="hb"><a class="btn ghost" id="mapab" target="_blank" rel="noopener">Abrir en Google Maps</a><button type="button" class="btn" onclick="this.closest('dialog').close()">Cerrar</button></div></div>
   <iframe id="mapfr" class="pvframe" title="Mapa de la ubicación" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
@@ -1126,6 +1180,8 @@ function salir(){
   if(unsubL){unsubL();unsubL=null}
   if(unsubK){unsubK();unsubK=null}
   if(unsubR){unsubR();unsubR=null}
+  if(unsubB){unsubB();unsubB=null}
+  aseo=[];
   ralArch=[];ralSel='';
   kms=[];
   listas={};
@@ -1154,9 +1210,10 @@ async function entrar(user){
   unsubC=onSnapshot(collection(db,'calibraciones'),snap=>{
     cals=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal();
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
+  unsubB=onSnapshot(collection(db,'aseo'),snap=>{aseo=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderBL()},()=>{});
   unsubR=onSnapshot(collection(db,'ralenti'),snap=>{ralArch=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderRal()},()=>{});
   unsubK=onSnapshot(collection(db,'kilometrajes'),snap=>{kms=snap.docs.map(d=>({id:d.id,...d.data()}));renderKm()},x=>{if(!$('kmv').hidden)$('kmlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
-  unsubL=onSnapshot(collection(db,'listas'),snap=>{listas={};snap.docs.forEach(d=>listas[d.id]=d.data());renderKm();if($('vdlg').open&&!vedit)llenarConductores($('vcon').value)},()=>{});
+  unsubL=onSnapshot(collection(db,'listas'),snap=>{listas={};snap.docs.forEach(d=>listas[d.id]=d.data());renderKm();renderBL();if($('vdlg').open&&!vedit)llenarConductores($('vcon').value)},()=>{});
   unsubV=onSnapshot(collection(db,'varadas'),snap=>{varadas=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderVar()},x=>{if(!$('varv').hidden)$('vlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
   unsubA=onSnapshot(collection(db,'archivos'),snap=>{archivos=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal()},()=>{});
   unsubM=onSnapshot(collection(db,'metas'),snap=>{metas={};snap.docs.forEach(d=>metas[d.id]=d.data());renderCal()},()=>{});
@@ -1290,14 +1347,17 @@ const hoyD=new Date();let canio=hoyD.getFullYear(),cmes=0,metas={},unsubM=null;
 const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav';
+  if(bl)blTipo=m==='bar'?'barrido':'lavado';
+  document.documentElement.classList.toggle('tema-bar',m==='bar');document.documentElement.classList.toggle('tema-lav',m==='lav');$('blv').hidden=!bl;
+  $('bladd').hidden=!bl||!canEdit();$('blplb').hidden=!bl||!cur||cur.rol!=='admin';if(bl){$('bladd').textContent=`+ Registrar ${BLN[blTipo].u}`;$('blpl').value='';renderBL()}
   document.documentElement.classList.toggle('tema-doc',dc);$('docv').hidden=!dc;if(dc)renderDoc();
   document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km||ral||dc)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc;
-  $('add').hidden=cal||ini||vr||km||ral||dc||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(cal||ini||vr||km||ral||dc||bl)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl;
+  $('add').hidden=cal||ini||vr||km||ral||dc||bl||!canEdit();$('raladd').hidden=!ral||!canEdit();
   if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
@@ -1310,10 +1370,10 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden;
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':dc?`Documentos · ${docSec==='veh'?'Vehículos':'Conductores'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!cal&&$('dash').hidden);
+  $('vtit').textContent=ini?'':bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':'Conductores'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!cal&&$('dash').hidden);
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
 
@@ -2619,6 +2679,127 @@ $('raltab').onclick=e=>{if(e.target.closest('a'))return;const g=e.target.closest
 $('raldel').onclick=async()=>{const a=ralArch.find(x=>x.id===ralSel);if(!a||cur.rol!=='admin'||!confirm(`¿Eliminar el archivo «${a.nombre}» y todos sus registros?`))return;
   try{const ps=await getDocs(collection(db,'ralenti',a.id,'partes'));const b=writeBatch(db);ps.docs.forEach(p=>b.delete(p.ref));await b.commit();await deleteDoc(doc(db,'ralenti',a.id));delete ralCache[a.id];ralSel='';ralProg('')}
   catch(x){alert(ERR(x.code))}};
+/* ---------- Barridos y Lavadero (fotos ANTES / DESPUÉS) ---------- */
+let blTipo='barrido',aseo=[],unsubB=null,bledit=null,blF={antes:'',despues:''},blM={antes:false,despues:false},bpl=[];
+const BLN={barrido:{t:'Barridos',u:'barrido',U:'Barrido',m:'BARRIDO'},lavado:{t:'Lavadero',u:'lavado',U:'Lavado',m:'LAVADO'}};
+function blPlacas(){return [...((listas['placasbl_'+sede]||{}).placas||[])].sort(cmpP)}
+function imgJpeg(file,max=1280,q=.7){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',q))};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
+function renderBL(){
+  if(!cur||$('blv').hidden)return;
+  const N=BLN[blTipo];if(!$('blmes').value){const d=new Date();$('blmes').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
+  const pls=blPlacas(),selp=$('blpl').value;
+  const todos=aseo.filter(a=>a.tipo===blTipo&&(a.sede||SEDES[0])===sede),plsU=[...new Set([...pls,...todos.map(a=>a.placa)])].sort(cmpP);
+  $('blpl').innerHTML='<option value="">Todas las placas</option>'+plsU.map(p=>`<option${p===selp?' selected':''}>${esc(p)}</option>`).join('');
+  const mes=$('blmes').value,vis=todos.filter(a=>(!selp||a.placa===selp)&&(!mes||String(a.fecha||'').startsWith(mes))).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  const comp=vis.filter(a=>a.antes&&a.despues).length;
+  $('blkpi').innerHTML=[[vis.length,`${N.t} registrados`,''],[comp,'Completos (antes y después)',''],[vis.length-comp,'Pendientes de una foto',vis.length-comp?'badc':''],[new Set(vis.map(a=>a.placa)).size,'Placas atendidas','']].map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
+  $('blpdf').hidden=cur.rol!=='admin'||!vis.length;
+  if(!vis.length){$('bllist').innerHTML=`<div class="empty">No hay registros de ${N.u} ${selp?`para ${esc(selp)} `:''}en este periodo.${canEdit()?` Usa «+ Registrar ${N.u}» para agregar uno.`:''}</div>`;return}
+  const fig=(a,k,l)=>`<figure class="blfig"><figcaption>${l}</figcaption>${a[k]?`<img src="${a[k]}" alt="${l} · ${esc(a.placa)}" data-blimg>`:`<div class="blsin">Sin foto${canEdit()?'<br><small>Agrégala con «Editar»</small>':''}</div>`}</figure>`;
+  $('bllist').innerHTML=vis.map(a=>{const ok=a.antes&&a.despues;return `<article class="blc ${ok?'ok':''}">
+    <div class="top"><div><span class="placa">${esc(a.placa)}</span> <span class="pill ${ok?'o':'w'}">${ok?'Completo':a.antes?'Falta DESPUÉS':'Falta ANTES'}</span>
+      <div class="rpor">${esc(dtTxt(a.fecha))} · Registrado por <b>${esc(a.por||'—')}</b>${a.editadoPor?` · editado por ${esc(a.editadoPor)}`:''}</div></div>
+      <div class="acts">${canEdit()?`<button class="btn ghost" data-bled="${a.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="btn ghost" data-blpdf="${a.id}">PDF</button><button class="del" data-bldel="${a.id}">Eliminar</button>`:''}</div></div>
+    <div class="blfotos">${fig(a,'antes','ANTES')}${fig(a,'despues','DESPUÉS')}</div></article>`}).join('');
+}
+function blSlot(k){const L=k==='antes'?'ANTES':'DESPUÉS';
+  $('bl-'+k).innerHTML=`<b>${L}</b><div class="prev">${blF[k]?`<img src="${blF[k]}" alt="${L}">`:'Sin foto'}</div>
+    <div class="fb"><button type="button" data-blc="${k}">Tomar foto</button><button type="button" data-blg="${k}">Subir desde galería</button>${blF[k]?`<button type="button" data-blq="${k}">Quitar</button>`:''}</div>
+    <input type="file" accept="image/*" capture="environment" hidden id="blcam-${k}"><input type="file" accept="image/*" hidden id="blgal-${k}">`;
+  $('blcam-'+k).onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const pl=$('blpla').value;
+    $('bl-'+k).querySelector('.prev').textContent='Aplicando marca de agua…';
+    try{const c=await posicionRapida(),d=new Date(),p=n=>String(n).padStart(2,'0');
+      blF[k]=await marcaAgua(f,[`FLOTA LLANOS · ${BLN[blTipo].m} · ${L}${pl?' · '+pl:''}`,`${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())} · ${sede}`,c?`Ubicación: ${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}`:'Ubicación no disponible',`Tomada por: ${cur.nombre}`]);blM[k]=true}
+    catch(x){$('blerr').textContent='No se pudo procesar la foto.'}blSlot(k)};
+  $('blgal-'+k).onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{blF[k]=await imgJpeg(f);blM[k]=false}catch(x){$('blerr').textContent='No se pudo leer la imagen.'}blSlot(k)};
+}
+$('bldlg').addEventListener('click',e=>{const c=e.target.closest('[data-blc]'),g=e.target.closest('[data-blg]'),q=e.target.closest('[data-blq]');
+  if(c){if(!$('blpla').value){$('blerr').textContent='Elige primero la placa: la marca de agua de la foto la incluye.';return}$('blerr').textContent='';$('blcam-'+c.dataset.blc).click()}
+  if(g)$('blgal-'+g.dataset.blg).click();if(q){blF[q.dataset.blq]='';blM[q.dataset.blq]=false;blSlot(q.dataset.blq)}});
+function abrirBL(a){
+  bledit=a||null;const N=BLN[blTipo],pls=blPlacas();$('blerr').textContent='';
+  $('bldlgt').textContent=a?`Editar ${N.u} · ${a.placa}`:`Registrar ${N.u} · ${sede}`;
+  const extra=a&&!pls.includes(a.placa)?[a.placa]:[];
+  $('blpla').innerHTML=`<option value="">${pls.length?'Elige la placa…':'No hay placas cargadas'}</option>`+[...extra,...pls].map(p=>`<option>${esc(p)}</option>`).join('');$('blpla').value=a?a.placa:'';
+  $('blplnota').hidden=pls.length>0;$('blplnota').textContent=cur.rol==='admin'?'Carga las placas con el botón «Placas».':'Pídele al administrador que cargue las placas.';
+  blF={antes:a?a.antes||'':'',despues:a?a.despues||'':''};blM={antes:a?!!a.antesMarca:false,despues:a?!!a.despuesMarca:false};blSlot('antes');blSlot('despues');$('bldlg').showModal();
+}
+$('bladd').onclick=()=>{if(canEdit())abrirBL()};
+$('blfrm').onsubmit=async e=>{e.preventDefault();const placa=$('blpla').value;
+  if(!placa){$('blerr').textContent='Elige la placa.';return}if(!blF.antes&&!blF.despues){$('blerr').textContent='Agrega al menos una foto (ANTES o DESPUÉS).';return}
+  const data={placa,antes:blF.antes,despues:blF.despues,antesMarca:blM.antes,despuesMarca:blM.despues};
+  if(JSON.stringify(data).length>950000){$('blerr').textContent='Las fotos pesan demasiado. Vuelve a tomarlas o súbelas de nuevo.';return}
+  $('blsave').disabled=true;
+  try{if(bledit)await updateDoc(doc(db,'aseo',bledit.id),{...data,editadoPor:cur.nombre,editado:serverTimestamp()});
+    else await addDoc(collection(db,'aseo'),{...data,tipo:blTipo,sede,fecha:ahoraDT(),por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});$('bldlg').close()}
+  catch(x){$('blerr').textContent=ERR(x.code)}$('blsave').disabled=false};
+$('bllist').onclick=e=>{const im=e.target.closest('[data-blimg]');if(im){$('bigimg').src=im.src;$('big').showModal();return}
+  const ed=e.target.closest('[data-bled]');if(ed&&canEdit()){abrirBL(aseo.find(a=>a.id===ed.dataset.bled));return}
+  const pd=e.target.closest('[data-blpdf]');if(pd&&cur.rol==='admin'){const a=aseo.find(x=>x.id===pd.dataset.blpdf);if(a)descargarBLPDF([a]);return}
+  const d=e.target.closest('[data-bldel]');if(d&&cur.rol==='admin'&&confirm('¿Eliminar este registro y sus fotos?'))deleteDoc(doc(db,'aseo',d.dataset.bldel)).catch(x=>alert(ERR(x.code)))};
+$('blpl').onchange=renderBL;$('blmes').onchange=renderBL;
+$('blpdf').onclick=()=>{const mes=$('blmes').value,selp=$('blpl').value;
+  const vis=aseo.filter(a=>a.tipo===blTipo&&(a.sede||SEDES[0])===sede&&(!selp||a.placa===selp)&&(!mes||String(a.fecha||'').startsWith(mes))).sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha)));
+  if(vis.length)descargarBLPDF(vis)};
+/* PDF sencillo con fotos (sin librerías) */
+const WIN={'€':128,'‚':130,'„':132,'…':133,'‘':145,'’':146,'“':147,'”':148,'•':149,'–':150,'—':151};
+const l1=t=>{const out=[];for(const ch of String(t)){const c=ch.charCodeAt(0);out.push(WIN[ch]||(c<256?c:63))}return out};
+const pdfStr=t=>'('+String.fromCharCode(...l1(t)).replace(/[\\()]/g,m=>'\\'+m)+')';
+const imgTam=src=>new Promise(r=>{const i=new Image();i.onload=()=>r({w:i.naturalWidth,h:i.naturalHeight});i.onerror=()=>r(null);i.src=src});
+async function crearPDF(paginas){
+  const W=842,H=595,ch=[];let pos=0;const off=[];
+  const put=s=>{const b=typeof s==='string'?Uint8Array.from(l1(s)):s;ch.push(b);pos+=b.length};
+  let n=4;const P=[];
+  for(const pg of paginas){const fx=[];for(const f of pg.fotos){if(f.src&&/^data:image\/jpeg/.test(f.src)){const t=await imgTam(f.src);if(t)fx.push({...f,id:++n+0,t,bytes:deB64(f.src.split(',')[1])});else fx.push({...f})}else fx.push({...f})}
+    P.push({...pg,fx,pid:++n,cid:++n})}
+  put('%PDF-1.4\n%âãÏÓ\n');
+  const obj=(id,body)=>{off[id]=pos;put(`${id} 0 obj\n`);(Array.isArray(body)?body:[body]).forEach(put);put('\nendobj\n')};
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2,`<< /Type /Pages /Count ${P.length} /Kids [${P.map(p=>p.pid+' 0 R').join(' ')}] >>`);
+  obj(3,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  obj(4,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+  for(const p of P){
+    let c=`0.12 0.23 0.54 rg 0 ${H-58} ${W} 58 re f 1 1 1 rg BT /F2 18 Tf 30 ${H-30} Td ${pdfStr(p.titulo)} Tj ET BT /F1 11 Tf 30 ${H-48} Td ${pdfStr(p.sub)} Tj ET 0 0 0 rg `;
+    const bw=380,bh=440,y0=56,xs=[30,W-30-bw],xo={};
+    p.fx.forEach((f,k)=>{const x=xs[k];c+=`BT /F2 13 Tf ${x} ${y0+bh+10} Td ${pdfStr(f.label)} Tj ET 0.75 G 0.8 w ${x} ${y0} ${bw} ${bh} re S `;
+      if(f.id){const s=Math.min(bw/f.t.w,bh/f.t.h),w=f.t.w*s,h=f.t.h*s;c+=`q ${w.toFixed(2)} 0 0 ${h.toFixed(2)} ${(x+(bw-w)/2).toFixed(2)} ${(y0+(bh-h)/2).toFixed(2)} cm /Im${f.id} Do Q `;xo[f.id]=1}
+      else c+=`0.5 g BT /F1 12 Tf ${x+bw/2-24} ${y0+bh/2} Td (Sin foto) Tj ET 0 g `});
+    c+=`0.4 g BT /F1 9 Tf 30 30 Td ${pdfStr(p.pie)} Tj ET`;
+    const cb=Uint8Array.from(l1(c));
+    obj(p.pid,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Contents ${p.cid} 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> /XObject << ${Object.keys(xo).map(i=>`/Im${i} ${i} 0 R`).join(' ')} >> >> >>`);
+    obj(p.cid,[`<< /Length ${cb.length} >>\nstream\n`,cb,'\nendstream']);
+    for(const f of p.fx)if(f.id)obj(f.id,[`<< /Type /XObject /Subtype /Image /Width ${f.t.w} /Height ${f.t.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${f.bytes.length} >>\nstream\n`,f.bytes,'\nendstream']);
+  }
+  const xr=pos;put(`xref\n0 ${n+1}\n0000000000 65535 f \n`);for(let i=1;i<=n;i++)put(String(off[i]||0).padStart(10,'0')+' 00000 n \n');
+  put(`trailer\n<< /Size ${n+1} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`);
+  return new Blob(ch,{type:'application/pdf'});
+}
+async function descargarBLPDF(lista){
+  if(cur.rol!=='admin')return;const N=BLN[blTipo],b=$('blpdf'),t=b.textContent;b.disabled=true;b.textContent='Preparando…';
+  try{const gen=new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'});
+    const blob=await crearPDF(lista.map((a,i)=>({titulo:`FLOTA LLANOS · ${N.t} · ${a.placa}`,sub:`${dtTxt(a.fecha)} · Sede ${a.sede||sede} · Registrado por ${a.por||'—'}${a.editadoPor?' · editado por '+a.editadoPor:''}`,
+      fotos:[{label:'ANTES',src:a.antes},{label:'DESPUÉS',src:a.despues}],pie:`Generado el ${gen} por ${cur.nombre} · Registro ${i+1} de ${lista.length}`})));
+    const el=document.createElement('a');el.href=URL.createObjectURL(blob);el.download=lista.length===1?`${N.u}_${lista[0].placa}_${String(lista[0].fecha).slice(0,10)}.pdf`:`${N.t.toLowerCase()}_${sede}_${$('blmes').value||'todo'}${$('blpl').value?'_'+$('blpl').value:''}.pdf`;
+    document.body.appendChild(el);el.click();el.remove();setTimeout(()=>URL.revokeObjectURL(el.href),4000)}
+  catch(x){console.error(x);alert('No se pudo generar el PDF.')}b.disabled=false;b.textContent=t}
+/* Placas (solo administrador) */
+function pintarBP(){$('bpcount').textContent=bpl.length+' placa'+(bpl.length===1?'':'s');$('bpclear').hidden=!bpl.length;
+  $('bplist').innerHTML=bpl.length?bpl.map((p,k)=>`<span class="pc2">${esc(p)}<button type="button" data-bk="${k}" aria-label="Quitar ${esc(p)}">×</button></span>`).join(''):'<span class="vacio">Aún no hay placas. Añádelas a mano, sube un Excel o copia las de otro módulo.</span>'}
+function sumarBP(arr){const antes=bpl.length,st=new Set(bpl);arr.map(normP).filter(p=>p.length>=4&&p.length<=10&&!/^PLACAS?$/.test(p)).forEach(p=>{if(!st.has(p)){st.add(p);bpl.push(p)}});bpl.sort(cmpP);pintarBP();return bpl.length-antes}
+$('blplb').onclick=()=>{if(cur.rol!=='admin')return;bpl=blPlacas();$('bptxt').value='';$('bperr').textContent='';$('bptit').textContent=`Placas para Barridos y Lavadero · ${sede}`;pintarBP();$('bpdlg').showModal()};
+$('bpadd').onclick=()=>{const n=sumarBP($('bptxt').value.split(/[\n,;\t]+/));$('bperr').textContent=n?'':'No se agregaron placas nuevas.';if(n)$('bptxt').value=''};
+$('bpcopy').onclick=()=>{const src=[...kmPlacas(),...Object.values(metas).filter(m=>(m.sede||'')===sede).flatMap(m=>[...(m.placas||[]),...Object.values(m.placasMes||{}).flat()])];const n=sumarBP(src);$('bperr').textContent=src.length?(n?`Se agregaron ${n} placa${n===1?'':'s'}.`:'Esas placas ya están en la lista.'):'No hay placas en Kilometrajes ni en Calibraciones para esta sede.'};
+$('bpxls').onclick=()=>$('bpfile').click();
+$('bpfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;$('bperr').textContent='Leyendo archivo…';
+  try{let vals;if(/\.csv$/i.test(f.name))vals=(await f.text()).split(/\r?\n/).map(l=>l.split(/[;,\t]/)[0]);
+    else{const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]];vals=X.utils.sheet_to_json(ws,{header:1,blankrows:false}).map(r=>r&&r[0])}
+    const n=sumarBP(vals.filter(v=>v!==undefined&&v!==null));$('bperr').textContent=n?`Se agregaron ${n} placa${n===1?'':'s'} del archivo.`:'El archivo no tenía placas nuevas.'}
+  catch(x){$('bperr').textContent='No se pudo leer el archivo.'}};
+$('bplist').onclick=e=>{const b=e.target.closest('[data-bk]');if(b){bpl.splice(Number(b.dataset.bk),1);pintarBP()}};
+$('bpclear').onclick=()=>{if(confirm('¿Quitar todas las placas de la lista?')){bpl=[];pintarBP()}};
+$('bpfrm').onsubmit=async e=>{e.preventDefault();$('bpsave').disabled=true;
+  try{await setDoc(doc(db,'listas','placasbl_'+sede),{tipo:'placasbl',sede,placas:bpl,por:cur.nombre,editado:serverTimestamp()});$('bpdlg').close()}catch(x){$('bperr').textContent=ERR(x.code)}$('bpsave').disabled=false};
+
 $('vper').onchange=()=>renderVar();
 
 /* ---------- Sistema "Otro" y lista de conductores ---------- */
@@ -3002,7 +3183,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  renderKm();ralSel='';renderRal();if(!$('docv').hidden)renderDoc(true);
+  renderKm();ralSel='';renderRal();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
