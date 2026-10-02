@@ -97,6 +97,9 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .vmtop{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:96px}
 .vmdat{display:flex;flex-wrap:wrap;gap:4px 20px;font-size:.88rem;font-weight:600}
 .vmdat span{display:grid}.vmdat small{font-size:.7rem;color:var(--mut);font-weight:400}
+.vmths{display:flex;gap:6px}.vmths img{width:64px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+.item.vmini,.cal.vmini{margin-bottom:10px}
+@media (max-width:760px){.vmini .vmths{grid-column:2;grid-row:1;justify-self:end}}
 .vmfoto{width:76px;height:56px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
 .vmini .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.vmini .acts .btn{padding:6px 10px;font-size:.84rem}
 @media (max-width:760px){.vmini{grid-template-columns:auto 1fr}.vmini .vmdat{grid-column:1/-1;grid-row:2}.vmini .vmfoto{grid-column:2;grid-row:1;justify-self:end}.vmini .acts{grid-column:1/-1;justify-content:flex-start}}
@@ -1117,16 +1120,23 @@ const fd=d=>{if(!d)return 'Pendiente';const[y,m,day]=d.split('-');return `${day}
 const money=v=>'$'+Number(v||0).toLocaleString('es-CO');
 const canEdit=()=>cur&&(cur.rol==='admin'||cur.rol==='editor');
 
+const novAbiertas=new Set(),calAbiertas=new Set();
 function render(){
   if(!cur)return;
   if(!$('dash').hidden)dash();
   const l=$('list'),vis=items.filter(i=>filtro==='todas'||i.estado===filtro);
   if(!vis.length){l.innerHTML=`<div class="empty">No hay novedades de ${esc(sede)} aquí todavía. Usa «Añadir novedad» para registrar la primera.</div>`;return}
-  l.innerHTML=vis.map(i=>`
-  <article class="item ${i.estado==='solucionado'?'ok':''}">
+  l.innerHTML=vis.map(i=>{const okn=i.estado==='solucionado',fts=i.fotos?FT.filter(([k])=>i.fotos[k]):[];
+  if(!novAbiertas.has(i.id))return `<article class="item vmini ${okn?'ok':''}" data-ncard="${i.id}">
+    <div class="vmtop"><span class="placa">${esc(i.placa)}</span><span class="pill ${okn?'o':'w'}">${okn?'Solucionado':'En proceso'}</span></div>
+    <div class="vmdat"><span><small>Fecha del evento</small>${fd(i.fe)}</span><span><small>Responsable</small>${esc(i.resp||'—')}</span><span><small>Valor del daño</small>${money(i.val)}</span><span><small>Sistema</small>${esc(i.sis||'—')}</span></div>
+    ${fts.length?`<div class="vmths">${fts.slice(0,3).map(([k])=>`<img src="${i.fotos[k]}" alt="">`).join('')}</div>`:'<span></span>'}
+    <div class="acts"><button class="btn ghost" data-ntog="${i.id}">Ampliar</button></div></article>`;
+  return `
+  <article class="item ${okn?'ok':''}" data-ncard="${i.id}">
     <div class="top">
       <div><span class="placa">${esc(i.placa)}</span><div class="rpor">Reportado por <b>${esc(i.por||'—')}</b></div></div>
-      <div class="acts">
+      <div class="acts"><button class="btn ghost" data-ntog="${i.id}">Reducir</button>
         <div class="seg" role="group" aria-label="Estado">
           <button class="w" data-id="${i.id}" data-s="proceso" ${canEdit()?'':'disabled'} aria-pressed="${i.estado==='proceso'}">En proceso</button>
           <button class="o" data-id="${i.id}" data-s="solucionado" ${canEdit()?'':'disabled'} aria-pressed="${i.estado==='solucionado'}">Solucionado</button>
@@ -1143,7 +1153,7 @@ function render(){
       <div><dt>Taller</dt><dd>${esc(i.taller)}</dd></div>
           </dl>
     ${i.fotos&&Object.keys(i.fotos).length?`<div class="thumbs">${FT.filter(([k])=>i.fotos[k]).map(([k,t])=>`<figure><img src="${i.fotos[k]}" alt="${t}"><figcaption>${t}</figcaption></figure>`).join('')}</div>`:''}
-  </article>`).join('');
+  </article>`}).join('');
 }const FT=[['fa','Foto de descuento de nómina'],['fb','Foto de la afectación'],['fc','Foto de la solución']];
 let fotos={};
 function comp(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,800/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.6))};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
@@ -1175,6 +1185,10 @@ $('list').onclick=e=>{
   }
   if(d&&cur.rol==='admin'&&confirm('¿Eliminar esta novedad?'))deleteDoc(doc(db,'novedades',d.dataset.del)).catch(x=>alert(ERR(x.code)));
 };
+$('list').addEventListener('click',e=>{const t=e.target.closest('[data-ntog]');if(t){const id=t.dataset.ntog;novAbiertas.has(id)?novAbiertas.delete(id):novAbiertas.add(id);render();return}
+  const m=e.target.closest('.vmini[data-ncard]');if(m&&!e.target.closest('button,a')){e.stopImmediatePropagation();novAbiertas.add(m.dataset.ncard);render()}},true);
+$('calist').addEventListener('click',e=>{const t=e.target.closest('[data-ctog]');if(t){const id=t.dataset.ctog;calAbiertas.has(id)?calAbiertas.delete(id):calAbiertas.add(id);renderCal();return}
+  const m=e.target.closest('.vmini[data-ccard]');if(m&&!e.target.closest('button,a')){e.stopImmediatePropagation();calAbiertas.add(m.dataset.ccard);renderCal()}},true);
 $('add').onclick=()=>{$('frm').reset();$('err').textContent='';buildFotos();$('dlg').showModal()};
 $('cancel').onclick=()=>$('dlg').close();
 $('frm').onsubmit=async e=>{
@@ -1550,10 +1564,16 @@ function renderCal(){
     ${s.falt.length?`<div class="chips">${s.falt.map(p=>`<span class="chip" style="cursor:default"><b>${esc(p)}</b></span>`).join('')}</div>`:'<p class="empty" style="margin:0">Todas las placas de la lista tienen sus dos calibraciones este mes.</p>'}</div>`:'';
   renderPpt();
   if(!v.length){$('calist').innerHTML=`<div class="empty">No hay calibraciones en ${MESES[cmes-1]} ${canio} para ${esc(sede)}.${canEdit()?' Usa «Registrar calibración» para agregar la primera.':''}</div>`+faltHtml;return}
-  $('calist').innerHTML=v.map(c=>{const okc=c.f1&&c.f2;return `<article class="cal ${okc?'':'pend'}">
+  $('calist').innerHTML=v.map(c=>{const okc=c.f1&&c.f2,cfs=c.fotos?CF.filter(([k])=>c.fotos[k]):[];
+    if(!calAbiertas.has(c.id))return `<article class="cal vmini ${okc?'':'pend'}" data-ccard="${c.id}">
+      <div class="vmtop"><span class="placa">${esc(c.placa)}</span><span class="pill ${okc?'o':'b'}">${okc?'Completa':'Falta 2ª calibración'}</span></div>
+      <div class="vmdat"><span><small>Primera calibración</small>${fd(c.f1)}</span><span><small>Segunda calibración</small>${fd(c.f2)}</span><span><small>Reportado por</small>${esc(c.por||'—')}</span></div>
+      ${cfs.length?`<div class="vmths">${cfs.map(([k])=>`<img src="${c.fotos[k]}" alt="">`).join('')}</div>`:'<span></span>'}
+      <div class="acts"><button class="btn ghost" data-ctog="${c.id}">Ampliar</button>${canEdit()?`<button class="btn ghost" data-ced="${c.id}">Editar</button>`:''}</div></article>`;
+    return `<article class="cal ${okc?'':'pend'}" data-ccard="${c.id}">
     <div class="top">
       <div><span class="placa">${esc(c.placa)}</span> <span class="pill ${okc?'o':'b'}">${okc?'Completa':'Falta 2ª calibración'}</span><div class="rpor">Reportado por <b>${esc(c.por||'—')}</b></div></div>
-      <div class="acts">
+      <div class="acts"><button class="btn ghost" data-ctog="${c.id}">Reducir</button>
         ${canEdit()?`<button class="btn ghost" data-ced="${c.id}">Editar</button>`:''}
         ${cur.rol==='admin'?`<button class="del" data-cdel="${c.id}">Eliminar</button>`:''}
       </div>
