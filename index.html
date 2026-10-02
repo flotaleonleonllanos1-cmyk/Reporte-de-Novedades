@@ -878,6 +878,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <div class="row"><label>Nombre completo<input id="un" autocomplete="off"></label><label>Usuario<input id="uu" autocomplete="off"></label></div>
   <div class="row"><label>Contraseña (mínimo 6)<input id="uc" autocomplete="new-password"></label>
   <label>Rol<select id="ur"><option value="visual">Visual (solo consulta)</option><option value="editor">Editor (registra y edita, no elimina)</option></select></label></div>
+  <fieldset class="mudf"><legend>Sede a la que tiene acceso</legend><div id="unsedes"></div></fieldset>
   <fieldset class="mudf"><legend>Botones que puede ver y usar</legend><div id="unmods"></div>
     <div class="mudq"><button type="button" class="ver" id="untodos">Marcar todos</button><button type="button" class="ver" id="unninguno">Quitar todos</button></div></fieldset>
   <div class="err" id="uerr" role="alert"></div>
@@ -886,8 +887,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 <dialog id="mudlg">
   <form id="mufrm">
     <h2 id="mutit">Botones del usuario</h2>
-    <p class="mnota">Marca los botones del menú que este usuario puede ver y usar. Los que no marques no le aparecerán.</p>
-    <div id="mubox"></div>
+    <p class="mnota">Marca la sede o sedes a las que tiene acceso y los botones del menú que puede ver y usar.</p>
+    <b style="display:block;margin:4px 0 6px">Sede</b><div id="musedes"></div>
+    <b style="display:block;margin:12px 0 6px">Botones</b><div id="mubox"></div>
     <div class="mudq"><button type="button" class="ver" id="mutodos">Marcar todos</button><button type="button" class="ver" id="muninguno">Quitar todos</button></div>
     <div class="err" id="muerr" role="alert"></div>
     <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="musave">Guardar</button></div>
@@ -1102,6 +1104,10 @@ const mail=u=>u.trim().toLowerCase()+DOM;
 const okUser=u=>/^[a-z0-9._-]{3,30}$/.test(u);
 const ROLES={admin:'Administrador',editor:'Editor',visual:'Visual',inactivo:'Sin acceso'};
 const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
+const puedeSede=x=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.sedes)||!cur.sedes.length||cur.sedes.includes(x));
+const sedesHTML=(pre,sel)=>`<div class="mudchk">${SEDES.map(x=>`<label><input type="checkbox" data-${pre}="${x}"${!sel||!sel.length||sel.includes(x)?' checked':''}> ${x}</label>`).join('')}</div>`;
+function aplicarSedes(){const ok=SEDES.filter(puedeSede);$('sede').innerHTML=ok.map(x=>`<option${x===sede?' selected':''}>${x}</option>`).join('');$('sede').disabled=ok.length<2;$('sede').title=ok.length<2?'Tu usuario solo tiene acceso a esta sede':'';
+  if(!ok.includes(sede)){$('sede').value=ok[0];$('sede').dispatchEvent(new Event('change'))}}
 const puedeVer=m=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.modulos)||cur.modulos.includes(m));
 const modsHTML=(pre,sel)=>`<div class="mudchk">${MODS.map(([k,l])=>`<label><input type="checkbox" data-${pre}="${k}"${!sel||sel.includes(k)?' checked':''}> ${l}</label>`).join('')}</div>`;
 let unsubU=null,modsFirma='';
@@ -1232,6 +1238,7 @@ async function checkSetup(){
 function salir(){
   if(unsub){unsub();unsub=null}
   if(unsubU){unsubU();unsubU=null}
+  $('sede').disabled=false;
   if(unsubC){unsubC();unsubC=null}
   if(unsubM){unsubM();unsubM=null}
   if(unsubA){unsubA();unsubA=null}
@@ -1260,10 +1267,10 @@ async function entrar(user){
   }catch(x){await signOut(auth);$('le').textContent=ERR(x.code);return}
   $('le').textContent='';$('lf').reset();
   $('login').hidden=true;$('app').hidden=false;
-  aplicarModulos();modsFirma=JSON.stringify(cur.modulos||null)+cur.rol;
-  unsubU=onSnapshot(doc(db,'usuarios',user.uid),d=>{if(!d.exists())return;const x=d.data(),f=JSON.stringify(x.modulos||null)+x.rol;if(f!==modsFirma){modsFirma=f;location.reload()}},()=>{});
+  aplicarModulos();aplicarSedes();modsFirma=JSON.stringify(cur.modulos||null)+JSON.stringify(cur.sedes||null)+cur.rol;
+  unsubU=onSnapshot(doc(db,'usuarios',user.uid),d=>{if(!d.exists())return;const x=d.data(),f=JSON.stringify(x.modulos||null)+JSON.stringify(x.sedes||null)+x.rol;if(f!==modsFirma){modsFirma=f;location.reload()}},()=>{});
   $('add').hidden=!canEdit();$('adminb').hidden=cur.rol!=='admin';$('dashb').hidden=cur.rol!=='admin';
-  $('who').textContent=cur.nombre+' · '+ROLES[cur.rol];
+  $('who').textContent=cur.nombre+' · '+ROLES[cur.rol]+(cur.rol!=='admin'&&Array.isArray(cur.sedes)&&cur.sedes.length===1?' · '+cur.sedes[0]:'');
   $('list').innerHTML='<div class="empty">Cargando novedades…</div>';
   if(puedeVer('nov'))unsub=onSnapshot(query(collection(db,'novedades'),orderBy('creado','desc')),snap=>{
     todas=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));aplicarSede();
@@ -3360,8 +3367,8 @@ async function ulist(){
       <div><small>Usuario</small><br><span class="cred">${esc(u.usuario)}</span></div>
       <div><small>Contraseña</small><br>${u.clave?`<span class="cred" data-c="${esc(u.clave)}">••••••</span> <button type="button" class="ver">Mostrar</button>`:'<small>No registrada</small>'}</div>
       ${u.rol==='admin'?'<div><small>Rol</small><br>Administrador</div>':`<label>Rol<select data-u="${u.id}">${['visual','editor','inactivo'].map(r=>`<option value="${r}"${u.rol===r?' selected':''}>${ROLES[r]}</option>`).join('')}</select></label>`}
-      ${u.rol==='admin'?'<span></span>':`<div class="umods"><button type="button" class="btn ghost" data-um="${u.id}">Botones</button><button type="button" class="del" data-ud="${u.id}">Eliminar</button></div>`}
-      <div class="umodl"><small>${u.rol==='admin'?'Ve todos los botones':!Array.isArray(u.modulos)?'Ve todos los botones':u.modulos.length?'Ve: '+MODS.filter(([k])=>u.modulos.includes(k)).map(([,l])=>l).join(', '):'No ve ningún botón'}</small></div>
+      ${u.rol==='admin'?'<span></span>':`<div class="umods"><button type="button" class="btn ghost" data-um="${u.id}">Sede y botones</button><button type="button" class="del" data-ud="${u.id}">Eliminar</button></div>`}
+      <div class="umodl"><small>${u.rol==='admin'?'Todas las sedes':'Sede: '+(Array.isArray(u.sedes)&&u.sedes.length?u.sedes.join(' y '):'Villavicencio y Yopal')} · ${u.rol==='admin'?'Ve todos los botones':!Array.isArray(u.modulos)?'Ve todos los botones':u.modulos.length?'Ve: '+MODS.filter(([k])=>u.modulos.includes(k)).map(([,l])=>l).join(', '):'No ve ningún botón'}</small></div>
     </div>`).join('');
   }catch(x){$('ulist').innerHTML=`<p class="empty">${esc(ERR(x.code))}</p>`}
 }
@@ -3379,16 +3386,17 @@ async function eliminarUsuario(id,btn){
     ulist();
   }catch(x){$('uerr').textContent=ERR(x.code);btn.disabled=false}
 }
-$('unmods').innerHTML=modsHTML('un');
+$('unmods').innerHTML=modsHTML('un');$('unsedes').innerHTML=sedesHTML('us');
 $('untodos').onclick=()=>document.querySelectorAll('#unmods [data-un]').forEach(x=>x.checked=true);
 $('unninguno').onclick=()=>document.querySelectorAll('#unmods [data-un]').forEach(x=>x.checked=false);
 $('ulist').addEventListener('click',e=>{const b=e.target.closest('[data-um]');if(!b)return;const u=ucache.find(x=>x.id===b.dataset.um);if(!u)return;
-  $('mutit').textContent=`Botones de ${u.nombre}`;$('mubox').innerHTML=modsHTML('mu',Array.isArray(u.modulos)?u.modulos:null);$('mudlg').dataset.u=u.id;$('muerr').textContent='';$('mudlg').showModal()});
+  $('mutit').textContent=`Sede y botones de ${u.nombre}`;$('musedes').innerHTML=sedesHTML('ms',Array.isArray(u.sedes)?u.sedes:null);$('mubox').innerHTML=modsHTML('mu',Array.isArray(u.modulos)?u.modulos:null);$('mudlg').dataset.u=u.id;$('muerr').textContent='';$('mudlg').showModal()});
 $('mutodos').onclick=()=>document.querySelectorAll('#mubox [data-mu]').forEach(x=>x.checked=true);
 $('muninguno').onclick=()=>document.querySelectorAll('#mubox [data-mu]').forEach(x=>x.checked=false);
 $('mufrm').onsubmit=async e=>{e.preventDefault();const mods=[...document.querySelectorAll('#mubox [data-mu]:checked')].map(x=>x.dataset.mu);
-  if(!mods.length){$('muerr').textContent='Elige al menos un botón.';return}$('musave').disabled=true;
-  try{await updateDoc(doc(db,'usuarios',$('mudlg').dataset.u),{modulos:mods});$('mudlg').close();ulist()}catch(x){$('muerr').textContent=ERR(x.code)}$('musave').disabled=false};
+  if(!mods.length){$('muerr').textContent='Elige al menos un botón.';return}
+  const sds=[...document.querySelectorAll('#musedes [data-ms]:checked')].map(x=>x.dataset.ms);if(!sds.length){$('muerr').textContent='Elige al menos una sede.';return}$('musave').disabled=true;
+  try{await updateDoc(doc(db,'usuarios',$('mudlg').dataset.u),{modulos:mods,sedes:sds});$('mudlg').close();ulist()}catch(x){$('muerr').textContent=ERR(x.code)}$('musave').disabled=false};
 $('adminb').onclick=()=>{$('uerr').textContent='';ulist();$('adm').showModal()};
 $('ulist').onclick=e=>{
   const d=e.target.closest('[data-ud]');if(d){eliminarUsuario(d.dataset.ud,d);return}
@@ -3403,13 +3411,15 @@ $('ulist').onchange=e=>{
 $('uadd').onclick=async()=>{
   const mods=[...document.querySelectorAll('#unmods [data-un]:checked')].map(x=>x.dataset.un);
   if(!mods.length){$('uerr').textContent='Elige al menos un botón que el usuario pueda ver.';return}
+  const sds=[...document.querySelectorAll('#unsedes [data-us]:checked')].map(x=>x.dataset.us);
+  if(!sds.length){$('uerr').textContent='Elige al menos una sede.';return}
   const n=$('un').value.trim(),us=$('uu').value.trim().toLowerCase(),c=$('uc').value;
   if(!n||!us||c.length<6){$('uerr').textContent='Completa nombre, usuario y una contraseña de mínimo 6 caracteres.';return}
   if(!okUser(us)){$('uerr').textContent='El usuario debe tener de 3 a 30 caracteres: letras sin tildes, números, punto, guion o guion bajo.';return}
   $('uadd').disabled=true;
   try{
     const r=await createUserWithEmailAndPassword(auth2,mail(us),c);
-    await setDoc(doc(db,'usuarios',r.user.uid),{nombre:n,usuario:us,rol:$('ur').value,clave:c,modulos:mods});
+    await setDoc(doc(db,'usuarios',r.user.uid),{nombre:n,usuario:us,rol:$('ur').value,clave:c,modulos:mods,sedes:sds});
     await signOut(auth2);
     ['un','uu','uc'].forEach(k=>$(k).value='');$('uerr').textContent='';ulist();
   }catch(x){$('uerr').textContent=ERR(x.code)}
