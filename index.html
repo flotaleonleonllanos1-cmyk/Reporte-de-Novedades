@@ -124,6 +124,26 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .vcols.t div{flex:1 1 0;min-width:68px;max-width:96px;font-size:.8rem;white-space:nowrap}.vcl.t span{flex:1 1 0;min-width:68px;max-width:96px;font-size:.74rem;overflow-wrap:break-word}.vcl.t,.vcols.t{gap:8px;justify-content:flex-start}
 .vcols small{font-weight:600;font-size:.72rem;color:var(--mut)}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
+.docmiga{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:200px;font-size:.92rem}
+.docmb{background:none;border:0;color:var(--acc);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline;padding:0}
+.docnav input{width:220px;margin:0}
+.doclist.list{display:grid}
+.dli{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.dic{width:40px;height:46px;border-radius:6px;display:grid;place-items:center;font-size:.7rem;font-weight:800;background:#64748b;color:#fff;flex:none}
+.dic.p{background:#dc2626}.dic.f{background:none;font-size:1.8rem}
+.dln{flex:1;min-width:200px;text-align:left;background:none;border:0;cursor:pointer;color:var(--ink);font:inherit;padding:0}
+.dln b{display:block;overflow-wrap:anywhere}.dln small{color:var(--mut)}
+.dli .btn{padding:7px 12px;font-size:.9rem}
+.doclist.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.dgi{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card);display:flex;flex-direction:column}
+.dgt{background:none;border:0;cursor:pointer;padding:0;display:flex;flex-direction:column;color:var(--ink);font:inherit;text-align:left}
+.dgt img,.dgt .dgf,.dgt .dgx{width:100%;height:150px;object-fit:cover;object-position:top;background:var(--soft);display:grid;place-items:center;font-size:2.6rem;font-weight:800;color:var(--mut)}
+.dgn{padding:8px 10px 4px;font-size:.85rem;font-weight:600;overflow-wrap:anywhere}
+.dga{display:flex;justify-content:space-between;gap:6px;padding:4px 10px 10px;font-size:.85rem}
+#docdlg{width:min(1100px,97vw);max-width:none;padding:14px 16px}
+#docdlg[open]{display:flex;flex-direction:column;gap:10px}
+.ddfr{width:100%;height:min(78vh,900px);border:0;border-radius:8px;background:#f1f5f9}
 .docw iframe{width:100%;height:min(680px,70vh);min-height:380px;border:1px solid var(--line);border-radius:10px;margin-top:10px;background:#fff}
 .ralbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:12px}.ralbar label{margin:0}.ralbar select{width:auto;min-width:200px;max-width:100%}
 .ralgrid{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:14px;align-items:start}
@@ -630,8 +650,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       <a class="btn ghost" id="docdrive" target="_blank" rel="noopener">Abrir en Google Drive</a>
     </div>
   </div>
-  <div class="dc docw"><h2 id="doctit">Documentos de vehículos</h2><small>Toca un PDF para abrirlo y verlo. Las carpetas también se pueden abrir.</small>
-    <iframe id="docfr" title="Documentos en Google Drive" loading="lazy"></iframe>
+  <div class="dc docw"><h2 id="doctit">Documentos de vehículos</h2><small id="docsub"></small>
+    <div class="docnav" id="docnav"><button type="button" class="btn ghost" id="docup" hidden aria-label="Volver a la carpeta anterior">‹ Atrás</button><nav class="docmiga" id="docmiga" aria-label="Ubicación en las carpetas"></nav>
+      <input type="search" id="docbusca" placeholder="Buscar por nombre…" aria-label="Buscar documentos"><button type="button" class="btn ghost" id="docref" title="Actualizar">Actualizar</button></div>
+    <div class="doclist list" id="doclist"></div>
+    <iframe id="docfr" title="Documentos en Google Drive" loading="lazy" hidden></iframe>
   </div>
 </section>
 <section id="ralv" hidden aria-label="Ralentí">
@@ -924,6 +947,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <div class="mall" style="margin-top:10px"><button type="button" class="btn" id="shcopy">Copiar enlace</button><a class="btn wa" id="shwa" target="_blank" rel="noopener">Enviar por WhatsApp</a><a class="btn ghost" id="shver" target="_blank" rel="noopener">Ver como el taller</a></div>
   <small class="mnota" id="shmsg" style="margin-top:8px"></small>
   <div class="foot"><button type="button" class="del" id="shoff" hidden>Desactivar este enlace</button><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cerrar</button></div>
+</dialog>
+<dialog id="docdlg" aria-labelledby="ddtit">
+  <div class="pvtop"><div><b id="ddtit"></b><small id="ddsub"></small></div>
+    <div class="hb"><button type="button" class="btn ghost" id="ddprev">‹ Anterior</button><button type="button" class="btn ghost" id="ddnext">Siguiente ›</button><a class="btn" id="ddpdf" target="_blank" rel="noopener" download>Descargar PDF</a><a class="btn ghost" id="dddrive" target="_blank" rel="noopener">Abrir en Drive</a><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cerrar</button></div></div>
+  <iframe id="ddfr" class="ddfr" title="Vista del documento" allow="autoplay"></iframe>
 </dialog>
 <dialog id="mapdlg">
   <div class="pvtop"><div><b id="maptit">Ubicación</b><small id="mapsub"></small></div><div class="hb"><a class="btn ghost" id="mapab" target="_blank" rel="noopener">Abrir en Google Maps</a><button type="button" class="btn" onclick="this.closest('dialog').close()">Cerrar</button></div></div>
@@ -1263,21 +1291,86 @@ function titulo(){
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
 
-/* ---------- Documentos (carpeta fija de Google Drive) ---------- */
-const DOCS_CARPETA=Object.freeze({veh:'1LjHLPaFsitXqcaC9NM0o6Ogiw03lO0dm',con:'1LjHLPaFsitXqcaC9NM0o6Ogiw03lO0dm'});
-let docSec='veh',docVista='list';
-function renderDoc(){
-  const id=DOCS_CARPETA[docSec];
+/* ---------- Documentos (carpeta fija de Google Drive, navegación dentro de la página) ---------- */
+const DOCS_RAIZ='1LjHLPaFsitXqcaC9NM0o6Ogiw03lO0dm';
+let docSec='veh',docVista='list',docRuta=[],docBase='',docErr=null,docBusca='';const docCache={};
+const MIME_FOLDER='application/vnd.google-apps.folder';
+async function driveLista(id){
+  if(docCache[id])return docCache[id];
+  let out=[],tok='';
+  do{const q=encodeURIComponent(`'${id}' in parents and trashed=false`);
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=nextPageToken,files(id,name,mimeType,size,modifiedTime)&orderBy=folder,name&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true&key=${firebaseConfig.apiKey}${tok?'&pageToken='+tok:''}`);
+    const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error((j.error&&j.error.message)||'Drive '+r.status);e.status=r.status;e.razon=j.error&&j.error.errors&&j.error.errors[0]&&j.error.errors[0].reason;throw e}
+    out=out.concat(j.files||[]);tok=j.nextPageToken||''}while(tok);
+  return docCache[id]=out;
+}
+const sedeTok=()=>sede==='Yopal'?'yopal':'villa';
+async function baseSeccion(){
+  const raiz=await driveLista(DOCS_RAIZ),pal=docSec==='veh'?'vehicul':'conductor';
+  const f=raiz.find(x=>x.mimeType===MIME_FOLDER&&sinTilde(x.name).includes(pal)&&sinTilde(x.name).includes(sedeTok()))||raiz.find(x=>x.mimeType===MIME_FOLDER&&sinTilde(x.name).includes(pal));
+  return f?{id:f.id,name:f.name}:{id:DOCS_RAIZ,name:'Documentos'};
+}
+const esGoogle=m=>m&&m.startsWith('application/vnd.google-apps.');
+function urlsDoc(f){const id=f.id,m=f.mimeType;
+  if(m==='application/vnd.google-apps.document')return{ver:`https://docs.google.com/document/d/${id}/preview`,pdf:`https://docs.google.com/document/d/${id}/export?format=pdf`,drive:`https://docs.google.com/document/d/${id}/edit`};
+  if(m==='application/vnd.google-apps.spreadsheet')return{ver:`https://docs.google.com/spreadsheets/d/${id}/preview`,pdf:`https://docs.google.com/spreadsheets/d/${id}/export?format=pdf`,drive:`https://docs.google.com/spreadsheets/d/${id}/edit`};
+  if(m==='application/vnd.google-apps.presentation')return{ver:`https://docs.google.com/presentation/d/${id}/preview`,pdf:`https://docs.google.com/presentation/d/${id}/export/pdf`,drive:`https://docs.google.com/presentation/d/${id}/edit`};
+  return{ver:`https://drive.google.com/file/d/${id}/preview`,pdf:`https://drive.google.com/uc?export=download&id=${id}`,drive:`https://drive.google.com/file/d/${id}/view`};
+}
+const icoDoc=m=>m===MIME_FOLDER?'📁':m==='application/pdf'?'PDF':m&&m.startsWith('image/')?'IMG':m==='application/vnd.google-apps.document'?'DOC':m==='application/vnd.google-apps.spreadsheet'?'XLS':m==='application/vnd.google-apps.presentation'?'PPT':'ARC';
+async function renderDoc(reiniciar){
   $('doctabs').querySelectorAll('[data-doc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.doc===docSec));
   $('docvista').querySelectorAll('[data-dv]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dv===docVista));
-  $('doctit').textContent=docSec==='veh'?'Documentos de vehículos':'Documentos de conductores';
-  $('docdrive').href=`https://drive.google.com/drive/folders/${id}`;
-  const src=`https://drive.google.com/embeddedfolderview?id=${id}#${docVista}`;
-  if($('docfr').dataset.src!==src){$('docfr').dataset.src=src;$('docfr').src='about:blank';setTimeout(()=>{$('docfr').src=src},30)}
+  $('doctit').textContent=`Documentos de ${docSec==='veh'?'vehículos':'conductores'} · ${sede}`;
   if(typeof titulo==='function')titulo();
+  const clave=docSec+'|'+sede;
+  if(reiniciar||docBase!==clave||!docRuta.length){docBase=clave;docRuta=[];$('docbusca').value='';docBusca='';$('doclist').innerHTML='<p class="empty" style="margin:0">Cargando documentos…</p>';
+    try{docRuta=[await baseSeccion()];docErr=null}catch(x){docErr=x}}
+  if(docErr){docFallback(docErr);return}
+  $('docfr').hidden=true;$('doclist').hidden=false;$('docnav').hidden=false;
+  const act=docRuta[docRuta.length-1];$('docdrive').href=`https://drive.google.com/drive/folders/${act.id}`;
+  $('docmiga').innerHTML=docRuta.map((c,k)=>k<docRuta.length-1?`<button type="button" class="docmb" data-dk="${k}">${esc(c.name)}</button><span aria-hidden="true">›</span>`:`<b>${esc(c.name)}</b>`).join('');
+  $('docup').hidden=docRuta.length<2;
+  let items;try{if(!docCache[act.id])$('doclist').innerHTML='<p class="empty" style="margin:0">Cargando documentos…</p>';items=await driveLista(act.id)}catch(x){docFallback(x);return}
+  if(docRuta[docRuta.length-1]!==act)return;
+  const q=sinTilde(docBusca.trim());const vis=items.filter(f=>!q||sinTilde(f.name).includes(q));
+  const nC=items.filter(f=>f.mimeType===MIME_FOLDER).length,nA=items.length-nC;
+  $('docsub').textContent=`${nC?nC+' carpeta'+(nC>1?'s':'')+' · ':''}${nA} documento${nA===1?'':'s'}${q?` · ${vis.length} coinciden con la búsqueda`:''}`;
+  if(!vis.length){$('doclist').innerHTML=`<p class="empty" style="margin:0">${items.length?'Ningún documento coincide con la búsqueda.':'Esta carpeta está vacía.'}</p>`;return}
+  const fch=t=>t?new Date(t).toLocaleDateString('es-CO'):'';
+  $('doclist').className='doclist '+docVista;
+  $('doclist').innerHTML=vis.map(f=>{const dir=f.mimeType===MIME_FOLDER,u=dir?null:urlsDoc(f),ic=icoDoc(f.mimeType);
+    return docVista==='grid'
+      ?`<div class="dgi"><button type="button" class="dgt" ${dir?`data-dir="${f.id}"`:`data-dver="${f.id}"`} title="${esc(f.name)}">${dir?'<span class="dgf">📁</span>':`<img loading="lazy" alt="" src="https://drive.google.com/thumbnail?id=${f.id}&sz=w320" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'dgx',textContent:'${ic}'}))">`}<span class="dgn">${esc(f.name)}</span></button>
+        ${dir?'':`<div class="dga"><button type="button" class="ver" data-dver="${f.id}">Ver</button><a class="ver" href="${u.pdf}" target="_blank" rel="noopener" download>Descargar PDF</a></div>`}</div>`
+      :`<div class="dli"><span class="dic ${dir?'f':ic==='PDF'?'p':''}">${dir?'📁':ic}</span>
+        <button type="button" class="dln" ${dir?`data-dir="${f.id}"`:`data-dver="${f.id}"`}><b>${esc(f.name)}</b><small>${dir?'Carpeta':[f.size?tam(Number(f.size)):'',fch(f.modifiedTime)].filter(Boolean).join(' · ')}</small></button>
+        ${dir?`<button type="button" class="btn ghost" data-dir="${f.id}">Abrir</button>`:`<div class="hb"><button type="button" class="btn ghost" data-dver="${f.id}">Ver</button><a class="btn" href="${u.pdf}" target="_blank" rel="noopener" download>Descargar PDF</a></div>`}</div>`}).join('');
 }
-document.querySelectorAll('[data-doc]').forEach(b=>b.addEventListener('click',()=>{if(!cur)return;docSec=b.dataset.doc;if($('docv').hidden)modulo('doc');else renderDoc();cerrarMenuMovil()}));
+function docFallback(x){
+  console.error(x);const id=docRuta.length?docRuta[docRuta.length-1].id:DOCS_RAIZ,src=`https://drive.google.com/embeddedfolderview?id=${id}#${docVista}`;
+  $('docnav').hidden=true;$('doclist').hidden=true;$('docfr').hidden=false;if($('docfr').dataset.src!==src){$('docfr').dataset.src=src;$('docfr').src=src}
+  $('docdrive').href=`https://drive.google.com/drive/folders/${id}`;
+  $('docsub').innerHTML=cur&&cur.rol==='admin'?`No se pudo leer la carpeta directamente (${esc(x.razon||x.message||'error')}), así que se muestra la vista básica de Google Drive. Para abrir carpetas y ver los PDF dentro de la página, activa la «Google Drive API» en el proyecto de Firebase (ver instrucciones).`:'Se muestra la vista básica de Google Drive.';
+}
+document.querySelectorAll('[data-doc]').forEach(b=>b.addEventListener('click',()=>{if(!cur)return;const cambia=docSec!==b.dataset.doc;docSec=b.dataset.doc;if($('docv').hidden)modulo('doc');else renderDoc(cambia);cerrarMenuMovil()}));
 $('docvista').onclick=e=>{const b=e.target.closest('[data-dv]');if(!b)return;docVista=b.dataset.dv;renderDoc()};
+$('docbusca').oninput=()=>{docBusca=$('docbusca').value;clearTimeout(window.__dbt);window.__dbt=setTimeout(()=>renderDoc(),200)};
+$('docup').onclick=()=>{if(docRuta.length>1){docRuta.pop();renderDoc()}};
+$('docmiga').onclick=e=>{const b=e.target.closest('[data-dk]');if(b){docRuta=docRuta.slice(0,Number(b.dataset.dk)+1);renderDoc()}};
+$('docref').onclick=()=>{const a=docRuta[docRuta.length-1];if(a)delete docCache[a.id];if(docRuta.length<=1)delete docCache[DOCS_RAIZ];renderDoc()};
+let docItems=[];
+$('doclist').onclick=e=>{const d=e.target.closest('[data-dir]');if(d){const it=(docCache[docRuta[docRuta.length-1].id]||[]).find(f=>f.id===d.dataset.dir);docRuta.push({id:d.dataset.dir,name:it?it.name:'Carpeta'});$('docbusca').value='';docBusca='';renderDoc();return}
+  const v=e.target.closest('[data-dver]');if(v){e.preventDefault();verDoc(v.dataset.dver)}};
+function verDoc(id){
+  const lst=(docCache[docRuta[docRuta.length-1].id]||[]).filter(f=>f.mimeType!==MIME_FOLDER);docItems=lst;const f=lst.find(x=>x.id===id);if(!f)return;
+  const u=urlsDoc(f),k=lst.indexOf(f);
+  $('ddtit').textContent=f.name;$('ddsub').textContent=lst.length>1?`Documento ${k+1} de ${lst.length}`:'';
+  $('ddpdf').href=u.pdf;$('dddrive').href=u.drive;$('ddfr').src=u.ver;$('ddprev').disabled=k<=0;$('ddnext').disabled=k>=lst.length-1;$('ddprev').dataset.id=lst[k-1]?.id||'';$('ddnext').dataset.id=lst[k+1]?.id||'';
+  if(!$('docdlg').open)$('docdlg').showModal();
+}
+$('ddprev').onclick=()=>{if($('ddprev').dataset.id)verDoc($('ddprev').dataset.id)};$('ddnext').onclick=()=>{if($('ddnext').dataset.id)verDoc($('ddnext').dataset.id)};
+$('docdlg').addEventListener('close',()=>{$('ddfr').src='about:blank'});
 function cerrarMenuMovil(){document.querySelector('.shell').classList.remove('abierto');$('velo').hidden=true}
 $('sidemob').onclick=()=>{document.querySelector('.shell').classList.add('abierto');$('velo').hidden=false};
 $('velo').onclick=cerrarMenuMovil;
@@ -2880,7 +2973,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  renderKm();ralSel='';renderRal();
+  renderKm();ralSel='';renderRal();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
