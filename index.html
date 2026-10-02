@@ -68,6 +68,8 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .mi[data-m="var"]::after{animation-delay:2s}
 .mi[data-m="km"]::after{animation-delay:3s}
 .mi[data-m="ral"]::after{animation-delay:4s}
+.mi[data-m="doc"]::after{animation-delay:5s}
+.docico{display:inline-flex;width:28px;justify-content:center;flex:none}
 .ralico{display:inline-flex;width:28px;flex:none}
 .ralico .aguja{transform-origin:16px 18px;animation:agujaRal 1.6s ease-in-out infinite}
 @keyframes agujaRal{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(6deg)}}
@@ -121,6 +123,8 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .vdh{font-size:.92rem;margin:0 0 4px}
 .vcols.t div{flex:1 1 0;min-width:68px;max-width:96px;font-size:.8rem;white-space:nowrap}.vcl.t span{flex:1 1 0;min-width:68px;max-width:96px;font-size:.74rem;overflow-wrap:break-word}.vcl.t,.vcols.t{gap:8px;justify-content:flex-start}
 .vcols small{font-weight:600;font-size:.72rem;color:var(--mut)}
+.docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.docw iframe{width:100%;height:min(680px,70vh);min-height:380px;border:1px solid var(--line);border-radius:10px;margin-top:10px;background:#fff}
 .ralbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:12px}.ralbar label{margin:0}.ralbar select{width:auto;min-width:200px;max-width:100%}
 .ralgrid{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:14px;align-items:start}
 @media (max-width:900px){.ralgrid{grid-template-columns:1fr}}
@@ -411,6 +415,9 @@ textarea{font:inherit;color:inherit;width:100%;margin-top:4px;padding:9px 10px;b
 html.tema-cal{--bg:#eef4ef;--card:#fff;--ink:#16261c;--mut:#5b7062;--line:#d2e2d6;--acc:#1f6b3f;--acc2:#2f8a52;--soft:#e2f1e6;--band1:#2f8a52;--band2:#1f6b3f}
 html.tema-cal[data-theme="dark"]{--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}
 @media (prefers-color-scheme:dark){html.tema-cal:not([data-theme="light"]){--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}}
+html.tema-doc{--acc:#7e22ce;--acc2:#a855f7;--soft:#f3e8ff;--band1:#a855f7;--band2:#581c87}
+html.tema-doc[data-theme="dark"]{--acc:#a855f7;--acc2:#c084fc;--soft:#2e1a47}
+@media (prefers-color-scheme:dark){html.tema-doc:not([data-theme="light"]){--acc:#a855f7;--acc2:#c084fc;--soft:#2e1a47}}
 html.tema-ral{--acc:#0f766e;--acc2:#14b8a6;--soft:#ddf3f0;--band1:#14b8a6;--band2:#115e59}
 html.tema-ral[data-theme="dark"]{--acc:#14b8a6;--acc2:#2dd4bf;--soft:#123b37}
 @media (prefers-color-scheme:dark){html.tema-ral:not([data-theme="light"]){--acc:#14b8a6;--acc2:#2dd4bf;--soft:#123b37}}
@@ -579,6 +586,13 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 <path d="M6 21a10.5 10.5 0 0 1 20 0" fill="none" stroke="#22c55e" stroke-width="2.6" stroke-dasharray="11 30"/><path d="M6 21a10.5 10.5 0 0 1 20 0" fill="none" stroke="#facc15" stroke-width="2.6" stroke-dasharray="0 11 9 30"/><path d="M6 21a10.5 10.5 0 0 1 20 0" fill="none" stroke="#ef4444" stroke-width="2.6" stroke-dasharray="0 20 13 30"/>
 <g class="aguja"><line x1="16" y1="18" x2="9.5" y2="13" stroke="#fff" stroke-width="2" stroke-linecap="round"/></g><circle cx="16" cy="18" r="2.2" fill="#fff"/><text x="16" y="27.5" text-anchor="middle" font-size="5" font-weight="700" fill="#cbd5e1" font-family="Arial">RPM</text></svg></span><span class="lbl">Ralentí</span></button>
     </div>
+    <div class="grp">
+      <button type="button" class="mi" data-m="doc" aria-pressed="false" aria-expanded="false" title="Documentos"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 32" width="24" height="28"><path d="M4 2h13l7 7v20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#f8fafc" stroke="rgba(255,255,255,.75)" stroke-width="1"/><path d="M17 2v5a2 2 0 0 0 2 2h5" fill="#cbd5e1"/><rect x="6" y="13" width="14" height="2" rx="1" fill="#64748b"/><rect x="6" y="17.5" width="14" height="2" rx="1" fill="#64748b"/><rect x="6" y="22" width="9" height="2" rx="1" fill="#64748b"/><rect x="13" y="25" width="11" height="5" rx="1.2" fill="#dc2626"/><text x="18.5" y="29" text-anchor="middle" font-size="3.6" font-weight="700" fill="#fff" font-family="Arial">PDF</text></svg></span><span class="lbl">Documentos</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="sub">
+        <button type="button" class="si" data-doc="veh">Vehículos</button>
+        <button type="button" class="si" data-doc="con">Conductores</button>
+      </div>
+    </div>
   </nav>
   <div class="sidefoot">
     <button type="button" class="si" id="adminb" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Admin</span></button>
@@ -605,6 +619,21 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </div>
 <div id="list"></div>
 </div>
+<section id="docv" hidden aria-label="Documentos">
+  <div class="docbar">
+    <div class="tabs" role="group" aria-label="Sección" id="doctabs" style="margin:0">
+      <button class="tab" data-doc="veh" aria-pressed="true">Vehículos</button>
+      <button class="tab" data-doc="con" aria-pressed="false">Conductores</button>
+    </div>
+    <div class="hb">
+      <div class="tabs" role="group" aria-label="Vista" id="docvista" style="margin:0"><button class="tab" data-dv="list" aria-pressed="true">Lista</button><button class="tab" data-dv="grid" aria-pressed="false">Cuadrícula</button></div>
+      <a class="btn ghost" id="docdrive" target="_blank" rel="noopener">Abrir en Google Drive</a>
+    </div>
+  </div>
+  <div class="dc docw"><h2 id="doctit">Documentos de vehículos</h2><small>Toca un PDF para abrirlo y verlo. Las carpetas también se pueden abrir.</small>
+    <iframe id="docfr" title="Documentos en Google Drive" loading="lazy"></iframe>
+  </div>
+</section>
 <section id="ralv" hidden aria-label="Ralentí">
   <div class="ralbar">
     <label>Archivo<select id="ralsel"></select></label>
@@ -1207,13 +1236,14 @@ const hoyD=new Date();let canio=hoyD.getFullYear(),cmes=0,metas={},unsubM=null;
 const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc';
+  document.documentElement.classList.toggle('tema-doc',dc);$('docv').hidden=!dc;if(dc)renderDoc();
   document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km||ral)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral;
-  $('add').hidden=cal||ini||vr||km||ral||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(cal||ini||vr||km||ral||dc)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc;
+  $('add').hidden=cal||ini||vr||km||ral||dc||!canEdit();$('raladd').hidden=!ral||!canEdit();
   if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
@@ -1226,11 +1256,28 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden;
-  $('vtit').textContent=ini?'':ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!cal&&$('dash').hidden);
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden;
+  document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
+  $('vtit').textContent=ini?'':dc?`Documentos · ${docSec==='veh'?'Vehículos':'Conductores'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!cal&&$('dash').hidden);
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
+
+/* ---------- Documentos (carpeta fija de Google Drive) ---------- */
+const DOCS_CARPETA=Object.freeze({veh:'1LjHLPaFsitXqcaC9NM0o6Ogiw03lO0dm',con:'1LjHLPaFsitXqcaC9NM0o6Ogiw03lO0dm'});
+let docSec='veh',docVista='list';
+function renderDoc(){
+  const id=DOCS_CARPETA[docSec];
+  $('doctabs').querySelectorAll('[data-doc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.doc===docSec));
+  $('docvista').querySelectorAll('[data-dv]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dv===docVista));
+  $('doctit').textContent=docSec==='veh'?'Documentos de vehículos':'Documentos de conductores';
+  $('docdrive').href=`https://drive.google.com/drive/folders/${id}`;
+  const src=`https://drive.google.com/embeddedfolderview?id=${id}#${docVista}`;
+  if($('docfr').dataset.src!==src){$('docfr').dataset.src=src;$('docfr').src='about:blank';setTimeout(()=>{$('docfr').src=src},30)}
+  if(typeof titulo==='function')titulo();
+}
+document.querySelectorAll('[data-doc]').forEach(b=>b.addEventListener('click',()=>{if(!cur)return;docSec=b.dataset.doc;if($('docv').hidden)modulo('doc');else renderDoc();cerrarMenuMovil()}));
+$('docvista').onclick=e=>{const b=e.target.closest('[data-dv]');if(!b)return;docVista=b.dataset.dv;renderDoc()};
 function cerrarMenuMovil(){document.querySelector('.shell').classList.remove('abierto');$('velo').hidden=true}
 $('sidemob').onclick=()=>{document.querySelector('.shell').classList.add('abierto');$('velo').hidden=false};
 $('velo').onclick=cerrarMenuMovil;
