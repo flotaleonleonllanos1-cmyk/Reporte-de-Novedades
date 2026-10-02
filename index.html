@@ -99,6 +99,12 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 #vmapf{width:100%;height:190px;border:1px solid var(--line);border-radius:10px;margin-top:8px}
 .vbody>div{flex:1;min-width:220px}
 .vubok{font-size:.85rem;color:var(--ok);font-weight:600}
+.phi{width:1em;height:1em;vertical-align:-.15em;flex:none}
+.vtel span{display:inline-flex;align-items:center;gap:6px}
+.telc{display:inline-flex;align-items:center;gap:6px}
+.pubtel{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+.pubtel a.btn{display:inline-flex;align-items:center;gap:8px}
+.pubtel .phi{width:18px;height:18px}
 .btn.wa{background:#1fa855;color:#fff;border-color:#1fa855}
 #shdlg{width:min(560px,96vw)}#shurl{font-size:.85rem}
 #pub{min-height:100vh;background:linear-gradient(180deg,#9a4a0b 0 210px,var(--bg) 210px);padding:18px 14px 40px}
@@ -889,6 +895,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       <label>Sistema afectado<select id="vsis" required><option value="">Elige el sistema…</option></select></label>
       <label>Conductor<select id="vcon"><option value="">Elige el conductor…</option></select></label>
     </div>
+    <label class="vtel"><span><svg class="phi" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" fill="currentColor"/></svg> Teléfono del conductor</span><input id="vtel" type="tel" inputmode="tel" maxlength="20" autocomplete="off" placeholder="Ej: 310 123 4567"></label>
     <label id="vsisow" hidden>¿Cuál sistema?<input id="vsiso" maxlength="60" autocomplete="off" placeholder="Escribe el sistema afectado"></label>
     <small class="mnota" id="vconnota" hidden></small>
     <label>Técnico que atendió la varada<input id="vtec" maxlength="80" autocomplete="off" placeholder="Lo puede registrar el taller desde el enlace"></label>
@@ -1158,15 +1165,20 @@ async function entrar(user){
 }
 
 /* ---------- Enlace público de la varada para el taller ---------- */
+const PHI='<svg class="phi" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" fill="currentColor"/></svg>';
+const telLimpio=t=>String(t||'').replace(/[^\d+]/g,'');
+const telVal=t=>{const d=String(t||'').replace(/\D/g,'');return !t||(d.length>=7&&d.length<=15)};
+const telWa=t=>{let d=String(t||'').replace(/\D/g,'');if(d.length===10&&d.startsWith('3'))d='57'+d;return d};
+const telFmt=t=>{const d=String(t||'').replace(/\D/g,'');return d.length===10?`${d.slice(0,3)} ${d.slice(3,6)} ${d.slice(6)}`:String(t||'')};
 function tokenComp(){const a=new Uint8Array(18);crypto.getRandomValues(a);return Array.from(a,b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('')}
 const urlComp=t=>location.origin+location.pathname+'?v='+t;
 async function publicarComp(v){
   if(!v.comp)return;
   await setDoc(doc(db,'compartidos',v.comp),{tipo:'varada',varada:v.id,sede:v.sede||sede,placa:v.placa||'',fv:v.fv||'',fo:v.fo||'',taller:v.taller||'no',tallerNombre:v.tallerNombre||'',
-    sistema:sistemaDe(v),conductor:v.conductor||'',tecnico:v.tecnico||'',finPor:v.finPor||'',desc:v.desc||'',ubic:v.ubic||{},foto:v.foto||'',por:v.por||'',editadoPor:v.editadoPor||'',actualizado:serverTimestamp()});
+    sistema:sistemaDe(v),conductor:v.conductor||'',telefono:v.telefono||'',tecnico:v.tecnico||'',finPor:v.finPor||'',desc:v.desc||'',ubic:v.ubic||{},foto:v.foto||'',por:v.por||'',editadoPor:v.editadoPor||'',actualizado:serverTimestamp()});
 }
 function abrirCompartir(v,recien){
-  const u=urlComp(v.comp),txt=`Hola, les compartimos el reporte de la varada del vehículo ${v.placa}${sistemaDe(v)&&sistemaDe(v)!=='Sin clasificar'?` (${sistemaDe(v)})`:''}. Allí encuentran la ubicación, el conductor y los demás datos: ${u}`;
+  const u=urlComp(v.comp),txt=`Hola, les compartimos el reporte de la varada del vehículo ${v.placa}${sistemaDe(v)&&sistemaDe(v)!=='Sin clasificar'?` (${sistemaDe(v)})`:''}. Allí encuentran la ubicación, el conductor${v.telefono?` (tel. ${telFmt(v.telefono)})`:''} y los demás datos: ${u}`;
   $('shtit').textContent=`Enviar al taller · ${v.placa}`;$('shurl').value=u;$('shwa').href='https://wa.me/?text='+encodeURIComponent(txt);$('shver').href=u;
   $('shmsg').textContent=recien?'La varada quedó guardada. Copia el enlace o envíalo directamente por WhatsApp.':'Si editas la varada, el enlace se actualiza solo con los nuevos datos.';
   $('shoff').hidden=!(cur&&cur.rol==='admin');$('shoff').dataset.v=v.id;$('shoff').dataset.t=v.comp;$('shdlg').showModal();
@@ -1206,6 +1218,7 @@ function pintarPublica(t,v,msg){
         ${op?`<div><dt>Vehículo operativo nuevamente</dt><dd>${esc(dtTxt(v.fo))}</dd></div>`:''}
         <div><dt>Sistema afectado</dt><dd>${esc(v.sistema||'—')}</dd></div>
         <div><dt>Conductor</dt><dd>${esc(v.conductor||'—')}</dd></div>
+        <div><dt>${PHI} Teléfono del conductor</dt><dd>${v.telefono?`<span class="pubtel"><span>${esc(telFmt(v.telefono))}</span><a class="btn" href="tel:${esc(telLimpio(v.telefono))}">${PHI} Llamar</a><a class="btn wa" href="https://wa.me/${telWa(v.telefono)}" target="_blank" rel="noopener">WhatsApp</a></span>`:'—'}</dd></div>
         <div><dt>Taller asignado</dt><dd>${esc(v.tallerNombre||'—')}</dd></div>
         <div><dt>Técnico que atendió</dt><dd>${esc(v.tecnico||'—')}</dd></div>
         <div><dt>Reportado por</dt><dd>${esc(v.por||'—')}</dd></div>
@@ -2129,6 +2142,7 @@ function renderVar(){
       <div><dt>Técnico</dt><dd>${esc(v.tecnico||'—')}${v.finPor==='Taller'&&v.fo?' <span class="pill o" style="font-size:.72rem">Finalizada por el taller</span>':''}</dd></div>
       <div><dt>Sistema afectado</dt><dd>${esc(sistemaDe(v))}</dd></div>
       <div><dt>Conductor</dt><dd>${esc(v.conductor||'—')}</dd></div>
+      <div><dt>${PHI} Teléfono</dt><dd>${v.telefono?`<a class="telc" href="tel:${esc(telLimpio(v.telefono))}">${esc(telFmt(v.telefono))}</a>`:'—'}</dd></div>
       ${v.desc?`<div style="grid-column:1/-1"><dt>Descripción</dt><dd style="font-weight:400">${esc(v.desc)}</dd></div>`:''}
     </dl>${v.foto?`<img class="vfot" src="${v.foto}" alt="Foto del vehículo ${esc(v.placa)}" style="margin-top:12px">`:''}</div>
     <div class="vmap"><b class="vmapt">Ubicación del vehículo</b>${tieneCoord(v.ubic)
@@ -2610,6 +2624,7 @@ $('vper').onchange=()=>renderVar();
 /* ---------- Sistema "Otro" y lista de conductores ---------- */
 function vSisOtro(){const o=$('vsis').value==='Otro';$('vsisow').hidden=!o;$('vsiso').required=o;if(o&&!$('vsiso').value)setTimeout(()=>$('vsiso').focus(),0)}
 $('vsis').onchange=vSisOtro;
+$('vcon').addEventListener('change',()=>{if($('vtel').value.trim())return;const c=$('vcon').value;if(!c)return;const u=varadas.filter(x=>x.conductor===c&&x.telefono).sort((a,b)=>dtMs(b.fv)-dtMs(a.fv))[0];if(u)$('vtel').value=u.telefono});
 let listas={},unsubL=null,cnl=[];
 const cmpN=(a,b)=>a.localeCompare(b,'es',{sensitivity:'base'});
 function conductoresDe(){return [...((listas['conductores_'+sede]||{}).nombres||[])].sort(cmpN)}
@@ -2682,12 +2697,12 @@ async function construirXlsxVar(JSZip,D){
   // Gráficas
   const graf=[[{v:`Varadas · ${D.sede} · ${D.periodo}`,s:7}],[{v:`Generado el ${D.generado} por ${D.por}. Los datos de las gráficas están en la hoja «Resumen».`,s:10}]];
   // Base de datos
-  const reg=[[h('Placa'),h('Sede'),h('Fecha y hora de la varada'),h('Operativo nuevamente'),h('Estado'),h('Horas fuera de servicio'),h('Tiempo fuera de servicio'),h('Sistema afectado'),h('Conductor'),h('¿Se llevó al taller?'),h('Taller'),h('Técnico'),h('Ubicación'),h('Coordenadas'),h('Descripción'),h('Reportado por'),h('Última edición'),h('Foto')]];
+  const reg=[[h('Placa'),h('Sede'),h('Fecha y hora de la varada'),h('Operativo nuevamente'),h('Estado'),h('Horas fuera de servicio'),h('Tiempo fuera de servicio'),h('Sistema afectado'),h('Conductor'),h('Teléfono conductor'),h('¿Se llevó al taller?'),h('Taller'),h('Técnico'),h('Ubicación'),h('Coordenadas'),h('Descripción'),h('Reportado por'),h('Última edición'),h('Foto')]];
   D.registros.forEach(v=>{const op=!!v.fo,hrs=v.horas,url=v.url;
-    reg.push([C(v.placa,11),C(D.sede),v.fvS!==null?{v:v.fvS,s:12}:C(v.fv),op&&v.foS!==null?{v:v.foS,s:12}:C(op?v.fo:'Sigue varado',op?4:6),C(op?'Operativo':'Varado',op?5:6),C(hrs),C(v.durTxt),C(v.sistema),C(v.conductor||''),C(v.taller==='si'?'Sí':'No'),C(v.tallerNombre||''),C(v.tecnico||''),
+    reg.push([C(v.placa,11),C(D.sede),v.fvS!==null?{v:v.fvS,s:12}:C(v.fv),op&&v.foS!==null?{v:v.foS,s:12}:C(op?v.fo:'Sigue varado',op?4:6),C(op?'Operativo':'Varado',op?5:6),C(hrs),C(v.durTxt),C(v.sistema),C(v.conductor||''),C(v.telefono||''),C(v.taller==='si'?'Sí':'No'),C(v.tallerNombre||''),C(v.tecnico||''),
       url?{f:`HYPERLINK("${url.replace(/"/g,'%22')}","Abrir en Google Maps")`,v:'Abrir en Google Maps',s:4}:C(''),C(v.coord||''),C(v.desc||''),C(v.por||''),C(v.editadoPor||''),C(v.foto?'Sí':'No')])});
   const hojas=[['Gráficas',hojaXML(graf,{cols:[16],dibujo:true})],['Resumen',hojaXML(filasR,{cols:[20,9,3,12,9,3,24,9,3,8,9,3,15,12,13,3,26,9,15,3,20,12,3,20,18,14],congelar:true})],
-    ['Varadas',hojaXML(reg,{cols:[11,14,20,20,12,12,16,20,24,12,20,22,22,20,34,22,22,7],congelar:true,filtro:`A1:R${Math.max(2,reg.length)}`})]];
+    ['Varadas',hojaXML(reg,{cols:[11,14,20,20,12,12,16,20,24,16,12,20,22,22,20,34,22,22,7],congelar:true,filtro:`A1:S${Math.max(2,reg.length)}`})]];
   const est=ESTILOS.replace('<numFmts count="1"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/></numFmts>','<numFmts count="2"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/><numFmt numFmtId="165" formatCode="dd/mm/yyyy hh:mm"/></numFmts>')
     .replace('<cellXfs count="12">','<cellXfs count="13">').replace('</cellXfs>','<xf numFmtId="165" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf>\n</cellXfs>');
   const g=[];const col=(c,n)=>`'Resumen'!$${colL(c)}$2:$${colL(c)}$${Math.max(2,ult(n))}`,hd=c=>`'Resumen'!$${colL(c)}$1`;
@@ -2713,7 +2728,7 @@ ${g.map((_,i)=>`<Override PartName="/xl/charts/chart${i+1}.xml" ContentType="app
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
   z.file('xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>${hojas.map(([n],i)=>`<sheet name="${XE(n)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets>
-<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">'Varadas'!$A$1:$R$${Math.max(2,reg.length)}</definedName></definedNames><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
+<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="2" hidden="1">'Varadas'!$A$1:$S$${Math.max(2,reg.length)}</definedName></definedNames><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
   z.file('xl/_rels/workbook.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hojas.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${hojas.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
   z.file('xl/styles.xml',est);
@@ -2744,7 +2759,7 @@ function datosVar(){
     semanas:sem.map(w=>{const d=new Date(w);return{l:`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`,rep:todo.filter(v=>semanaDe(dtMs(v.fv))===w).length,sol:todo.filter(v=>v.fo&&semanaDe(dtMs(v.fo))===w).length}}),
     tiempos:[...ab,...so].map(x=>({l:`${normP(x.v.placa)} · ${dtTxt(x.v.fv).slice(0,10)}`,h:hrs(x.t),estado:x.e})),
     registros:del.slice().sort((a,b)=>dtMs(b.fv)-dtMs(a.fv)).map(v=>{const op=!!v.fo,t=op?dtMs(v.fo)-dtMs(v.fv):now-dtMs(v.fv),u=v.ubic||{};
-      return{placa:normP(v.placa),fv:dtTxt(v.fv),fo:dtTxt(v.fo),fvS:serialDT(v.fv),foS:serialDT(v.fo),horas:t>=0?hrs(t):'',durTxt:t>=0?durTxt(t):'',sistema:sistemaDe(v),conductor:v.conductor?nomProp(v.conductor):'',taller:v.taller,tallerNombre:v.tallerNombre||'',tecnico:v.tecnico||'',
+      return{placa:normP(v.placa),fv:dtTxt(v.fv),fo:dtTxt(v.fo),fvS:serialDT(v.fv),foS:serialDT(v.fo),horas:t>=0?hrs(t):'',durTxt:t>=0?durTxt(t):'',sistema:sistemaDe(v),conductor:v.conductor?nomProp(v.conductor):'',taller:v.taller,tallerNombre:v.tallerNombre||'',tecnico:v.tecnico||'',telefono:v.telefono||'',
         url:mapsUrl(u)||'',coord:tieneCoord(u)?`${u.lat.toFixed(6)}, ${u.lng.toFixed(6)}`:'',desc:v.desc||'',por:v.por||'',editadoPor:v.editadoPor||'',foto:!!v.foto}})};
 }
 $('vxls').onclick=async()=>{
@@ -2796,7 +2811,7 @@ function abrirVar(v){
   vedit=v||null;$('vfrm').reset();$('verr').textContent='';
   $('vdlgt').textContent=v?`Editar varada · ${v.placa}`:`Reportar varada · ${sede}`;
   $('vplaca').value=v?v.placa:'';$('vfv').value=v?v.fv:ahoraDT();$('vfo').value=v?v.fo||'':'';
-  $('vtec').value=v?v.tecnico||'':'';
+  $('vtec').value=v?v.tecnico||'':'';$('vtel').value=v?v.telefono||'':'';
   const sd=v?sistemaDe(v):'';
   if(!sd||sd==='Sin clasificar'){$('vsis').value='';$('vsiso').value=''}
   else if(SISTEMAS.includes(sd)&&sd!=='Otro'){$('vsis').value=sd;$('vsiso').value=''}
@@ -2821,7 +2836,8 @@ $('vfrm').onsubmit=async e=>{
   let tallerNombre=$('vtn').value;
   if(tallerNombre==='Otro'){tallerNombre=$('vtno').value.trim().replace(/\s+/g,' ');if(!tallerNombre){$('verr').textContent='Escribe el nombre del taller.';return}tallerNombre=tallerNombre.charAt(0).toUpperCase()+tallerNombre.slice(1)}
   if(taller==='si'&&!tallerNombre){$('verr').textContent='Elige a qué taller se llevó el vehículo.';return}
-  const data={tecnico:$('vtec').value.trim().replace(/\s+/g,' '),placa,fv,fo,taller,ubic,foto:vfotoD,marca:vfotoMarca,desc:$('vdesc').value.trim(),sistema,conductor,tallerNombre};
+  const telefono=$('vtel').value.trim().replace(/\s+/g,' ');if(!telVal(telefono)){$('verr').textContent='Revisa el teléfono del conductor: debe tener entre 7 y 15 números.';return}
+  const data={telefono,tecnico:$('vtec').value.trim().replace(/\s+/g,' '),placa,fv,fo,taller,ubic,foto:vfotoD,marca:vfotoMarca,desc:$('vdesc').value.trim(),sistema,conductor,tallerNombre};
   if(JSON.stringify(data).length>950000){$('verr').textContent='La foto pesa demasiado. Quita la foto e inténtalo de nuevo.';return}
   $('vsave').disabled=true;$('verr').textContent='';
   try{const comp=(vedit&&vedit.comp)||tokenComp();let vid,full;
