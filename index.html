@@ -138,6 +138,15 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .vcols small{font-weight:600;font-size:.72rem;color:var(--mut)}
 .blc{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--wip);border-radius:10px;padding:14px 16px;margin-bottom:12px}
 .blc.ok{border-left-color:var(--ok)}
+.blc{transition:box-shadow .15s}
+.blc:not(.abierta){cursor:pointer;padding:10px 14px}
+.blc:not(.abierta):hover{box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.blc:not(.abierta) .blfotos{grid-template-columns:repeat(2,112px);gap:10px;margin-top:6px}
+@media (min-width:760px){.blc:not(.abierta){display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:16px}.blc:not(.abierta) .top{grid-column:1;grid-row:1}.blc:not(.abierta) .blfotos{grid-column:2;grid-row:1;margin-top:0}.blc:not(.abierta) .top{flex-wrap:wrap}}
+.blc:not(.abierta) .blfig figcaption{font-size:.68rem;margin-bottom:2px}
+.blc:not(.abierta) .blfig img,.blc:not(.abierta) .blsin{width:112px;aspect-ratio:4/3;cursor:pointer}
+.blc:not(.abierta) .blsin{font-size:.72rem}.blc:not(.abierta) .blsin small{display:none}
+.blc:not(.abierta) .acts .btn{padding:6px 10px;font-size:.85rem}
 .blfotos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
 .blfig{margin:0}.blfig figcaption{font-weight:800;letter-spacing:.08em;font-size:.82rem;color:var(--acc);margin-bottom:4px}
 .blfig img{width:100%;aspect-ratio:4/3;object-fit:contain;background:#111;border-radius:8px;border:1px solid var(--line);cursor:zoom-in;display:block}
@@ -2708,6 +2717,7 @@ $('raldel').onclick=async()=>{const a=ralArch.find(x=>x.id===ralSel);if(!a||cur.
   try{const ps=await getDocs(collection(db,'ralenti',a.id,'partes'));const b=writeBatch(db);ps.docs.forEach(p=>b.delete(p.ref));await b.commit();await deleteDoc(doc(db,'ralenti',a.id));delete ralCache[a.id];ralSel='';ralProg('')}
   catch(x){alert(ERR(x.code))}};
 /* ---------- Barridos y Lavadero (fotos ANTES / DESPUÉS) ---------- */
+const blAbiertas=new Set();
 let blTipo='barrido',aseo=[],unsubB=null,bledit=null,blF={antes:'',despues:''},blM={antes:false,despues:false},bpl=[];
 const BLN={barrido:{t:'Barridos',u:'barrido',U:'Barrido',m:'BARRIDO'},lavado:{t:'Lavadero',u:'lavado',U:'Lavado',m:'LAVADO'}};
 function blPlacas(){return [...((listas['placasbl_'+sede]||{}).placas||[])].sort(cmpP)}
@@ -2720,14 +2730,14 @@ function renderBL(){
   $('blpl').innerHTML='<option value="">Todas las placas</option>'+plsU.map(p=>`<option${p===selp?' selected':''}>${esc(p)}</option>`).join('');
   const mes=$('blmes').value,vis=todos.filter(a=>(!selp||a.placa===selp)&&(!mes||String(a.fecha||'').startsWith(mes))).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
   const comp=vis.filter(a=>a.antes&&a.despues).length;
-  $('blkpi').innerHTML=[[vis.length,`${N.t} registrados`,''],[comp,'Completos (antes y después)',''],[vis.length-comp,'Pendientes de una foto',vis.length-comp?'badc':''],[new Set(vis.map(a=>a.placa)).size,'Placas atendidas','']].map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
+  $('blkpi').innerHTML=[[vis.length,`${N.U}s registrados`,''],[comp,'Completos (antes y después)',''],[vis.length-comp,'Pendientes de una foto',vis.length-comp?'badc':''],[new Set(vis.map(a=>a.placa)).size,'Placas atendidas','']].map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
   $('blpdf').hidden=cur.rol!=='admin'||!vis.length;
   if(!vis.length){$('bllist').innerHTML=`<div class="empty">No hay registros de ${N.u} ${selp?`para ${esc(selp)} `:''}en este periodo.${canEdit()?` Usa «+ Registrar ${N.u}» para agregar uno.`:''}</div>`;return}
   const fig=(a,k,l)=>`<figure class="blfig"><figcaption>${l}</figcaption>${a[k]?`<img src="${a[k]}" alt="${l} · ${esc(a.placa)}" data-blimg>`:`<div class="blsin">Sin foto${canEdit()?'<br><small>Agrégala con «Editar»</small>':''}</div>`}</figure>`;
-  $('bllist').innerHTML=vis.map(a=>{const ok=a.antes&&a.despues;return `<article class="blc ${ok?'ok':''}">
+  $('bllist').innerHTML=vis.map(a=>{const ok=a.antes&&a.despues,ab=blAbiertas.has(a.id);return `<article class="blc ${ok?'ok':''} ${ab?'abierta':''}" data-blcard="${a.id}">
     <div class="top"><div><span class="placa">${esc(a.placa)}</span> <span class="pill ${ok?'o':'w'}">${ok?'Completo':a.antes?'Falta DESPUÉS':'Falta ANTES'}</span>
       <div class="rpor">${esc(dtTxt(a.fecha))} · Registrado por <b>${esc(a.por||'—')}</b>${a.editadoPor?` · editado por ${esc(a.editadoPor)}`:''}</div></div>
-      <div class="acts">${canEdit()?`<button class="btn ghost" data-bled="${a.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="btn ghost" data-blpdf="${a.id}">PDF</button><button class="del" data-bldel="${a.id}">Eliminar</button>`:''}</div></div>
+      <div class="acts"><button class="btn ghost" data-bltog="${a.id}" aria-expanded="${ab}">${ab?'Reducir':'Ampliar'}</button>${canEdit()?`<button class="btn ghost" data-bled="${a.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="btn ghost" data-blpdf="${a.id}">PDF</button><button class="del" data-bldel="${a.id}">Eliminar</button>`:''}</div></div>
     <div class="blfotos">${fig(a,'antes','ANTES')}${fig(a,'despues','DESPUÉS')}</div></article>`}).join('');
 }
 function blSlot(k){const L=k==='antes'?'ANTES':'DESPUÉS';
@@ -2761,7 +2771,10 @@ $('blfrm').onsubmit=async e=>{e.preventDefault();const placa=$('blpla').value;
   try{if(bledit)await updateDoc(doc(db,'aseo',bledit.id),{...data,editadoPor:cur.nombre,editado:serverTimestamp()});
     else await addDoc(collection(db,'aseo'),{...data,tipo:blTipo,sede,fecha:ahoraDT(),por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});$('bldlg').close()}
   catch(x){$('blerr').textContent=ERR(x.code)}$('blsave').disabled=false};
-$('bllist').onclick=e=>{const im=e.target.closest('[data-blimg]');if(im){$('bigimg').src=im.src;$('big').showModal();return}
+$('bllist').onclick=e=>{const card=e.target.closest('[data-blcard]');
+  const tog=e.target.closest('[data-bltog]');if(tog){const id=tog.dataset.bltog;blAbiertas.has(id)?blAbiertas.delete(id):blAbiertas.add(id);renderBL();return}
+  const im=e.target.closest('[data-blimg]');if(im){if(card&&!card.classList.contains('abierta')){blAbiertas.add(card.dataset.blcard);renderBL();return}$('bigimg').src=im.src;$('big').showModal();return}
+  if(card&&!card.classList.contains('abierta')&&!e.target.closest('button,a')){blAbiertas.add(card.dataset.blcard);renderBL();return}
   const ed=e.target.closest('[data-bled]');if(ed&&canEdit()){abrirBL(aseo.find(a=>a.id===ed.dataset.bled));return}
   const pd=e.target.closest('[data-blpdf]');if(pd&&cur.rol==='admin'){const a=aseo.find(x=>x.id===pd.dataset.blpdf);if(a)descargarBLPDF([a]);return}
   const d=e.target.closest('[data-bldel]');if(d&&cur.rol==='admin'&&confirm('¿Eliminar este registro y sus fotos?'))deleteDoc(doc(db,'aseo',d.dataset.bldel)).catch(x=>alert(ERR(x.code)))};
