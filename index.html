@@ -1578,10 +1578,12 @@ async function descargarCalFotos(btn){
   if(!lst.length){alert(`No hay calibraciones en ${MESES[cmes-1]} ${canio} para ${sede}.`);return}
   const b=btn||$('cpdf'),t=b.textContent;b.disabled=true;b.textContent='Preparando PDF…';
   try{const gen=new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}),nC=lst.filter(c=>c.f1&&c.f2).length;
-    const blob=await crearPDF(lst.map((c,i)=>{const okc=c.f1&&c.f2;return{titulo:`FLOTA LLANOS · Calibraciones · ${MESES[cmes-1]} ${canio} · ${c.placa}`,
-      sub:`1ª calibración: ${fd(c.f1)} · 2ª calibración: ${c.f2?fd(c.f2):'Pendiente'} · ${okc?'Completa':'Falta 2ª calibración'} · Reportado por ${c.por||'—'} · Sede ${sede}`,
-      fotos:[{label:'FOTO PRIMERA CALIBRACIÓN',src:c.fotos&&c.fotos.c1},{label:'FOTO SEGUNDA CALIBRACIÓN',src:c.fotos&&c.fotos.c2}],
-      pie:`Generado el ${gen} por ${cur.nombre} · ${lst.length} calibraciones en el mes (${nC} completas) · Página ${i+1} de ${lst.length}`}}));
+    const pags=[];lst.forEach(c=>{const okc=c.f1&&c.f2,base={titulo:`FLOTA LLANOS · Calibraciones · ${MESES[cmes-1]} ${canio} · ${c.placa}`,
+        sub:`1ª calibración: ${fd(c.f1)} · 2ª calibración: ${c.f2?fd(c.f2):'Pendiente'} · ${okc?'Completa':'Falta 2ª calibración'} · Reportado por ${c.por||'—'} · Sede ${sede}`};
+      const fs=[['c1','FOTO PRIMERA CALIBRACIÓN'],['c2','FOTO SEGUNDA CALIBRACIÓN']].filter(([k])=>c.fotos&&c.fotos[k]);
+      if(!fs.length)pags.push({...base,fotos:[{label:'SIN FOTOS REGISTRADAS',src:''}]});
+      fs.forEach(([k,l])=>pags.push({...base,fotos:[{label:l,src:c.fotos[k]}]}))});
+    const blob=await crearPDF(pags.map((p,i)=>({...p,pie:`Generado el ${gen} por ${cur.nombre} · ${lst.length} calibraciones en el mes (${nC} completas) · Página ${i+1} de ${pags.length}`})));
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`calibraciones_${sede}_${canio}-${String(cmes).padStart(2,'0')}_con_fotos.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
   catch(x){console.error(x);alert('No se pudo generar el PDF.')}
   b.disabled=false;b.textContent=t;
@@ -2934,7 +2936,7 @@ async function crearPDF(paginas){
   obj(4,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
   for(const p of P){
     let c=`0.12 0.23 0.54 rg 0 ${H-58} ${W} 58 re f 1 1 1 rg BT /F2 18 Tf 30 ${H-30} Td ${pdfStr(p.titulo)} Tj ET BT /F1 11 Tf 30 ${H-48} Td ${pdfStr(p.sub)} Tj ET 0 0 0 rg `;
-    const bw=380,bh=440,y0=56,xs=[30,W-30-bw],xo={};
+    const uno=p.fx.length===1,bw=uno?W-60:380,bh=uno?H-58-50-34:440,y0=uno?50:56,xs=uno?[30]:[30,W-30-bw],xo={};
     p.fx.forEach((f,k)=>{const x=xs[k];c+=`BT /F2 13 Tf ${x} ${y0+bh+10} Td ${pdfStr(f.label)} Tj ET 0.75 G 0.8 w ${x} ${y0} ${bw} ${bh} re S `;
       if(f.id){const s=Math.min(bw/f.t.w,bh/f.t.h),w=f.t.w*s,h=f.t.h*s;c+=`q ${w.toFixed(2)} 0 0 ${h.toFixed(2)} ${(x+(bw-w)/2).toFixed(2)} ${(y0+(bh-h)/2).toFixed(2)} cm /Im${f.id} Do Q `;xo[f.id]=1}
       else c+=`0.5 g BT /F1 12 Tf ${x+bw/2-24} ${y0+bh/2} Td (Sin foto) Tj ET 0 g `});
