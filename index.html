@@ -816,7 +816,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   </div>
   <div id="cres"></div>
   <div id="cmesv" hidden>
-    <div class="chead"><h2 id="ctit" hidden></h2><span id="csub"></span><button type="button" class="btn ghost" id="cback">Ver resumen del año</button></div>
+    <div class="chead"><h2 id="ctit" hidden></h2><span id="csub"></span><button type="button" class="btn" id="cpdf" hidden>PDF con fotos del mes</button><button type="button" class="btn ghost" id="cback">Ver resumen del año</button></div>
     <div id="calist"></div>
     <div id="cppt"></div>
     <input type="file" id="pptin" accept=".pdf,application/pdf" hidden>
@@ -1572,7 +1572,22 @@ function expandirTodo(on){
   else (window.__pdfSets||[]).forEach(([st,prev])=>{st.clear();prev.forEach(i=>st.add(i))});
   render();renderCal();renderVar();renderBL();
 }
+async function descargarCalFotos(btn){
+  if(!cur||cur.rol!=='admin'||!cmes)return;
+  const lst=calSede().filter(c=>c.mes===cmes).sort((a,b)=>cmpP(normP(a.placa),normP(b.placa))||String(a.f1).localeCompare(String(b.f1)));
+  if(!lst.length){alert(`No hay calibraciones en ${MESES[cmes-1]} ${canio} para ${sede}.`);return}
+  const b=btn||$('cpdf'),t=b.textContent;b.disabled=true;b.textContent='Preparando PDF…';
+  try{const gen=new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}),nC=lst.filter(c=>c.f1&&c.f2).length;
+    const blob=await crearPDF(lst.map((c,i)=>{const okc=c.f1&&c.f2;return{titulo:`FLOTA LLANOS · Calibraciones · ${MESES[cmes-1]} ${canio} · ${c.placa}`,
+      sub:`1ª calibración: ${fd(c.f1)} · 2ª calibración: ${c.f2?fd(c.f2):'Pendiente'} · ${okc?'Completa':'Falta 2ª calibración'} · Reportado por ${c.por||'—'} · Sede ${sede}`,
+      fotos:[{label:'FOTO PRIMERA CALIBRACIÓN',src:c.fotos&&c.fotos.c1},{label:'FOTO SEGUNDA CALIBRACIÓN',src:c.fotos&&c.fotos.c2}],
+      pie:`Generado el ${gen} por ${cur.nombre} · ${lst.length} calibraciones en el mes (${nC} completas) · Página ${i+1} de ${lst.length}`}}));
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`calibraciones_${sede}_${canio}-${String(cmes).padStart(2,'0')}_con_fotos.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+  catch(x){console.error(x);alert('No se pudo generar el PDF.')}
+  b.disabled=false;b.textContent=t;
+}
 async function descargarVistaPDF(){
+  if(!$('calv').hidden&&cmes){return descargarCalFotos($('pdfv'))}
   if(!cur||cur.rol!=='admin')return;const V=vistaPDF();if(!V)return;const b=$('pdfv'),t=b.textContent;b.disabled=true;b.textContent='Preparando PDF…';
   let h2c;try{h2c=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'],'html2canvas')}
   catch(x){b.disabled=false;b.textContent=t;if(confirm('No se pudo preparar el PDF directamente (revisa tu conexión). ¿Quieres usar la opción de imprimir y elegir «Guardar como PDF»?'))window.print();return}
@@ -1638,7 +1653,7 @@ function renderCal(){
   $('cadd').textContent='+ Registrar calibración en '+MESES[mesReg()-1];
   $('cmetab').hidden=cur.rol!=='admin';
   if(!cmes){$('cmesv').hidden=true;$('cres').hidden=false;resumenCal(S,del);return}
-  $('cres').hidden=true;$('cmesv').hidden=false;
+  $('cres').hidden=true;$('cmesv').hidden=false;$('cpdf').hidden=cur.rol!=='admin';
   const s=S[cmes-1],v=del.filter(c=>c.mes===cmes).sort((a,b)=>cmpP(normP(a.placa),normP(b.placa))||String(a.f1).localeCompare(String(b.f1)));
   $('ctit').textContent=`${MESES[cmes-1]} ${canio}`;
   $('csub').textContent=`${sede} · ${s.n} registro${s.n===1?'':'s'} · ${s.comp} completa${s.comp===1?'':'s'} · ${s.inc} incompleta${s.inc===1?'':'s'}${s.mt?' · Cumplimiento '+pctTxt(s.pct)+' ('+s.ok+' de '+s.mt+' placas)':''}${s.fuera?' · '+s.fuera+' completa'+(s.fuera>1?'s':'')+' con placa que no está en la lista':''}`;
@@ -3246,6 +3261,7 @@ $('cres').onclick=e=>{
   if(e.target.closest('#xcal')){descargarCal('xlsx',e.target.closest('#xcal'));return}
   if(e.target.closest('#pcal')){descargarCal('pptx',e.target.closest('#pcal'));return}
   const b=e.target.closest('[data-mes]');if(b){cmes=Number(b.dataset.mes);renderCal();$('cmesv').scrollIntoView({behavior:'smooth',block:'start'})}};
+$('cpdf').onclick=()=>descargarCalFotos($('cpdf'));
 $('cback').onclick=()=>{cmes=0;renderCal()};
 let plist=[];
 function pintarPlacas(){
