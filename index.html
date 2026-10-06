@@ -178,7 +178,11 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .ctok{background:var(--okbg);color:var(--ok);border-radius:10px;padding:10px 14px;margin-top:12px;font-weight:700}
 .ctst{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.82rem;font-weight:700;white-space:nowrap}
 .ctst.r{background:var(--badbg);color:var(--bad)}.ctst.a{background:var(--wipbg);color:var(--wip)}.ctst.o{background:var(--okbg);color:var(--ok)}.ctst.n{color:var(--mut)}
-.ctt{min-width:620px}.kpi b.warc{color:var(--wip)}.kpi b.okc{color:var(--ok)}
+.ctt{min-width:620px}
+.ctx{min-width:1200px}.ctx th small{display:block;font-weight:400;color:var(--mut);font-size:.68rem}
+.ctx .ctg th{text-align:center;font-size:.8rem;letter-spacing:.08em;color:#fff;border-bottom:0}.ctx .ctg .gs{background:#b45309}.ctx .ctg .gr{background:#1d4ed8}.ctx .ctg .ctfix{color:var(--mut);background:var(--card);text-align:left;vertical-align:bottom}
+.ctx td,.ctx th{white-space:nowrap}.ctx .ctfix{position:sticky;left:0;background:var(--card);z-index:1}
+.ctx tr.al td.ctfix{background:var(--wipbg)}.ctx tr.alr td.ctfix{background:var(--badbg)}.kpi b.warc{color:var(--wip)}.kpi b.okc{color:var(--ok)}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
 .docmiga{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:200px;font-size:.92rem}
@@ -739,7 +743,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="kpis" id="ctkpi" style="margin-top:10px"></div><div id="ctal"></div>
     <div class="ralbar" style="margin:12px 0 8px"><div class="tabs" role="group" aria-label="Filtrar" id="cttabs" style="margin:0"><button class="tab" data-ctf="todos" aria-pressed="true">Todos</button><button class="tab" data-ctf="alerta" aria-pressed="false">Con alerta</button><button class="tab" data-ctf="soat" aria-pressed="false">SOAT</button><button class="tab" data-ctf="rtm" aria-pressed="false">RTM</button></div>
       <input type="search" id="ctbusca" placeholder="Buscar placa…" aria-label="Buscar placa" style="width:200px;margin:0"></div>
-    <div id="cttab"></div><small class="mnota" style="margin-top:8px">Alertas: SOAT desde 5 días antes de vencer y RTM desde 22 días antes. Del Excel se toman, desde la fila 2 (títulos), la columna «PLACA / MATRÍCULA», la columna AA (vencimiento del SOAT) y la columna AF (vencimiento de la RTM).</small>
+    <div id="cttab"></div><small class="mnota" style="margin-top:8px">Alertas: SOAT desde 5 días antes de vencer y RTM desde 22 días antes. Del Excel se muestran, desde la fila 2 (títulos), solo la placa (columna D), la información del SOAT (columnas X, Y, Z y AA, con el vencimiento en AA) y la de la RTM (columnas AB, AC, AD y AF, con el vencimiento en AF).</small>
     <input type="file" id="ctfile" accept=".xlsx,.xls,.csv" hidden></div>
   <div class="dc docw"><h2 id="doctit">Documentos de vehículos</h2><small id="docsub"></small>
     <div class="docnav" id="docnav"><button type="button" class="btn ghost" id="docup" hidden aria-label="Volver a la carpeta anterior">‹ Atrás</button><nav class="docmiga" id="docmiga" aria-label="Ubicación en las carpetas"></nav>
@@ -1648,7 +1652,7 @@ async function descargarVistaPDF(){
 }
 $('pdfv').onclick=descargarVistaPDF;
 /* ---------- Control Tiempo: vencimientos de SOAT (5 días) y RTM (21 días) ---------- */
-/* columnas AA y AF del Excel */const CT_SOAT=5,CT_RTM=22,CT_COL_SOAT=26,CT_COL_RTM=31;let ctDatos={},unsubT=null,ctFiltro='todos',ctTabla=null;
+/* columnas AA y AF del Excel */const CT_SOAT_EX=[23,24,25],CT_RTM_EX=[27,28,29],CT_SOAT=5,CT_RTM=22,CT_COL_SOAT=26,CT_COL_RTM=31;let ctDatos={},unsubT=null,ctFiltro='todos',ctTabla=null;
 const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 function fechaAny(v){
   if(v===null||v===undefined||v==='')return '';
@@ -1662,6 +1666,8 @@ function fechaAny(v){
   if(/^\d{5}(\.\d+)?$/.test(t))return fechaAny(Number(t));
   return '';
 }
+function ctValor(v,tit){if(v===null||v===undefined||v==='')return '';if(v instanceof Date||(/fecha|venc|expedic/i.test(sinTilde(tit||''))&&(typeof v==='number'||/\d[-\/.]\d/.test(String(v))))){const f=fechaAny(v);if(f)return fd(f)}
+  return String(v).trim().slice(0,120)}
 function ctDetectar(cols){
   const n=cols.map(c=>nh(c));let pla=n.findIndex(c=>c==='placamatricula'||c==='placa'||c==='matricula');if(pla<0)pla=n.findIndex(c=>c.includes('placa')||c.includes('matricula'));
   let soat=n.findIndex(c=>c==='fechadefechadevencimiento');let rtm=n.findIndex(c=>c==='fechadevencimiento5');
@@ -1688,8 +1694,14 @@ function renderCT(){
   $('ctal').innerHTML=al.length?`<div class="ctalw" role="alert"><b>⚠ ${al.length} alerta${al.length>1?'s':''} de vencimiento</b><ul>${al.slice(0,12).map(a=>`<li class="${a.e.k}"><b>${esc(a.p)}</b> · ${a.n}: ${a.e.d<0?`vencido desde el ${fd(a.fe)}`:a.e.d===0?`vence HOY (${fd(a.fe)})`:`vence el ${fd(a.fe)}, en ${a.e.d} día${a.e.d===1?'':'s'}`}</li>`).join('')}</ul>${al.length>12?`<small>y ${al.length-12} más en la tabla.</small>`:''}</div>`:'<div class="ctok">✓ No hay SOAT ni RTM vencidos o por vencer.</div>';
   const urg=f=>Math.min(f.s.d===null?9999:f.s.d-CT_SOAT,f.r.d===null?9999:f.r.d-CT_RTM);
   const vis=fs.filter(f=>(!q||normP(f.placa).includes(q))&&(ctFiltro==='todos'||(ctFiltro==='alerta'?['r','a'].includes(f.s.k)||['r','a'].includes(f.r.k):ctFiltro==='soat'?['r','a'].includes(f.s.k):['r','a'].includes(f.r.k)))).sort((a,b)=>urg(a)-urg(b)||cmpP(a.placa,b.placa));
-  const cel=(fe,e)=>`<td>${fe?fd(fe):'—'}</td><td><span class="ctst ${e.k}">${e.t}</span></td>`;
-  $('cttab').innerHTML=vis.length?`<div class="tscroll"><table class="kmt ctt"><thead><tr><th>Placa</th><th>Vence SOAT</th><th>Estado SOAT</th><th>Vence RTM</th><th>Estado RTM</th></tr></thead><tbody>${vis.map(f=>`<tr class="${f.s.k==='r'||f.r.k==='r'?'alr':f.s.k==='a'||f.r.k==='a'?'al':''}"><td><b>${esc(f.placa)}</b></td>${cel(f.soat,f.s)}${cel(f.rtm,f.r)}</tr>`).join('')}</tbody></table></div>`:'<p class="empty" style="margin:0">Ningún vehículo coincide con el filtro.</p>';
+  const tit=D.tit||{},cs=(D.cols||{}),tS=CT_SOAT_EX.map(colL),tR=CT_RTM_EX.map(colL);
+  const th=k=>`<th title="Columna ${k}">${esc(tit[k]||'Columna '+k)}<small>${k}</small></th>`,td=(f,k)=>`<td>${esc((f.ex||{})[k]||'—')}</td>`;
+  const est=e=>`<span class="ctst ${e.k}">${e.t}</span>`;
+  $('cttab').innerHTML=vis.length?`<div class="tscroll"><table class="kmt ctt ctx"><thead>
+    <tr class="ctg"><th rowspan="2" class="ctfix">${esc(cs.placa||'Placa')}<small>D</small></th><th colspan="${tS.length+2}" class="gs">SOAT</th><th colspan="${tR.length+2}" class="gr">RTM</th></tr>
+    <tr>${tS.map(th).join('')}<th>${esc(cs.soat||'Vencimiento SOAT')}<small>${cs.colSoat||'AA'}</small></th><th>Estado SOAT</th>${tR.map(th).join('')}<th>${esc(cs.rtm||'Vencimiento RTM')}<small>${cs.colRtm||'AF'}</small></th><th>Estado RTM</th></tr></thead>
+    <tbody>${vis.map(f=>`<tr class="${f.s.k==='r'||f.r.k==='r'?'alr':f.s.k==='a'||f.r.k==='a'?'al':''}"><td class="ctfix"><b>${esc(f.placa)}</b></td>${tS.map(k=>td(f,k)).join('')}<td><b>${f.soat?fd(f.soat):'—'}</b></td><td>${est(f.s)}</td>${tR.map(k=>td(f,k)).join('')}<td><b>${f.rtm?fd(f.rtm):'—'}</b></td><td>${est(f.r)}</td></tr>`).join('')}</tbody></table></div>`
+    :'<p class="empty" style="margin:0">Ningún vehículo coincide con el filtro.</p>';
 }
 function ctTabla2(t){
   // Fila 2 del Excel (índice 1) es la de los títulos si allí está «PLACA / MATRÍCULA»; si no, se busca la fila que lo tenga
@@ -1705,16 +1717,16 @@ async function ctLeer(f){
 }
 let ctPend=null;
 async function ctGuardar(T,cc,nombre){
-  const out=[],vistos=new Set();T.filas.forEach(r=>{const p=normP(r[cc.pla]);if(!p||p.length<5||p.length>8||!/[A-Z]/.test(p)||!/\d/.test(p)||vistos.has(p))return;vistos.add(p);out.push({placa:p,soat:cc.soat>=0?fechaAny(r[cc.soat]):'',rtm:cc.rtm>=0?fechaAny(r[cc.rtm]):''})});
+  const out=[],vistos=new Set();T.filas.forEach(r=>{const p=normP(r[cc.pla]);if(!p||p.length<5||p.length>8||!/[A-Z]/.test(p)||!/\d/.test(p)||vistos.has(p))return;vistos.add(p);const ex={};[...CT_SOAT_EX,...CT_RTM_EX].forEach(i=>ex[colL(i)]=ctValor(r[i],T.cols[i]));out.push({placa:p,soat:cc.soat>=0?fechaAny(r[cc.soat]):'',rtm:cc.rtm>=0?fechaAny(r[cc.rtm]):'',ex})});
   if(!out.length){alert('No se encontraron placas en la columna elegida.');return false}
   out.sort((a,b)=>cmpP(a.placa,b.placa));
-  await setDoc(doc(db,'vencimientos',sede),{sede,nombre,filas:out,cols:{placa:T.cols[cc.pla]||'',soat:T.cols[cc.soat]||'',rtm:T.cols[cc.rtm]||''},fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
+  await setDoc(doc(db,'vencimientos',sede),{sede,nombre,filas:out,cols:{placa:T.cols[cc.pla]||'',soat:T.cols[cc.soat]||'',rtm:T.cols[cc.rtm]||'',colSoat:cc.soat>=0?colL(cc.soat):'',colRtm:cc.rtm>=0?colL(cc.rtm):''},tit:Object.fromEntries([...CT_SOAT_EX,...CT_RTM_EX].map(i=>[colL(i),T.cols[i]||`Columna ${colL(i)}`])),fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
   $('ctmsg').textContent=`«${nombre}» cargado: ${out.length} vehículos. Títulos en la fila ${T.fila} y datos desde la fila ${T.fila+1}. Columnas usadas: Placa = ${colL(cc.pla)} «${T.cols[cc.pla]}», SOAT = ${cc.soat>=0?colL(cc.soat):'—'}, RTM = ${cc.rtm>=0?colL(cc.rtm):'—'}.`;return true;
 }
 $('ctfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('ctmsg').textContent='Leyendo el archivo…';
   try{const T=await ctLeer(f),dt=ctDetectar(T.cols);
     const fechas=k=>T.filas.slice(0,60).filter(r=>fechaAny(r[k])).length,hay=k=>T.filas.some(r=>r[k]!==undefined&&String(r[k]).trim()!=='');
-    const cc={pla:dt.pla,soat:hay(CT_COL_SOAT)?CT_COL_SOAT:-1,rtm:hay(CT_COL_RTM)?CT_COL_RTM:-1};
+    const cc={pla:dt.pla>=0?dt.pla:(hay(3)?3:-1),soat:hay(CT_COL_SOAT)?CT_COL_SOAT:-1,rtm:hay(CT_COL_RTM)?CT_COL_RTM:-1};
     if(cc.pla<0||cc.soat<0||cc.rtm<0||!fechas(CT_COL_SOAT)||!fechas(CT_COL_RTM)){ctPend={T,nombre:f.name};const op=sel=>'<option value="-1">(No tiene)</option>'+T.cols.map((c,i)=>`<option value="${i}"${i===sel?' selected':''}>Columna ${colL(i)} · ${esc(c)}</option>`).join('');
       $('ctc-pla').innerHTML=op(cc.pla);$('ctc-soat').innerHTML=op(cc.soat>=0?cc.soat:dt.soat);$('ctc-rtm').innerHTML=op(cc.rtm>=0?cc.rtm:dt.rtm);$('ctcerr').textContent='';$('ctmsg').textContent='';$('ctcdlg').showModal();return}
     await ctGuardar(T,cc,f.name)}
