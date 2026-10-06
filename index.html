@@ -181,7 +181,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .ctt{min-width:620px}
 .ctx{min-width:1200px}.ctx th small{display:block;font-weight:400;color:var(--mut);font-size:.68rem}
 .ctx .ctg th{text-align:center;font-size:.8rem;letter-spacing:.08em;color:#fff;border-bottom:0}.ctx .ctg .gs{background:#b45309}.ctx .ctg .gx{background:#334155}.ctx .ctg .gr{background:#1d4ed8}.ctx .ctg .ctfix{color:var(--mut);background:var(--card);text-align:left;vertical-align:bottom}
-.ctx td,.ctx th{white-space:nowrap}.ctx .ctfix{position:sticky;left:0;background:var(--card);z-index:1}
+.ctx td,.ctx th{white-space:nowrap}.cthoja{display:block;font-size:.7rem;color:var(--mut);font-weight:600}.ctx .ctfix{position:sticky;left:0;background:var(--card);z-index:1}
 .ctx tr.al td.ctfix{background:var(--wipbg)}.ctx tr.alr td.ctfix{background:var(--badbg)}.kpi b.warc{color:var(--wip)}.kpi b.okc{color:var(--ok)}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
@@ -1665,11 +1665,18 @@ const diasA=f=>{if(!f)return null;const[y,m,d]=f.split('-').map(Number),h=new Da
 function ctEstado(f,umbral){const d=diasA(f);if(d===null)return{k:'n',t:'Sin fecha',d};if(d<0)return{k:'r',t:`Vencido hace ${-d} día${d===-1?'':'s'}`,d};if(d===0)return{k:'r',t:'Vence hoy',d};if(d<=umbral)return{k:'a',t:`Vence en ${d} día${d===1?'':'s'}`,d};return{k:'o',t:`Vigente · ${d} días`,d}}
 function ctFilas(){return ((ctDatos[sede]||{}).filas||[]).map(f=>({...f,s:ctEstado(f.soat,CT_SOAT),r:ctEstado(f.rtm,CT_RTM)}))}
 function ctBadge(){const n=ctFilas().filter(f=>'ra'.includes(f.s.k)||'ra'.includes(f.r.k)).length,b=document.querySelector('.si[data-doc="tie"]');if(b)b.innerHTML=`Control Tiempo${n?` <span class="ctbad" aria-label="${n} alertas">${n}</span>`:''}`}
+function ctVivo(f,k,T){
+  const ex=(f.din||{})[k];if(ex){try{const r=Function('T','return '+ex)(serialHoy());if(Number.isFinite(r))return String(Math.round(r))}catch(x){}}
+  // Respaldo: columnas de «días pendientes» se recalculan con la fecha de vencimiento de su bloque
+  const tt=sinTilde((T||{})[k]||'');if(/d[ií]?as?\s*(ptes|pendientes|restantes|por vencer|para vencer|faltantes)/.test(tt)){const ref=ctIdx(k)>ctIdx('AF')?f.rtm:ctIdx(k)>ctIdx('AA')?f.soat:'';const d=diasA(ref);if(d!==null)return String(d)}
+  return f.c[k];
+}
+let ctDia=new Date().toDateString();setInterval(()=>{const d=new Date().toDateString();if(d!==ctDia){ctDia=d;renderCT()}},600000);
 function renderCT(){
   ctBadge();if(!cur||$('docv').hidden||docSec!=='tie')return;
   const D=ctDatos[sede],fs=ctFilas(),q=sinTilde($('ctbusca').value.trim());
   $('ctdel').hidden=!(D&&cur.rol==='admin');
-  $('ctsub').textContent=D?`Archivo «${D.nombre||'Excel'}» · cargado por ${D.por||'—'}${D.fecha?' el '+dtTxt(D.fecha):''} · títulos en la fila ${D.filaTitulos} · ${fs.length} registros`:'';
+  $('ctsub').textContent=D?`Archivo «${D.nombre||'Excel'}»${(D.hojas||[]).length>1?` · ${D.hojas.length} pestañas unidas (${D.hojas.map(h=>h.n).join(' + ')})`:''} · cargado por ${D.por||'—'}${D.fecha?' el '+dtTxt(D.fecha):''} · ${fs.length} registros · actualizado a hoy ${fd(ymd(new Date()))}`:'';
   if(!D){$('ctkpi').innerHTML='';$('ctal').innerHTML='';$('cttab').innerHTML=`<p class="empty" style="margin:0">Aún no hay información de Control Tiempo para ${esc(sede)}.${canEdit()?' Usa «Cargar Excel» para subir el archivo.':''}</p>`;return}
   const c=(k,t)=>fs.filter(f=>f[t].k===k).length;
   $('ctkpi').innerHTML=[[fs.length,'Registros',''],[c('r','s'),'SOAT vencidos (AA)',c('r','s')?'badc':''],[c('a','s'),`SOAT por vencer (≤${CT_SOAT} días)`,c('a','s')?'warc':''],[c('r','r'),'RTM vencidas (AF)',c('r','r')?'badc':''],[c('a','r'),`RTM por vencer (≤${CT_RTM} días)`,c('a','r')?'warc':'']]
@@ -1678,35 +1685,49 @@ function renderCT(){
   $('ctal').innerHTML=al.length?`<div class="ctalw" role="alert"><b>⚠ ${al.length} alerta${al.length>1?'s':''} de vencimiento</b><ul>${al.slice(0,10).map(a=>`<li class="${a.e.k}"><b>${esc(a.p)}</b> · ${a.n}: ${a.e.d<0?`vencido desde el ${fd(a.fe)}`:a.e.d===0?`vence HOY (${fd(a.fe)})`:`vence el ${fd(a.fe)}, en ${a.e.d} día${a.e.d===1?'':'s'}`}</li>`).join('')}</ul>${al.length>10?`<small>y ${al.length-10} más en la tabla.</small>`:''}</div>`:'';
   const vis=fs.filter(f=>(!q||CT_COLS.some(k=>sinTilde(f.c[k]||'').includes(q)))&&(ctFiltro==='todos'||(ctFiltro==='alerta'?'ra'.includes(f.s.k)||'ra'.includes(f.r.k):ctFiltro==='soat'?'ra'.includes(f.s.k):'ra'.includes(f.r.k))));
   const T=D.titulos||{};
-  const celda=(f,k)=>{const v=f.c[k]||'';if(k==='AA'||k==='AF'){const e=k==='AA'?f.s:f.r;return `<td><b>${esc(v||'—')}</b>${e.k!=='n'?`<br><span class="ctst ${e.k}">${e.t}</span>`:''}</td>`}return `<td${k==='D'?' class="ctfix"':''}>${k==='D'?`<b>${esc(v||'—')}</b>`:esc(v||'—')}</td>`};
+  const celda=(f,k)=>{const v=ctVivo(f,k,T)||'';if(k==='AA'||k==='AF'){const e=k==='AA'?f.s:f.r;return `<td><b>${esc(v||'—')}</b>${e.k!=='n'?`<br><span class="ctst ${e.k}">${e.t}</span>`:''}</td>`}return `<td${k==='D'?' class="ctfix"':''}>${k==='D'?`<b>${esc(v||'—')}</b>${f.hoja&&(D.hojas||[]).length>1?`<small class="cthoja">${esc(f.hoja)}</small>`:''}`:esc(v||'—')}</td>`};
   const G=D.grupos||{},gr=[];CT_COLS.forEach(k=>{const g=G[k]||'';if(gr.length&&gr[gr.length-1].g===g)gr[gr.length-1].n++;else gr.push({g,n:1})});
   const filaG=gr.some(x=>x.g)?`<tr class="ctg">${gr.map((x,i)=>`<th colspan="${x.n}" class="${i===0?'ctfix':''} ${/soat/i.test(x.g)?'gs':/rtm|tecno|revisi/i.test(sinTilde(x.g))?'gr':x.g?'gx':''}">${esc(x.g)}</th>`).join('')}</tr>`:'';
   $('cttab').innerHTML=vis.length?`<div class="tscroll"><table class="kmt ctt ctx"><thead>${filaG}<tr>${CT_COLS.map(k=>`<th${k==='D'?' class="ctfix"':''}>${esc(T[k]||'')}<small>Columna ${k}</small></th>`).join('')}</tr></thead>
     <tbody>${vis.map(f=>`<tr class="${f.s.k==='r'||f.r.k==='r'?'alr':f.s.k==='a'||f.r.k==='a'?'al':''}">${CT_COLS.map(k=>celda(f,k)).join('')}</tr>`).join('')}</tbody></table></div>`
     :'<p class="empty" style="margin:0">Ningún registro coincide con el filtro.</p>';
 }
-function ctLeerTabla(t,tx){
-  // t: valores reales (para calcular alertas) · tx: el texto tal como se ve en Excel (para mostrar sin cambios)
-  tx=tx||t;const iD=ctIdx('D'),txt=(row,k)=>{const v=((tx[row]||[])[ctIdx(k)]);return v===undefined||v===null?'':String(v).trim()};
+const serialHoy=()=>{const h=new Date();return Math.round((Date.UTC(h.getFullYear(),h.getMonth(),h.getDate())-Date.UTC(1899,11,30))/864e5)};
+const serialDe=v=>{if(v instanceof Date&&!isNaN(v)){const f=fechaAny(v);const[y,m,d]=f.split('-').map(Number);return Math.round((Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/864e5)}if(typeof v==='number')return v;const f=fechaAny(v);if(f){const[y,m,d]=f.split('-').map(Number);return Math.round((Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/864e5)}const n=Number(String(v).replace(',','.'));return isNaN(n)?null:n};
+// Convierte una fórmula de Excel con HOY()/TODAY() en una expresión que se recalcula cada día
+function formulaViva(fx,ws,X){
+  if(!fx||!/\b(TODAY|HOY|NOW|AHORA)\s*\(\s*\)/i.test(fx))return '';
+  let e=fx.replace(/^=/,'').replace(/'[^']*'!|\b\w+!/g,'').replace(/\b(TODAY|HOY|NOW|AHORA)\s*\(\s*\)/gi,'T');
+  e=e.replace(/\b(DAYS|DIAS)\s*\(([^,()]+),([^,()]+)\)/gi,'(($2)-($3))').replace(/\bDATEDIF\s*\(([^,()]+),([^,()]+),[^()]*\)/gi,'(($2)-($1))')
+     .replace(/\b(INT|ENTERO)\s*\(/gi,'Math.floor(').replace(/\b(ABS)\s*\(/gi,'Math.abs(');
+  let ok=true;e=e.replace(/\$?([A-Z]{1,3})\$?(\d+)/g,(m,c,r)=>{const cell=ws[c+r];const v=cell?(cell.v instanceof Date?cell.v:cell.v):null;const n=serialDe(v);if(n===null){ok=false;return '0'}return '('+n+')'});
+  return ok&&/^[\dT+\-*/(). ]*$/.test(e.replace(/Math\.(floor|abs)/g,''))?e:'';
+}
+function ctLeerTabla(t,tx,ws,X){
+  tx=tx||t;const txt=(row,k)=>{const v=((tx[row]||[])[ctIdx(k)]);return v===undefined||v===null?'':String(v).trim()};
   let f0=-1;for(let i=0;i<t.length;i++){if(esPlaca(txt(i,'D'))){f0=i;break}}
   const hi=f0-1;const filas=[];if(f0>=0)for(let i=f0;i<t.length;i++){if(esPlaca(txt(i,'D')))filas.push(i)}
-  // fila de grupos (encima de los títulos): celdas combinadas → se arrastra el último valor hacia la derecha
   const grupos={};if(hi>=1){let g='';for(let c=0;c<=ctIdx('AF');c++){const v=String(((tx[hi-1]||[])[c])??'').trim();if(v)g=v;CT_COLS.forEach(k=>{if(ctIdx(k)===c)grupos[k]=g})}}
   return{hi,grupos,titulos:Object.fromEntries(CT_COLS.map(k=>[k,hi>=0?txt(hi,k):''])),
-    filas:filas.map(i=>{const c={};CT_COLS.forEach(k=>c[k]=txt(i,k));const raw=t[i]||[];return{c,soat:fechaAny(raw[ctIdx('AA')])||fechaAny(c.AA),rtm:fechaAny(raw[ctIdx('AF')])||fechaAny(c.AF)}})};
+    filas:filas.map(i=>{const c={},din={};CT_COLS.forEach(k=>{c[k]=txt(i,k);if(ws){const cell=ws[k+(i+1)];const ex=cell&&cell.f?formulaViva(cell.f,ws,X):'';if(ex)din[k]=ex}});
+      const raw=t[i]||[];return{c,din,soat:fechaAny(raw[ctIdx('AA')])||fechaAny(c.AA),rtm:fechaAny(raw[ctIdx('AF')])||fechaAny(c.AF)}})};
 }
 async function ctLeer(f){
-  if(/\.csv$/i.test(f.name)){const t=parseCSV((await f.text()).replace(/^\uFEFF/,''));return ctLeerTabla(t,t)}
-  const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true,dateNF:'d/mm/yyyy'}),ws=wb.Sheets[wb.SheetNames[0]];
-  const R=X.utils.decode_range(ws['!ref']||'A1');R.s.r=0;R.s.c=0;
-  const o={header:1,defval:'',blankrows:true,range:R};
-  return ctLeerTabla(X.utils.sheet_to_json(ws,{...o,raw:true}),X.utils.sheet_to_json(ws,{...o,raw:false,dateNF:'d/mm/yyyy'}));
+  if(/\.csv$/i.test(f.name)){const t=parseCSV((await f.text()).replace(/^\uFEFF/,''));const L=ctLeerTabla(t,t);L.filas.forEach(x=>x.hoja='');return{...L,hojas:[{n:f.name,c:L.filas.length}]}}
+  const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true,cellFormula:true,dateNF:'d/mm/yyyy'});
+  let base=null;const todas=[],hojas=[];
+  for(const n of wb.SheetNames){const ws=wb.Sheets[n];if(!ws||!ws['!ref'])continue;
+    const R=X.utils.decode_range(ws['!ref']);R.s.r=0;R.s.c=0;const o={header:1,defval:'',blankrows:true,range:R};
+    const L=ctLeerTabla(X.utils.sheet_to_json(ws,{...o,raw:true}),X.utils.sheet_to_json(ws,{...o,raw:false,dateNF:'d/mm/yyyy'}),ws,X);
+    if(!L.filas.length)continue;L.filas.forEach(x=>x.hoja=n);todas.push(...L.filas);hojas.push({n,c:L.filas.length,fila:L.hi+1});if(!base)base=L}
+  if(!base)return{hi:-1,grupos:{},titulos:{},filas:[],hojas:[]};
+  return{...base,filas:todas,hojas};
 }
 $('ctfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('ctmsg').textContent='Leyendo el archivo…';
   try{const L=await ctLeer(f);
     if(!L.filas.length){$('ctmsg').textContent='No se encontraron placas en la columna D del archivo.';return}
-    await setDoc(doc(db,'ctiempo',sede),{sede,nombre:f.name,filaTitulos:L.hi+1,titulos:L.titulos,grupos:L.grupos,filas:L.filas,fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
-    $('ctmsg').textContent=`«${f.name}» cargado: ${L.filas.length} registros, tal como están en el Excel. Títulos tomados de la fila ${L.hi+1}; datos desde la fila ${L.hi+2}. Columnas: ${CT_COLS.join(', ')}.`}
+    await setDoc(doc(db,'ctiempo',sede),{sede,nombre:f.name,filaTitulos:L.hi+1,titulos:L.titulos,grupos:L.grupos,hojas:L.hojas,filas:L.filas,fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
+    const nd=L.filas.filter(x=>Object.keys(x.din||{}).length).length;$('ctmsg').textContent=`«${f.name}» cargado: ${L.filas.length} registros de ${L.hojas.length} pestaña${L.hojas.length===1?'':'s'} (${L.hojas.map(h=>`${h.n}: ${h.c}`).join(' · ')}), tal como están en el Excel.${nd?` Las columnas calculadas con la fecha de hoy se actualizan solas cada día.`:''}`}
   catch(x){console.error(x);$('ctmsg').textContent='No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
 $('ctup').onclick=()=>{if(canEdit())$('ctfile').click()};
 $('ctdel').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar toda la información de Control Tiempo de ${sede}?`))return;try{await deleteDoc(doc(db,'ctiempo',sede));$('ctmsg').textContent='Información borrada.'}catch(x){alert(ERR(x.code))}};
