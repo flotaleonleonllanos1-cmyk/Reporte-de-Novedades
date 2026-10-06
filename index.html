@@ -738,12 +738,12 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       <a class="btn ghost" id="docdrive" target="_blank" rel="noopener">Abrir en Google Drive</a>
     </div>
   </div>
-  <div class="dc ctw" id="ctw" hidden><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Control de vencimientos · SOAT y RTM</h2><button type="button" class="btn" id="ctup" hidden>Cargar Excel</button></div>
+  <div class="dc ctw" id="ctw" hidden><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Control Tiempo</h2><div class="hb"><button type="button" class="del" id="ctdel" hidden>Borrar información</button><button type="button" class="btn" id="ctup" hidden>Cargar Excel</button></div></div>
     <small id="ctsub"></small><div class="pprog" id="ctmsg" role="status"></div>
     <div class="kpis" id="ctkpi" style="margin-top:10px"></div><div id="ctal"></div>
     <div class="ralbar" style="margin:12px 0 8px"><div class="tabs" role="group" aria-label="Filtrar" id="cttabs" style="margin:0"><button class="tab" data-ctf="todos" aria-pressed="true">Todos</button><button class="tab" data-ctf="alerta" aria-pressed="false">Con alerta</button><button class="tab" data-ctf="soat" aria-pressed="false">SOAT</button><button class="tab" data-ctf="rtm" aria-pressed="false">RTM</button></div>
-      <input type="search" id="ctbusca" placeholder="Buscar placa…" aria-label="Buscar placa" style="width:200px;margin:0"></div>
-    <div id="cttab"></div><small class="mnota" style="margin-top:8px">Alertas: SOAT desde 5 días antes de vencer y RTM desde 22 días antes. Del Excel se muestran, desde la fila 2 (títulos), solo la placa (columna D), la información del SOAT (columnas X, Y, Z y AA, con el vencimiento en AA) y la de la RTM (columnas AB, AC, AD y AF, con el vencimiento en AF).</small>
+      <input type="search" id="ctbusca" placeholder="Buscar…" aria-label="Buscar" style="width:200px;margin:0"></div>
+    <div id="cttab"></div><small class="mnota" style="margin-top:8px">Se muestran las columnas D, X, Y, Z, AA, AB, AC, AD y AF del Excel, con sus títulos. Alertas: SOAT (columna AA) desde 5 días antes de vencer y RTM (columna AF) desde 22 días antes.</small>
     <input type="file" id="ctfile" accept=".xlsx,.xls,.csv" hidden></div>
   <div class="dc docw"><h2 id="doctit">Documentos de vehículos</h2><small id="docsub"></small>
     <div class="docnav" id="docnav"><button type="button" class="btn ghost" id="docup" hidden aria-label="Volver a la carpeta anterior">‹ Atrás</button><nav class="docmiga" id="docmiga" aria-label="Ubicación en las carpetas"></nav>
@@ -1085,15 +1085,6 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="bpsave">Guardar placas</button></div>
   </form>
 </dialog>
-<dialog id="ctcdlg">
-  <form id="ctcfrm">
-    <h2>Columnas del Excel</h2>
-    <p class="mnota">No se encontraron automáticamente todas las columnas. Indica cuál corresponde a cada dato.</p>
-    <label>Placa<select id="ctc-pla"></select></label><label>Fecha de vencimiento del SOAT<select id="ctc-soat"></select></label><label>Fecha de vencimiento de la RTM<select id="ctc-rtm"></select></label>
-    <div class="err" id="ctcerr" role="alert"></div>
-    <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn">Cargar</button></div>
-  </form>
-</dialog>
 <dialog id="mapdlg">
   <div class="pvtop"><div><b id="maptit">Ubicación</b><small id="mapsub"></small></div><div class="hb"><a class="btn ghost" id="mapab" target="_blank" rel="noopener">Abrir en Google Maps</a><button type="button" class="btn" onclick="this.closest('dialog').close()">Cerrar</button></div></div>
   <iframe id="mapfr" class="pvframe" title="Mapa de la ubicación" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
@@ -1315,7 +1306,7 @@ async function entrar(user){
   if(puedeVer('cal'))unsubC=onSnapshot(collection(db,'calibraciones'),snap=>{
     cals=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal();
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
-  if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'vencimientos'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT()},()=>{});
+  if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT()},()=>{});
   if(puedeVer('bar')||puedeVer('lav'))unsubB=onSnapshot(collection(db,'aseo'),snap=>{aseo=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderBL()},()=>{});
   if(puedeVer('ral'))unsubR=onSnapshot(collection(db,'ralenti'),snap=>{ralArch=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderRal()},()=>{});
   if(puedeVer('km'))unsubK=onSnapshot(collection(db,'kilometrajes'),snap=>{kms=snap.docs.map(d=>({id:d.id,...d.data()}));renderKm()},x=>{if(!$('kmv').hidden)$('kmlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
@@ -1651,8 +1642,10 @@ async function descargarVistaPDF(){
   finally{document.documentElement.classList.remove('pdfcap');expandirTodo(false);b.disabled=false;b.textContent=t}
 }
 $('pdfv').onclick=descargarVistaPDF;
-/* ---------- Control Tiempo: vencimientos de SOAT (5 días) y RTM (21 días) ---------- */
-/* columnas AA y AF del Excel */const CT_SOAT_EX=[23,24,25],CT_RTM_EX=[27,28,29],CT_SOAT=5,CT_RTM=22,CT_COL_SOAT=26,CT_COL_RTM=31;let ctDatos={},unsubT=null,ctFiltro='todos',ctTabla=null;
+/* ---------- Control Tiempo (desde cero): visual del Excel con las columnas D, X, Y, Z, AA, AB, AC, AD y AF ---------- */
+const CT_COLS=['D','X','Y','Z','AA','AB','AC','AD','AF'],CT_SOAT=5,CT_RTM=22;
+const ctIdx=l=>l.split('').reduce((n,c)=>n*26+(c.charCodeAt(0)-64),0)-1;
+let ctDatos={},unsubT=null,ctFiltro='todos';
 const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 function fechaAny(v){
   if(v===null||v===undefined||v==='')return '';
@@ -1666,75 +1659,54 @@ function fechaAny(v){
   if(/^\d{5}(\.\d+)?$/.test(t))return fechaAny(Number(t));
   return '';
 }
-function ctValor(v,tit){if(v===null||v===undefined||v==='')return '';if(v instanceof Date||(/fecha|venc|expedic/i.test(sinTilde(tit||''))&&(typeof v==='number'||/\d[-\/.]\d/.test(String(v))))){const f=fechaAny(v);if(f)return fd(f)}
-  return String(v).trim().slice(0,120)}
-function ctDetectar(cols){
-  const n=cols.map(c=>nh(c));let pla=n.findIndex(c=>c==='placamatricula'||c==='placa'||c==='matricula');if(pla<0)pla=n.findIndex(c=>c.includes('placa')||c.includes('matricula'));
-  let soat=n.findIndex(c=>c==='fechadefechadevencimiento');let rtm=n.findIndex(c=>c==='fechadevencimiento5');
-  if(soat<0)soat=n.findIndex(c=>c.includes('soat')&&c.includes('venc'));if(rtm<0)rtm=n.findIndex(c=>(c.includes('rtm')||c.includes('tecno'))&&c.includes('venc'));
-  const fv=n.map((c,i)=>c.startsWith('fechadevencimiento')||c.startsWith('fechadefechadevencimiento')?i:-1).filter(i=>i>=0&&i!==soat&&i!==rtm);
-  if(soat<0&&fv.length)soat=fv.shift();if(rtm<0&&fv.length)rtm=fv.shift();
-  return{pla,soat,rtm};
-}
+function ctTexto(v){if(v===null||v===undefined||v==='')return '';if(v instanceof Date){const f=fechaAny(v);return f?fd(f):''}if(typeof v==='number'&&Number.isInteger(v)&&v>20000&&v<90000&&false)return '';return String(v).trim().slice(0,150)}
+const esPlaca=v=>{const p=normP(v);return p.length>=5&&p.length<=8&&/[A-Z]/.test(p)&&/\d/.test(p)};
 const diasA=f=>{if(!f)return null;const[y,m,d]=f.split('-').map(Number),h=new Date();h.setHours(0,0,0,0);return Math.round((new Date(y,m-1,d)-h)/864e5)};
 function ctEstado(f,umbral){const d=diasA(f);if(d===null)return{k:'n',t:'Sin fecha',d};if(d<0)return{k:'r',t:`Vencido hace ${-d} día${d===-1?'':'s'}`,d};if(d===0)return{k:'r',t:'Vence hoy',d};if(d<=umbral)return{k:'a',t:`Vence en ${d} día${d===1?'':'s'}`,d};return{k:'o',t:`Vigente · ${d} días`,d}}
 function ctFilas(){return ((ctDatos[sede]||{}).filas||[]).map(f=>({...f,s:ctEstado(f.soat,CT_SOAT),r:ctEstado(f.rtm,CT_RTM)}))}
-function ctContarAlertas(){const fs=ctFilas();return fs.filter(f=>f.s.k==='r'||f.s.k==='a'||f.r.k==='r'||f.r.k==='a').length}
-function ctBadge(){const n=ctContarAlertas(),b=document.querySelector('.si[data-doc="tie"]');if(b)b.innerHTML=`Control Tiempo${n?` <span class="ctbad" aria-label="${n} alertas">${n}</span>`:''}`}
+function ctBadge(){const n=ctFilas().filter(f=>'ra'.includes(f.s.k)||'ra'.includes(f.r.k)).length,b=document.querySelector('.si[data-doc="tie"]');if(b)b.innerHTML=`Control Tiempo${n?` <span class="ctbad" aria-label="${n} alertas">${n}</span>`:''}`}
 function renderCT(){
   ctBadge();if(!cur||$('docv').hidden||docSec!=='tie')return;
-  const D=ctDatos[sede],fs=ctFilas(),q=normP($('ctbusca').value);
-  $('ctsub').textContent=D?`Archivo «${D.nombre||'Excel'}» · cargado por ${D.por||'—'}${D.fecha?' el '+dtTxt(D.fecha):''} · ${fs.length} vehículos`:'';
-  if(!D){$('ctkpi').innerHTML='';$('ctal').innerHTML='';$('cttab').innerHTML=`<p class="empty" style="margin:0">Aún no hay un Excel de vencimientos para ${esc(sede)}.${canEdit()?' Usa «Cargar Excel» para subirlo.':''}</p>`;return}
+  const D=ctDatos[sede],fs=ctFilas(),q=sinTilde($('ctbusca').value.trim());
+  $('ctdel').hidden=!(D&&cur.rol==='admin');
+  $('ctsub').textContent=D?`Archivo «${D.nombre||'Excel'}» · cargado por ${D.por||'—'}${D.fecha?' el '+dtTxt(D.fecha):''} · títulos en la fila ${D.filaTitulos} · ${fs.length} registros`:'';
+  if(!D){$('ctkpi').innerHTML='';$('ctal').innerHTML='';$('cttab').innerHTML=`<p class="empty" style="margin:0">Aún no hay información de Control Tiempo para ${esc(sede)}.${canEdit()?' Usa «Cargar Excel» para subir el archivo.':''}</p>`;return}
   const c=(k,t)=>fs.filter(f=>f[t].k===k).length;
-  $('ctkpi').innerHTML=[[fs.length,'Vehículos',''],[c('r','s'),'SOAT vencidos',c('r','s')?'badc':''],[c('a','s'),`SOAT por vencer (≤${CT_SOAT} días)`,c('a','s')?'warc':''],[c('r','r'),'RTM vencidas',c('r','r')?'badc':''],[c('a','r'),`RTM por vencer (≤${CT_RTM} días)`,c('a','r')?'warc':''],[fs.filter(f=>f.s.k==='o'&&f.r.k==='o').length,'Todo al día','okc']]
+  $('ctkpi').innerHTML=[[fs.length,'Registros',''],[c('r','s'),'SOAT vencidos (AA)',c('r','s')?'badc':''],[c('a','s'),`SOAT por vencer (≤${CT_SOAT} días)`,c('a','s')?'warc':''],[c('r','r'),'RTM vencidas (AF)',c('r','r')?'badc':''],[c('a','r'),`RTM por vencer (≤${CT_RTM} días)`,c('a','r')?'warc':'']]
     .map(([v,l,k])=>`<div class="kpi"><b class="${k}">${v}</b><span>${l}</span></div>`).join('');
-  const al=[];fs.forEach(f=>{[['s','SOAT',f.soat],['r','RTM',f.rtm]].forEach(([k,n,fe])=>{const e=f[k];if(e.k==='r'||e.k==='a')al.push({p:f.placa,n,fe,e})})});
-  al.sort((a,b)=>a.e.d-b.e.d);
-  $('ctal').innerHTML=al.length?`<div class="ctalw" role="alert"><b>⚠ ${al.length} alerta${al.length>1?'s':''} de vencimiento</b><ul>${al.slice(0,12).map(a=>`<li class="${a.e.k}"><b>${esc(a.p)}</b> · ${a.n}: ${a.e.d<0?`vencido desde el ${fd(a.fe)}`:a.e.d===0?`vence HOY (${fd(a.fe)})`:`vence el ${fd(a.fe)}, en ${a.e.d} día${a.e.d===1?'':'s'}`}</li>`).join('')}</ul>${al.length>12?`<small>y ${al.length-12} más en la tabla.</small>`:''}</div>`:'<div class="ctok">✓ No hay SOAT ni RTM vencidos o por vencer.</div>';
-  const urg=f=>Math.min(f.s.d===null?9999:f.s.d-CT_SOAT,f.r.d===null?9999:f.r.d-CT_RTM);
-  const vis=fs.filter(f=>(!q||normP(f.placa).includes(q))&&(ctFiltro==='todos'||(ctFiltro==='alerta'?['r','a'].includes(f.s.k)||['r','a'].includes(f.r.k):ctFiltro==='soat'?['r','a'].includes(f.s.k):['r','a'].includes(f.r.k)))).sort((a,b)=>urg(a)-urg(b)||cmpP(a.placa,b.placa));
-  const tit=D.tit||{},cs=(D.cols||{}),tS=CT_SOAT_EX.map(colL),tR=CT_RTM_EX.map(colL);
-  const th=k=>`<th title="Columna ${k}">${esc(tit[k]||'Columna '+k)}<small>${k}</small></th>`,td=(f,k)=>`<td>${esc((f.ex||{})[k]||'—')}</td>`;
-  const est=e=>`<span class="ctst ${e.k}">${e.t}</span>`;
-  $('cttab').innerHTML=vis.length?`<div class="tscroll"><table class="kmt ctt ctx"><thead>
-    <tr class="ctg"><th rowspan="2" class="ctfix">${esc(cs.placa||'Placa')}<small>D</small></th><th colspan="${tS.length+2}" class="gs">SOAT</th><th colspan="${tR.length+2}" class="gr">RTM</th></tr>
-    <tr>${tS.map(th).join('')}<th>${esc(cs.soat||'Vencimiento SOAT')}<small>${cs.colSoat||'AA'}</small></th><th>Estado SOAT</th>${tR.map(th).join('')}<th>${esc(cs.rtm||'Vencimiento RTM')}<small>${cs.colRtm||'AF'}</small></th><th>Estado RTM</th></tr></thead>
-    <tbody>${vis.map(f=>`<tr class="${f.s.k==='r'||f.r.k==='r'?'alr':f.s.k==='a'||f.r.k==='a'?'al':''}"><td class="ctfix"><b>${esc(f.placa)}</b></td>${tS.map(k=>td(f,k)).join('')}<td><b>${f.soat?fd(f.soat):'—'}</b></td><td>${est(f.s)}</td>${tR.map(k=>td(f,k)).join('')}<td><b>${f.rtm?fd(f.rtm):'—'}</b></td><td>${est(f.r)}</td></tr>`).join('')}</tbody></table></div>`
-    :'<p class="empty" style="margin:0">Ningún vehículo coincide con el filtro.</p>';
+  const al=[];fs.forEach(f=>[['s','SOAT',f.soat],['r','RTM',f.rtm]].forEach(([k,n,fe])=>{if('ra'.includes(f[k].k))al.push({p:f.c.D,n,fe,e:f[k]})}));al.sort((a,b)=>a.e.d-b.e.d);
+  $('ctal').innerHTML=al.length?`<div class="ctalw" role="alert"><b>⚠ ${al.length} alerta${al.length>1?'s':''} de vencimiento</b><ul>${al.slice(0,10).map(a=>`<li class="${a.e.k}"><b>${esc(a.p)}</b> · ${a.n}: ${a.e.d<0?`vencido desde el ${fd(a.fe)}`:a.e.d===0?`vence HOY (${fd(a.fe)})`:`vence el ${fd(a.fe)}, en ${a.e.d} día${a.e.d===1?'':'s'}`}</li>`).join('')}</ul>${al.length>10?`<small>y ${al.length-10} más en la tabla.</small>`:''}</div>`:'';
+  const vis=fs.filter(f=>(!q||CT_COLS.some(k=>sinTilde(f.c[k]||'').includes(q)))&&(ctFiltro==='todos'||(ctFiltro==='alerta'?'ra'.includes(f.s.k)||'ra'.includes(f.r.k):ctFiltro==='soat'?'ra'.includes(f.s.k):'ra'.includes(f.r.k))));
+  const T=D.titulos||{};
+  const celda=(f,k)=>{const v=f.c[k]||'';if(k==='AA'||k==='AF'){const e=k==='AA'?f.s:f.r;return `<td><b>${esc(v||'—')}</b>${e.k!=='n'?`<br><span class="ctst ${e.k}">${e.t}</span>`:''}</td>`}return `<td${k==='D'?' class="ctfix"':''}>${k==='D'?`<b>${esc(v||'—')}</b>`:esc(v||'—')}</td>`};
+  $('cttab').innerHTML=vis.length?`<div class="tscroll"><table class="kmt ctt ctx"><thead><tr>${CT_COLS.map(k=>`<th${k==='D'?' class="ctfix"':''}>${esc(T[k]||'')}<small>Columna ${k}</small></th>`).join('')}</tr></thead>
+    <tbody>${vis.map(f=>`<tr class="${f.s.k==='r'||f.r.k==='r'?'alr':f.s.k==='a'||f.r.k==='a'?'al':''}">${CT_COLS.map(k=>celda(f,k)).join('')}</tr>`).join('')}</tbody></table></div>`
+    :'<p class="empty" style="margin:0">Ningún registro coincide con el filtro.</p>';
 }
-function ctTabla2(t){
-  // Fila 2 del Excel (índice 1) es la de los títulos si allí está «PLACA / MATRÍCULA»; si no, se busca la fila que lo tenga
-  let hi=t[1]&&ctDetectar(t[1].map(x=>String(x??''))).pla>=0?1:t.findIndex(r=>ctDetectar((r||[]).map(x=>String(x??''))).pla>=0);if(hi<0)hi=0;
-  const nc=Math.max(32,...t.slice(hi,hi+50).map(r=>(r||[]).length));
-  return{cols:Array.from({length:nc},(_,i)=>String((t[hi]||[])[i]??'').trim()||`Columna ${colL(i)}`),filas:t.slice(hi+1).filter(r=>r&&r.some(v=>v!==''&&v!==null&&v!==undefined)),fila:hi+1};
+function ctLeerTabla(t){
+  const iD=ctIdx('D');let hi=-1;
+  for(let i=0;i<Math.min(6,t.length);i++){const v=(t[i]||[])[iD];if(v!==undefined&&String(v).trim()!==''&&!esPlaca(v)){hi=i;break}}
+  const filas=t.slice(hi+1).filter(r=>r&&esPlaca(r[iD]));
+  return{hi,filas,titulos:Object.fromEntries(CT_COLS.map(k=>[k,hi>=0?String((t[hi]||[])[ctIdx(k)]??'').trim():'']))};
 }
 async function ctLeer(f){
-  if(/\.csv$/i.test(f.name))return ctTabla2(parseCSV((await f.text()).replace(/^\uFEFF/,'')));
+  if(/\.csv$/i.test(f.name))return ctLeerTabla(parseCSV((await f.text()).replace(/^\uFEFF/,'')));
   const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true}),ws=wb.Sheets[wb.SheetNames[0]];
-  const R=X.utils.decode_range(ws['!ref']||'A1');R.s.r=0;R.s.c=0; // siempre desde A1, para que AA y AF sean las columnas reales del Excel
-  return ctTabla2(X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:true,range:R}));
-}
-let ctPend=null;
-async function ctGuardar(T,cc,nombre){
-  const out=[],vistos=new Set();T.filas.forEach(r=>{const p=normP(r[cc.pla]);if(!p||p.length<5||p.length>8||!/[A-Z]/.test(p)||!/\d/.test(p)||vistos.has(p))return;vistos.add(p);const ex={};[...CT_SOAT_EX,...CT_RTM_EX].forEach(i=>ex[colL(i)]=ctValor(r[i],T.cols[i]));out.push({placa:p,soat:cc.soat>=0?fechaAny(r[cc.soat]):'',rtm:cc.rtm>=0?fechaAny(r[cc.rtm]):'',ex})});
-  if(!out.length){alert('No se encontraron placas en la columna elegida.');return false}
-  out.sort((a,b)=>cmpP(a.placa,b.placa));
-  await setDoc(doc(db,'vencimientos',sede),{sede,nombre,filas:out,cols:{placa:T.cols[cc.pla]||'',soat:T.cols[cc.soat]||'',rtm:T.cols[cc.rtm]||'',colSoat:cc.soat>=0?colL(cc.soat):'',colRtm:cc.rtm>=0?colL(cc.rtm):''},tit:Object.fromEntries([...CT_SOAT_EX,...CT_RTM_EX].map(i=>[colL(i),T.cols[i]||`Columna ${colL(i)}`])),fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
-  $('ctmsg').textContent=`«${nombre}» cargado: ${out.length} vehículos. Títulos en la fila ${T.fila} y datos desde la fila ${T.fila+1}. Columnas usadas: Placa = ${colL(cc.pla)} «${T.cols[cc.pla]}», SOAT = ${cc.soat>=0?colL(cc.soat):'—'}, RTM = ${cc.rtm>=0?colL(cc.rtm):'—'}.`;return true;
+  const R=X.utils.decode_range(ws['!ref']||'A1');R.s.r=0;R.s.c=0;
+  return ctLeerTabla(X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:true,range:R}));
 }
 $('ctfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('ctmsg').textContent='Leyendo el archivo…';
-  try{const T=await ctLeer(f),dt=ctDetectar(T.cols);
-    const fechas=k=>T.filas.slice(0,60).filter(r=>fechaAny(r[k])).length,hay=k=>T.filas.some(r=>r[k]!==undefined&&String(r[k]).trim()!=='');
-    const cc={pla:dt.pla>=0?dt.pla:(hay(3)?3:-1),soat:hay(CT_COL_SOAT)?CT_COL_SOAT:-1,rtm:hay(CT_COL_RTM)?CT_COL_RTM:-1};
-    if(cc.pla<0||cc.soat<0||cc.rtm<0||!fechas(CT_COL_SOAT)||!fechas(CT_COL_RTM)){ctPend={T,nombre:f.name};const op=sel=>'<option value="-1">(No tiene)</option>'+T.cols.map((c,i)=>`<option value="${i}"${i===sel?' selected':''}>Columna ${colL(i)} · ${esc(c)}</option>`).join('');
-      $('ctc-pla').innerHTML=op(cc.pla);$('ctc-soat').innerHTML=op(cc.soat>=0?cc.soat:dt.soat);$('ctc-rtm').innerHTML=op(cc.rtm>=0?cc.rtm:dt.rtm);$('ctcerr').textContent='';$('ctmsg').textContent='';$('ctcdlg').showModal();return}
-    await ctGuardar(T,cc,f.name)}
+  try{const L=await ctLeer(f);
+    if(!L.filas.length){$('ctmsg').textContent='No se encontraron placas en la columna D del archivo.';return}
+    const filas=L.filas.map(r=>{const c={};CT_COLS.forEach(k=>c[k]=ctTexto(r[ctIdx(k)]));c.D=normP(r[ctIdx('D')]);
+      const soat=fechaAny(r[ctIdx('AA')]),rtm=fechaAny(r[ctIdx('AF')]);if(soat)c.AA=fd(soat);if(rtm)c.AF=fd(rtm);
+      CT_COLS.forEach(k=>{if(k!=='AA'&&k!=='AF'&&r[ctIdx(k)] instanceof Date)c[k]=fd(fechaAny(r[ctIdx(k)]))});
+      return{c,soat,rtm}});
+    await setDoc(doc(db,'ctiempo',sede),{sede,nombre:f.name,filaTitulos:L.hi+1,titulos:L.titulos,filas,fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
+    $('ctmsg').textContent=`«${f.name}» cargado: ${filas.length} registros. Títulos tomados de la fila ${L.hi+1}; datos desde la fila ${L.hi+2}. Columnas: ${CT_COLS.join(', ')}.`}
   catch(x){console.error(x);$('ctmsg').textContent='No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
-$('ctcfrm').onsubmit=async e=>{e.preventDefault();if(!ctPend)return;const cc={pla:+$('ctc-pla').value,soat:+$('ctc-soat').value,rtm:+$('ctc-rtm').value};
-  if(cc.pla<0){$('ctcerr').textContent='Elige la columna de la placa.';return}if(cc.soat<0&&cc.rtm<0){$('ctcerr').textContent='Elige al menos la columna de SOAT o la de RTM.';return}
-  try{if(await ctGuardar(ctPend.T,cc,ctPend.nombre)){ctPend=null;$('ctcdlg').close()}}catch(x){$('ctcerr').textContent=ERR(x.code)}};
 $('ctup').onclick=()=>{if(canEdit())$('ctfile').click()};
+$('ctdel').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar toda la información de Control Tiempo de ${sede}?`))return;try{await deleteDoc(doc(db,'ctiempo',sede));$('ctmsg').textContent='Información borrada.'}catch(x){alert(ERR(x.code))}};
 $('ctbusca').oninput=renderCT;
 $('cttabs').onclick=e=>{const b=e.target.closest('[data-ctf]');if(!b)return;ctFiltro=b.dataset.ctf;$('cttabs').querySelectorAll('[data-ctf]').forEach(x=>x.setAttribute('aria-pressed',x===b));renderCT()};
 function cerrarMenuMovil(){document.querySelector('.shell').classList.remove('abierto');$('velo').hidden=true}
