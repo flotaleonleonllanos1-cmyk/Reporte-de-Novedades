@@ -171,6 +171,14 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 @media (max-width:560px){.blfotos{gap:8px}}
 .pdfcap .acts,.pdfcap .btn,.pdfcap .del,.pdfcap .xl,.pdfcap .ralord,.pdfcap .vmap iframe,.pdfcap .docnav input,.pdfcap .pubbtns,.pdfcap .ver{display:none!important}
 @media print{.side,.topbar .btn,.velo,.sidemob,.acts,.xl,dialog{display:none!important}.shell{display:block}.contenido{max-width:none;padding:0}body{background:#fff}}
+.ctbad{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#dc2626;color:#fff;font-size:.72rem;font-weight:800;margin-left:6px;animation:ctlate 1.6s ease-in-out infinite}
+@keyframes ctlate{50%{transform:scale(1.12)}}@media (prefers-reduced-motion:reduce){.ctbad{animation:none}}
+.ctalw{background:var(--badbg);color:var(--bad);border:1px solid var(--bad);border-radius:10px;padding:10px 14px;margin-top:12px}
+.ctalw ul{margin:6px 0 0;padding-left:18px;color:var(--ink)}.ctalw li{margin:2px 0}.ctalw li.r b{color:var(--bad)}.ctalw li.a b{color:var(--wip)}
+.ctok{background:var(--okbg);color:var(--ok);border-radius:10px;padding:10px 14px;margin-top:12px;font-weight:700}
+.ctst{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.82rem;font-weight:700;white-space:nowrap}
+.ctst.r{background:var(--badbg);color:var(--bad)}.ctst.a{background:var(--wipbg);color:var(--wip)}.ctst.o{background:var(--okbg);color:var(--ok)}.ctst.n{color:var(--mut)}
+.ctt{min-width:620px}.kpi b.warc{color:var(--wip)}.kpi b.okc{color:var(--ok)}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
 .docmiga{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:200px;font-size:.92rem}
@@ -670,6 +678,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       <div class="sub">
         <button type="button" class="si" data-doc="veh">Vehículos</button>
         <button type="button" class="si" data-doc="con">Conductores</button>
+        <button type="button" class="si" data-doc="tie">Control Tiempo</button>
       </div>
     </div>
     <div class="grp">
@@ -718,12 +727,20 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="tabs" role="group" aria-label="Sección" id="doctabs" style="margin:0">
       <button class="tab" data-doc="veh" aria-pressed="true">Vehículos</button>
       <button class="tab" data-doc="con" aria-pressed="false">Conductores</button>
+      <button class="tab" data-doc="tie" aria-pressed="false">Control Tiempo</button>
     </div>
-    <div class="hb">
+    <div class="hb" id="dochb">
       <div class="tabs" role="group" aria-label="Vista" id="docvista" style="margin:0"><button class="tab" data-dv="list" aria-pressed="true">Lista</button><button class="tab" data-dv="grid" aria-pressed="false">Cuadrícula</button></div>
       <a class="btn ghost" id="docdrive" target="_blank" rel="noopener">Abrir en Google Drive</a>
     </div>
   </div>
+  <div class="dc ctw" id="ctw" hidden><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Control de vencimientos · SOAT y RTM</h2><button type="button" class="btn" id="ctup" hidden>Cargar Excel</button></div>
+    <small id="ctsub"></small><div class="pprog" id="ctmsg" role="status"></div>
+    <div class="kpis" id="ctkpi" style="margin-top:10px"></div><div id="ctal"></div>
+    <div class="ralbar" style="margin:12px 0 8px"><div class="tabs" role="group" aria-label="Filtrar" id="cttabs" style="margin:0"><button class="tab" data-ctf="todos" aria-pressed="true">Todos</button><button class="tab" data-ctf="alerta" aria-pressed="false">Con alerta</button><button class="tab" data-ctf="soat" aria-pressed="false">SOAT</button><button class="tab" data-ctf="rtm" aria-pressed="false">RTM</button></div>
+      <input type="search" id="ctbusca" placeholder="Buscar placa…" aria-label="Buscar placa" style="width:200px;margin:0"></div>
+    <div id="cttab"></div><small class="mnota" style="margin-top:8px">Alertas: SOAT desde 5 días antes de vencer y RTM desde 21 días antes. El Excel debe tener las columnas «PLACA / MATRÍCULA», «Fecha de Fecha de vencimiento» (SOAT) y «Fecha de vencimiento5» (RTM).</small>
+    <input type="file" id="ctfile" accept=".xlsx,.xls,.csv" hidden></div>
   <div class="dc docw"><h2 id="doctit">Documentos de vehículos</h2><small id="docsub"></small>
     <div class="docnav" id="docnav"><button type="button" class="btn ghost" id="docup" hidden aria-label="Volver a la carpeta anterior">‹ Atrás</button><nav class="docmiga" id="docmiga" aria-label="Ubicación en las carpetas"></nav>
       <input type="search" id="docbusca" placeholder="Buscar por nombre…" aria-label="Buscar documentos"><button type="button" class="btn ghost" id="docref" title="Actualizar">Actualizar</button></div>
@@ -1064,6 +1081,15 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="bpsave">Guardar placas</button></div>
   </form>
 </dialog>
+<dialog id="ctcdlg">
+  <form id="ctcfrm">
+    <h2>Columnas del Excel</h2>
+    <p class="mnota">No se encontraron automáticamente todas las columnas. Indica cuál corresponde a cada dato.</p>
+    <label>Placa<select id="ctc-pla"></select></label><label>Fecha de vencimiento del SOAT<select id="ctc-soat"></select></label><label>Fecha de vencimiento de la RTM<select id="ctc-rtm"></select></label>
+    <div class="err" id="ctcerr" role="alert"></div>
+    <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn">Cargar</button></div>
+  </form>
+</dialog>
 <dialog id="mapdlg">
   <div class="pvtop"><div><b id="maptit">Ubicación</b><small id="mapsub"></small></div><div class="hb"><a class="btn ghost" id="mapab" target="_blank" rel="noopener">Abrir en Google Maps</a><button type="button" class="btn" onclick="this.closest('dialog').close()">Cerrar</button></div></div>
   <iframe id="mapfr" class="pvframe" title="Mapa de la ubicación" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
@@ -1252,6 +1278,8 @@ function salir(){
   if(unsubK){unsubK();unsubK=null}
   if(unsubR){unsubR();unsubR=null}
   if(unsubB){unsubB();unsubB=null}
+  if(unsubT){unsubT();unsubT=null}
+  ctDatos={};
   aseo=[];
   ralArch=[];ralSel='';
   kms=[];
@@ -1283,6 +1311,7 @@ async function entrar(user){
   if(puedeVer('cal'))unsubC=onSnapshot(collection(db,'calibraciones'),snap=>{
     cals=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal();
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
+  if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'vencimientos'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT()},()=>{});
   if(puedeVer('bar')||puedeVer('lav'))unsubB=onSnapshot(collection(db,'aseo'),snap=>{aseo=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderBL()},()=>{});
   if(puedeVer('ral'))unsubR=onSnapshot(collection(db,'ralenti'),snap=>{ralArch=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderRal()},()=>{});
   if(puedeVer('km'))unsubK=onSnapshot(collection(db,'kilometrajes'),snap=>{kms=snap.docs.map(d=>({id:d.id,...d.data()}));renderKm()},x=>{if(!$('kmv').hidden)$('kmlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
@@ -1446,7 +1475,7 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
 function titulo(){
   const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':'Conductores'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('vtit').textContent=ini?'':bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
   $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
@@ -1480,6 +1509,8 @@ function urlsDoc(f){const id=f.id,m=f.mimeType;
 }
 const icoDoc=m=>m===MIME_FOLDER?'📁':m==='application/pdf'?'PDF':m&&m.startsWith('image/')?'IMG':m==='application/vnd.google-apps.document'?'DOC':m==='application/vnd.google-apps.spreadsheet'?'XLS':m==='application/vnd.google-apps.presentation'?'PPT':'ARC';
 async function renderDoc(reiniciar){
+  const tie=docSec==='tie';$('ctw').hidden=!tie;document.querySelector('.docw').hidden=tie;$('dochb').hidden=tie;$('ctup').hidden=!canEdit();
+  if(tie){$('doctabs').querySelectorAll('[data-doc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.doc===docSec));if(typeof titulo==='function')titulo();renderCT();return}
   $('doctabs').querySelectorAll('[data-doc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.doc===docSec));
   $('docvista').querySelectorAll('[data-dv]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dv===docVista));
   $('doctit').textContent=`Documentos de ${docSec==='veh'?'vehículos':'conductores'} · ${sede}`;
@@ -1616,6 +1647,77 @@ async function descargarVistaPDF(){
   finally{document.documentElement.classList.remove('pdfcap');expandirTodo(false);b.disabled=false;b.textContent=t}
 }
 $('pdfv').onclick=descargarVistaPDF;
+/* ---------- Control Tiempo: vencimientos de SOAT (5 días) y RTM (21 días) ---------- */
+const CT_SOAT=5,CT_RTM=21;let ctDatos={},unsubT=null,ctFiltro='todos',ctTabla=null;
+const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function fechaAny(v){
+  if(v===null||v===undefined||v==='')return '';
+  if(v instanceof Date&&!isNaN(v))return ymd(new Date(v.getTime()+12*3600e3));
+  if(typeof v==='number'&&v>20000&&v<90000){const d=new Date(Math.round((v-25569)*864e5));return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`}
+  const t=String(v).trim();let m;
+  if((m=t.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/)))return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  if((m=t.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/))){let y=+m[3];if(y<100)y+=2000;return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`}
+  const MM={ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,set:9,oct:10,nov:11,dic:12};
+  if((m=sinTilde(t).match(/^(\d{1,2})\s*(?:de\s+)?([a-z]{3})[a-z]*\.?\s*(?:de\s+)?(\d{4})/))&&MM[m[2]])return `${m[3]}-${String(MM[m[2]]).padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  if(/^\d{5}(\.\d+)?$/.test(t))return fechaAny(Number(t));
+  return '';
+}
+function ctDetectar(cols){
+  const n=cols.map(c=>nh(c));let pla=n.findIndex(c=>c==='placamatricula'||c==='placa'||c==='matricula');if(pla<0)pla=n.findIndex(c=>c.includes('placa')||c.includes('matricula'));
+  let soat=n.findIndex(c=>c==='fechadefechadevencimiento');let rtm=n.findIndex(c=>c==='fechadevencimiento5');
+  if(soat<0)soat=n.findIndex(c=>c.includes('soat')&&c.includes('venc'));if(rtm<0)rtm=n.findIndex(c=>(c.includes('rtm')||c.includes('tecno'))&&c.includes('venc'));
+  const fv=n.map((c,i)=>c.startsWith('fechadevencimiento')||c.startsWith('fechadefechadevencimiento')?i:-1).filter(i=>i>=0&&i!==soat&&i!==rtm);
+  if(soat<0&&fv.length)soat=fv.shift();if(rtm<0&&fv.length)rtm=fv.shift();
+  return{pla,soat,rtm};
+}
+const diasA=f=>{if(!f)return null;const[y,m,d]=f.split('-').map(Number),h=new Date();h.setHours(0,0,0,0);return Math.round((new Date(y,m-1,d)-h)/864e5)};
+function ctEstado(f,umbral){const d=diasA(f);if(d===null)return{k:'n',t:'Sin fecha',d};if(d<0)return{k:'r',t:`Vencido hace ${-d} día${d===-1?'':'s'}`,d};if(d===0)return{k:'r',t:'Vence hoy',d};if(d<=umbral)return{k:'a',t:`Vence en ${d} día${d===1?'':'s'}`,d};return{k:'o',t:`Vigente · ${d} días`,d}}
+function ctFilas(){return ((ctDatos[sede]||{}).filas||[]).map(f=>({...f,s:ctEstado(f.soat,CT_SOAT),r:ctEstado(f.rtm,CT_RTM)}))}
+function ctContarAlertas(){const fs=ctFilas();return fs.filter(f=>f.s.k==='r'||f.s.k==='a'||f.r.k==='r'||f.r.k==='a').length}
+function ctBadge(){const n=ctContarAlertas(),b=document.querySelector('.si[data-doc="tie"]');if(b)b.innerHTML=`Control Tiempo${n?` <span class="ctbad" aria-label="${n} alertas">${n}</span>`:''}`}
+function renderCT(){
+  ctBadge();if(!cur||$('docv').hidden||docSec!=='tie')return;
+  const D=ctDatos[sede],fs=ctFilas(),q=normP($('ctbusca').value);
+  $('ctsub').textContent=D?`Archivo «${D.nombre||'Excel'}» · cargado por ${D.por||'—'}${D.fecha?' el '+dtTxt(D.fecha):''} · ${fs.length} vehículos`:'';
+  if(!D){$('ctkpi').innerHTML='';$('ctal').innerHTML='';$('cttab').innerHTML=`<p class="empty" style="margin:0">Aún no hay un Excel de vencimientos para ${esc(sede)}.${canEdit()?' Usa «Cargar Excel» para subirlo.':''}</p>`;return}
+  const c=(k,t)=>fs.filter(f=>f[t].k===k).length;
+  $('ctkpi').innerHTML=[[fs.length,'Vehículos',''],[c('r','s'),'SOAT vencidos',c('r','s')?'badc':''],[c('a','s'),`SOAT por vencer (≤${CT_SOAT} días)`,c('a','s')?'warc':''],[c('r','r'),'RTM vencidas',c('r','r')?'badc':''],[c('a','r'),`RTM por vencer (≤${CT_RTM} días)`,c('a','r')?'warc':''],[fs.filter(f=>f.s.k==='o'&&f.r.k==='o').length,'Todo al día','okc']]
+    .map(([v,l,k])=>`<div class="kpi"><b class="${k}">${v}</b><span>${l}</span></div>`).join('');
+  const al=[];fs.forEach(f=>{[['s','SOAT',f.soat],['r','RTM',f.rtm]].forEach(([k,n,fe])=>{const e=f[k];if(e.k==='r'||e.k==='a')al.push({p:f.placa,n,fe,e})})});
+  al.sort((a,b)=>a.e.d-b.e.d);
+  $('ctal').innerHTML=al.length?`<div class="ctalw" role="alert"><b>⚠ ${al.length} alerta${al.length>1?'s':''} de vencimiento</b><ul>${al.slice(0,12).map(a=>`<li class="${a.e.k}"><b>${esc(a.p)}</b> · ${a.n}: ${a.e.d<0?`vencido desde el ${fd(a.fe)}`:a.e.d===0?`vence HOY (${fd(a.fe)})`:`vence el ${fd(a.fe)}, en ${a.e.d} día${a.e.d===1?'':'s'}`}</li>`).join('')}</ul>${al.length>12?`<small>y ${al.length-12} más en la tabla.</small>`:''}</div>`:'<div class="ctok">✓ No hay SOAT ni RTM vencidos o por vencer.</div>';
+  const urg=f=>Math.min(f.s.d===null?9999:f.s.d-CT_SOAT,f.r.d===null?9999:f.r.d-CT_RTM);
+  const vis=fs.filter(f=>(!q||normP(f.placa).includes(q))&&(ctFiltro==='todos'||(ctFiltro==='alerta'?['r','a'].includes(f.s.k)||['r','a'].includes(f.r.k):ctFiltro==='soat'?['r','a'].includes(f.s.k):['r','a'].includes(f.r.k)))).sort((a,b)=>urg(a)-urg(b)||cmpP(a.placa,b.placa));
+  const cel=(fe,e)=>`<td>${fe?fd(fe):'—'}</td><td><span class="ctst ${e.k}">${e.t}</span></td>`;
+  $('cttab').innerHTML=vis.length?`<div class="tscroll"><table class="kmt ctt"><thead><tr><th>Placa</th><th>Vence SOAT</th><th>Estado SOAT</th><th>Vence RTM</th><th>Estado RTM</th></tr></thead><tbody>${vis.map(f=>`<tr class="${f.s.k==='r'||f.r.k==='r'?'alr':f.s.k==='a'||f.r.k==='a'?'al':''}"><td><b>${esc(f.placa)}</b></td>${cel(f.soat,f.s)}${cel(f.rtm,f.r)}</tr>`).join('')}</tbody></table></div>`:'<p class="empty" style="margin:0">Ningún vehículo coincide con el filtro.</p>';
+}
+async function ctLeer(f){
+  if(/\.csv$/i.test(f.name)){const t=parseCSV((await f.text()).replace(/^\uFEFF/,''));const hi=Math.max(0,t.findIndex(r=>{const c=ctDetectar(r);return c.pla>=0&&(c.soat>=0||c.rtm>=0)}));return{cols:(t[hi]||[]).map((c,i)=>String(c??'').trim()||`Columna ${i+1}`),filas:t.slice(hi+1)}}
+  const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true}),ws=wb.Sheets[wb.SheetNames[0]];
+  const t=X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:false});
+  const hi=t.findIndex(r=>{const c=ctDetectar(r.map(x=>String(x??'')));return c.pla>=0&&(c.soat>=0||c.rtm>=0)});
+  const h=hi>=0?hi:0;return{cols:(t[h]||[]).map((c,i)=>String(c??'').trim()||`Columna ${i+1}`),filas:t.slice(h+1)};
+}
+let ctPend=null;
+async function ctGuardar(T,cc,nombre){
+  const out=[],vistos=new Set();T.filas.forEach(r=>{const p=normP(r[cc.pla]);if(!p||p.length<4||vistos.has(p))return;vistos.add(p);out.push({placa:p,soat:cc.soat>=0?fechaAny(r[cc.soat]):'',rtm:cc.rtm>=0?fechaAny(r[cc.rtm]):''})});
+  if(!out.length){alert('No se encontraron placas en la columna elegida.');return false}
+  out.sort((a,b)=>cmpP(a.placa,b.placa));
+  await setDoc(doc(db,'vencimientos',sede),{sede,nombre,filas:out,cols:{placa:T.cols[cc.pla]||'',soat:T.cols[cc.soat]||'',rtm:T.cols[cc.rtm]||''},fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
+  $('ctmsg').textContent=`«${nombre}» cargado: ${out.length} vehículos. Columnas usadas: Placa = «${T.cols[cc.pla]}», SOAT = «${T.cols[cc.soat]||'—'}», RTM = «${T.cols[cc.rtm]||'—'}».`;return true;
+}
+$('ctfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('ctmsg').textContent='Leyendo el archivo…';
+  try{const T=await ctLeer(f),cc=ctDetectar(T.cols);
+    if(cc.pla<0||cc.soat<0||cc.rtm<0){ctPend={T,nombre:f.name};const op=sel=>'<option value="-1">(No tiene)</option>'+T.cols.map((c,i)=>`<option value="${i}"${i===sel?' selected':''}>${esc(c)}</option>`).join('');
+      $('ctc-pla').innerHTML=op(cc.pla);$('ctc-soat').innerHTML=op(cc.soat);$('ctc-rtm').innerHTML=op(cc.rtm);$('ctcerr').textContent='';$('ctmsg').textContent='';$('ctcdlg').showModal();return}
+    await ctGuardar(T,cc,f.name)}
+  catch(x){console.error(x);$('ctmsg').textContent='No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
+$('ctcfrm').onsubmit=async e=>{e.preventDefault();if(!ctPend)return;const cc={pla:+$('ctc-pla').value,soat:+$('ctc-soat').value,rtm:+$('ctc-rtm').value};
+  if(cc.pla<0){$('ctcerr').textContent='Elige la columna de la placa.';return}if(cc.soat<0&&cc.rtm<0){$('ctcerr').textContent='Elige al menos la columna de SOAT o la de RTM.';return}
+  try{if(await ctGuardar(ctPend.T,cc,ctPend.nombre)){ctPend=null;$('ctcdlg').close()}}catch(x){$('ctcerr').textContent=ERR(x.code)}};
+$('ctup').onclick=()=>{if(canEdit())$('ctfile').click()};
+$('ctbusca').oninput=renderCT;
+$('cttabs').onclick=e=>{const b=e.target.closest('[data-ctf]');if(!b)return;ctFiltro=b.dataset.ctf;$('cttabs').querySelectorAll('[data-ctf]').forEach(x=>x.setAttribute('aria-pressed',x===b));renderCT()};
 function cerrarMenuMovil(){document.querySelector('.shell').classList.remove('abierto');$('velo').hidden=true}
 $('sidemob').onclick=()=>{document.querySelector('.shell').classList.add('abierto');$('velo').hidden=false};
 $('velo').onclick=cerrarMenuMovil;
@@ -3440,7 +3542,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  renderKm();ralSel='';renderRal();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
+  renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
