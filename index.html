@@ -181,7 +181,17 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .ctt{min-width:620px}
 .ctx{min-width:1200px}.ctx th small{display:block;font-weight:400;color:var(--mut);font-size:.68rem}
 .ctx .ctg th{text-align:center;font-size:.8rem;letter-spacing:.08em;color:#fff;border-bottom:0}.ctx .ctg .gs{background:#b45309}.ctx .ctg .gx{background:#334155}.ctx .ctg .gr{background:#1d4ed8}.ctx .ctg .ctfix{color:var(--mut);background:var(--card);text-align:left;vertical-align:bottom}
-.ctx td,.ctx th{white-space:nowrap}.cthoja{display:block;font-size:.7rem;color:var(--mut);font-weight:600}.ctx .ctfix{position:sticky;left:0;background:var(--card);z-index:1}
+.ctx td,.ctx th{white-space:nowrap}
+.ctfb{background:none;border:0;padding:0;font:inherit;font-weight:600;font-size:.78rem;color:var(--mut);cursor:pointer;text-align:left;display:inline-flex;gap:4px;align-items:center}
+.ctfb:hover,.ctfb.on{color:var(--acc)}.ctfb span{font-size:.7rem}
+.ctpl{background:none;border:0;padding:0;font:inherit;font-weight:800;color:var(--acc);text-decoration:underline;cursor:pointer;letter-spacing:.03em}
+.ctpop{position:fixed;z-index:60;width:280px;max-height:70vh;display:flex;flex-direction:column;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.25);padding:10px}
+.ctpop[hidden]{display:none}.ctpop b{font-size:.9rem}
+.ctpop .ord{display:flex;gap:6px}.ctpop .ord button{flex:1;font-size:.8rem;padding:6px}
+.ctpop input[type=search]{margin:0;padding:6px 8px}
+.ctpop .lst{overflow:auto;max-height:42vh;border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.ctpop label{display:flex;gap:8px;align-items:center;margin:0;font-weight:400;font-size:.85rem;padding:2px 0;cursor:pointer}.ctpop label input{width:auto;margin:0;accent-color:var(--acc)}
+.ctpop .pie{display:flex;justify-content:space-between;gap:6px}.ctpop .pie .btn{padding:6px 12px;font-size:.85rem}.cthoja{display:block;font-size:.7rem;color:var(--mut);font-weight:600}.ctx .ctfix{position:sticky;left:0;background:var(--card);z-index:1}
 .ctx tr.al td.ctfix{background:var(--wipbg)}.ctx tr.alr td.ctfix{background:var(--badbg)}.kpi b.warc{color:var(--wip)}.kpi b.okc{color:var(--ok)}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
@@ -742,7 +752,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <small id="ctsub"></small><div class="pprog" id="ctmsg" role="status"></div>
     <div class="kpis" id="ctkpi" style="margin-top:10px"></div><div id="ctal"></div>
     <div class="ralbar" style="margin:12px 0 8px"><div class="tabs" role="group" aria-label="Filtrar" id="cttabs" style="margin:0"><button class="tab" data-ctf="todos" aria-pressed="true">Todos</button><button class="tab" data-ctf="alerta" aria-pressed="false">Con alerta</button><button class="tab" data-ctf="soat" aria-pressed="false">SOAT</button><button class="tab" data-ctf="rtm" aria-pressed="false">RTM</button></div>
-      <input type="search" id="ctbusca" placeholder="Buscar…" aria-label="Buscar" style="width:200px;margin:0"></div>
+      <input type="search" id="ctbusca" placeholder="Buscar…" aria-label="Buscar" style="width:200px;margin:0"><button type="button" class="btn ghost" id="ctlimpia" hidden>Quitar filtros de columnas</button></div>
+    <div class="ctpop" id="ctpop" hidden role="dialog" aria-label="Filtro de columna"></div>
     <div id="cttab"></div><small class="mnota" style="margin-top:8px">Se muestran las columnas D, X, Y, Z, AA, AB, AC, AD y AF del Excel, con sus títulos. Alertas: SOAT (columna AA) desde 5 días antes de vencer y RTM (columna AF) desde 22 días antes.</small>
     <input type="file" id="ctfile" accept=".xlsx,.xls,.csv" hidden></div>
   <div class="dc docw"><h2 id="doctit">Documentos de vehículos</h2><small id="docsub"></small>
@@ -1665,6 +1676,40 @@ const diasA=f=>{if(!f)return null;const[y,m,d]=f.split('-').map(Number),h=new Da
 function ctEstado(f,umbral){const d=diasA(f);if(d===null)return{k:'n',t:'Sin fecha',d};if(d<0)return{k:'r',t:`Vencido hace ${-d} día${d===-1?'':'s'}`,d};if(d===0)return{k:'r',t:'Vence hoy',d};if(d<=umbral)return{k:'a',t:`Vence en ${d} día${d===1?'':'s'}`,d};return{k:'o',t:`Vigente · ${d} días`,d}}
 function ctFilas(){return ((ctDatos[sede]||{}).filas||[]).map(f=>({...f,s:ctEstado(f.soat,CT_SOAT),r:ctEstado(f.rtm,CT_RTM)}))}
 function ctBadge(){const n=ctFilas().filter(f=>'ra'.includes(f.s.k)||'ra'.includes(f.r.k)).length,b=document.querySelector('.si[data-doc="tie"]');if(b)b.innerHTML=`Control Tiempo${n?` <span class="ctbad" aria-label="${n} alertas">${n}</span>`:''}`}
+let ctColF={},ctSort=null,ctUltimo={fs:[],T:{}};
+function ctCmp(a,b){const fa=fechaAny(a),fb=fechaAny(b);if(fa&&fb)return fa.localeCompare(fb);const na=Number(String(a).replace(/\./g,'').replace(',','.')),nb=Number(String(b).replace(/\./g,'').replace(',','.'));
+  if(a!==''&&b!==''&&!isNaN(na)&&!isNaN(nb))return na-nb;if(a==='')return 1;if(b==='')return -1;return String(a).localeCompare(String(b),'es',{numeric:true,sensitivity:'base'})}
+function ctAbrirFiltro(k,btn){
+  const {fs,T}=ctUltimo,vals=[...new Set(fs.map(f=>ctVivo(f,k,T)||''))].sort(ctCmp),sel=ctColF[k],P=$('ctpop');
+  P.innerHTML=`<b>${esc(T[k]||'Columna '+k)} <small style="color:var(--mut);font-weight:400">· ${k}</small></b>
+    <div class="ord"><button type="button" class="btn ghost" data-o="1">Ordenar A → Z</button><button type="button" class="btn ghost" data-o="-1">Ordenar Z → A</button></div>
+    <input type="search" placeholder="Buscar en esta columna…" aria-label="Buscar en esta columna">
+    <label><input type="checkbox" data-all> <b>(Seleccionar todo)</b></label>
+    <div class="lst">${vals.map(v=>`<label><input type="checkbox" value="${esc(v)}"${!sel||sel.has(v)?' checked':''}> ${esc(v||'(Vacías)')}</label>`).join('')}</div>
+    <div class="pie"><button type="button" class="btn ghost" data-quitar>Quitar filtro</button><button type="button" class="btn" data-ok>Aceptar</button></div>`;
+  const r=btn.getBoundingClientRect();P.hidden=false;P.style.left=Math.max(8,Math.min(r.left,innerWidth-296))+'px';P.style.top=Math.min(r.bottom+6,innerHeight-120)+'px';P.dataset.k=k;
+  const cbs=()=>[...P.querySelectorAll('.lst input')],sync=()=>{const v=cbs().filter(c=>c.closest('label').style.display!=='none');P.querySelector('[data-all]').checked=v.length&&v.every(c=>c.checked)};sync();
+  P.querySelector('input[type=search]').oninput=e=>{const q=sinTilde(e.target.value);cbs().forEach(c=>c.closest('label').style.display=sinTilde(c.value).includes(q)?'':'none');sync()};
+  P.querySelector('[data-all]').onchange=e=>{cbs().filter(c=>c.closest('label').style.display!=='none').forEach(c=>c.checked=e.target.checked)};
+  P.querySelector('.lst').onchange=sync;
+  P.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{ctSort={k,dir:Number(b.dataset.o)};P.hidden=true;renderCT()});
+  P.querySelector('[data-quitar]').onclick=()=>{delete ctColF[k];if(ctSort&&ctSort.k===k)ctSort=null;P.hidden=true;renderCT()};
+  P.querySelector('[data-ok]').onclick=()=>{const ch=cbs().filter(c=>c.checked).map(c=>c.value);if(ch.length===vals.length)delete ctColF[k];else ctColF[k]=new Set(ch);P.hidden=true;renderCT()};
+  setTimeout(()=>P.querySelector('input[type=search]').focus(),0);
+}
+document.addEventListener('click',e=>{const P=$('ctpop');if(!P||P.hidden)return;if(!e.target.closest('#ctpop')&&!e.target.closest('[data-ctcol]'))P.hidden=true});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('ctpop')&&!$('ctpop').hidden)$('ctpop').hidden=true});
+async function abrirDocsPlaca(placa){
+  const p=normP(placa);if(!p)return;docSec='veh';
+  if($('docv').hidden)modulo('doc');else renderDoc(true);
+  const t0=Date.now();while(!(docBase==='veh|'+sede&&(docRuta.length||docErr))&&Date.now()-t0<10000)await new Promise(r=>setTimeout(r,120));
+  if(docErr||!docRuta.length)return;
+  let items;try{items=await driveLista(docRuta[0].id)}catch(x){return}
+  const dir=items.filter(f=>f.mimeType===MIME_FOLDER).find(f=>normP(f.name)===p)||items.filter(f=>f.mimeType===MIME_FOLDER).find(f=>normP(f.name).includes(p));
+  if(dir){docRuta=[docRuta[0],{id:dir.id,name:dir.name}];$('docbusca').value='';docBusca='';await renderDoc()}
+  else{$('docbusca').value=placa;docBusca=placa;await renderDoc();$('docsub').textContent=`No hay una carpeta llamada «${placa}» en ${docRuta[0].name}. Se muestran los documentos que contienen «${placa}» en el nombre.`}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 function ctVivo(f,k,T){
   const ex=(f.din||{})[k];if(ex){try{const r=Function('T','return '+ex)(serialHoy());if(Number.isFinite(r))return String(Math.round(r))}catch(x){}}
   // Respaldo: columnas de «días pendientes» se recalculan con la fecha de vencimiento de su bloque
@@ -1682,15 +1727,20 @@ function renderCT(){
   $('ctkpi').innerHTML=[[fs.length,'Registros',''],[c('r','s'),'SOAT vencidos (AA)',c('r','s')?'badc':''],[c('a','s'),`SOAT por vencer (≤${CT_SOAT} días)`,c('a','s')?'warc':''],[c('r','r'),'RTM vencidas (AF)',c('r','r')?'badc':''],[c('a','r'),`RTM por vencer (≤${CT_RTM} días)`,c('a','r')?'warc':'']]
     .map(([v,l,k])=>`<div class="kpi"><b class="${k}">${v}</b><span>${l}</span></div>`).join('');
   const al=[];fs.forEach(f=>[['s','SOAT',f.soat],['r','RTM',f.rtm]].forEach(([k,n,fe])=>{if('ra'.includes(f[k].k))al.push({p:f.c.D,n,fe,e:f[k]})}));al.sort((a,b)=>a.e.d-b.e.d);
-  $('ctal').innerHTML=al.length?`<div class="ctalw" role="alert"><b>⚠ ${al.length} alerta${al.length>1?'s':''} de vencimiento</b><ul>${al.slice(0,10).map(a=>`<li class="${a.e.k}"><b>${esc(a.p)}</b> · ${a.n}: ${a.e.d<0?`vencido desde el ${fd(a.fe)}`:a.e.d===0?`vence HOY (${fd(a.fe)})`:`vence el ${fd(a.fe)}, en ${a.e.d} día${a.e.d===1?'':'s'}`}</li>`).join('')}</ul>${al.length>10?`<small>y ${al.length-10} más en la tabla.</small>`:''}</div>`:'';
+  $('ctal').innerHTML=al.length?`<div class="ctalw" role="alert"><b>⚠ ${al.length} alerta${al.length>1?'s':''} de vencimiento</b><ul>${al.slice(0,10).map(a=>`<li class="${a.e.k}"><button type="button" class="ctpl" data-ctpl="${esc(a.p)}">${esc(a.p)}</button> · ${a.n}: ${a.e.d<0?`vencido desde el ${fd(a.fe)}`:a.e.d===0?`vence HOY (${fd(a.fe)})`:`vence el ${fd(a.fe)}, en ${a.e.d} día${a.e.d===1?'':'s'}`}</li>`).join('')}</ul>${al.length>10?`<small>y ${al.length-10} más en la tabla.</small>`:''}</div>`:'';
   const vis=fs.filter(f=>(!q||CT_COLS.some(k=>sinTilde(f.c[k]||'').includes(q)))&&(ctFiltro==='todos'||(ctFiltro==='alerta'?'ra'.includes(f.s.k)||'ra'.includes(f.r.k):ctFiltro==='soat'?'ra'.includes(f.s.k):'ra'.includes(f.r.k))));
   const T=D.titulos||{};
-  const celda=(f,k)=>{const v=ctVivo(f,k,T)||'';if(k==='AA'||k==='AF'){const e=k==='AA'?f.s:f.r;return `<td><b>${esc(v||'—')}</b>${e.k!=='n'?`<br><span class="ctst ${e.k}">${e.t}</span>`:''}</td>`}return `<td${k==='D'?' class="ctfix"':''}>${k==='D'?`<b>${esc(v||'—')}</b>${f.hoja&&(D.hojas||[]).length>1?`<small class="cthoja">${esc(f.hoja)}</small>`:''}`:esc(v||'—')}</td>`};
+  let visF=vis.filter(f=>Object.entries(ctColF).every(([k,st])=>st.has(ctVivo(f,k,T)||'')));
+  if(ctSort){const{k,dir}=ctSort;visF=visF.slice().sort((a,b)=>ctCmp(ctVivo(a,k,T)||'',ctVivo(b,k,T)||'')*dir)}
+  ctUltimo={fs:vis,T};
+  const nF=Object.keys(ctColF).length;$('ctlimpia').hidden=!nF&&!ctSort;$('ctlimpia').textContent=`Quitar filtros de columnas${nF?` (${nF})`:''}`;
+  const celda=(f,k)=>{const v=ctVivo(f,k,T)||'';if(k==='AA'||k==='AF'){const e=k==='AA'?f.s:f.r;return `<td><b>${esc(v||'—')}</b>${e.k!=='n'?`<br><span class="ctst ${e.k}">${e.t}</span>`:''}</td>`}return `<td${k==='D'?' class="ctfix"':''}>${k==='D'?`<button type="button" class="ctpl" data-ctpl="${esc(v)}" title="Abrir la carpeta de ${esc(v)} en Documentos · Vehículos">${esc(v||'—')}</button>${f.hoja&&(D.hojas||[]).length>1?`<small class="cthoja">${esc(f.hoja)}</small>`:''}`:esc(v||'—')}</td>`};
   const G=D.grupos||{},gr=[];CT_COLS.forEach(k=>{const g=G[k]||'';if(gr.length&&gr[gr.length-1].g===g)gr[gr.length-1].n++;else gr.push({g,n:1})});
   const filaG=gr.some(x=>x.g)?`<tr class="ctg">${gr.map((x,i)=>`<th colspan="${x.n}" class="${i===0?'ctfix':''} ${/soat/i.test(x.g)?'gs':/rtm|tecno|revisi/i.test(sinTilde(x.g))?'gr':x.g?'gx':''}">${esc(x.g)}</th>`).join('')}</tr>`:'';
-  $('cttab').innerHTML=vis.length?`<div class="tscroll"><table class="kmt ctt ctx"><thead>${filaG}<tr>${CT_COLS.map(k=>`<th${k==='D'?' class="ctfix"':''}>${esc(T[k]||'')}<small>Columna ${k}</small></th>`).join('')}</tr></thead>
-    <tbody>${vis.map(f=>`<tr class="${f.s.k==='r'||f.r.k==='r'?'alr':f.s.k==='a'||f.r.k==='a'?'al':''}">${CT_COLS.map(k=>celda(f,k)).join('')}</tr>`).join('')}</tbody></table></div>`
-    :'<p class="empty" style="margin:0">Ningún registro coincide con el filtro.</p>';
+  const ico=k=>ctSort&&ctSort.k===k?(ctSort.dir>0?' ▲':' ▼'):'';
+  $('cttab').innerHTML=`<div class="tscroll"><table class="kmt ctt ctx"><thead>${filaG}<tr>${CT_COLS.map(k=>`<th${k==='D'?' class="ctfix"':''}><button type="button" class="ctfb${ctColF[k]?' on':''}" data-ctcol="${k}" aria-label="Filtrar u ordenar ${esc(T[k]||'columna '+k)}">${esc(T[k]||'')}${ico(k)} <span aria-hidden="true">${ctColF[k]?'⛃':'▾'}</span></button><small>Columna ${k}</small></th>`).join('')}</tr></thead>
+    <tbody>${visF.length?visF.map(f=>`<tr class="${f.s.k==='r'||f.r.k==='r'?'alr':f.s.k==='a'||f.r.k==='a'?'al':''}">${CT_COLS.map(k=>celda(f,k)).join('')}</tr>`).join(''):`<tr><td colspan="${CT_COLS.length}" class="empty">Ningún registro coincide con los filtros.</td></tr>`}</tbody></table></div>
+    <small class="mnota" style="margin-top:6px">${visF.length} de ${fs.length} registros · Toca un título para filtrar u ordenar · Toca una placa para abrir su carpeta en Documentos.</small>`;
 }
 const serialHoy=()=>{const h=new Date();return Math.round((Date.UTC(h.getFullYear(),h.getMonth(),h.getDate())-Date.UTC(1899,11,30))/864e5)};
 const serialDe=v=>{if(v instanceof Date&&!isNaN(v)){const f=fechaAny(v);const[y,m,d]=f.split('-').map(Number);return Math.round((Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/864e5)}if(typeof v==='number')return v;const f=fechaAny(v);if(f){const[y,m,d]=f.split('-').map(Number);return Math.round((Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/864e5)}const n=Number(String(v).replace(',','.'));return isNaN(n)?null:n};
@@ -1732,6 +1782,10 @@ $('ctfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f
 $('ctup').onclick=()=>{if(canEdit())$('ctfile').click()};
 $('ctdel').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar toda la información de Control Tiempo de ${sede}?`))return;try{await deleteDoc(doc(db,'ctiempo',sede));$('ctmsg').textContent='Información borrada.'}catch(x){alert(ERR(x.code))}};
 $('ctbusca').oninput=renderCT;
+$('ctlimpia').onclick=()=>{ctColF={};ctSort=null;renderCT()};
+$('cttab').addEventListener('click',e=>{const h=e.target.closest('[data-ctcol]');if(h){e.stopPropagation();const P=$('ctpop');if(!P.hidden&&P.dataset.k===h.dataset.ctcol){P.hidden=true;return}ctAbrirFiltro(h.dataset.ctcol,h);return}
+  const p=e.target.closest('[data-ctpl]');if(p)abrirDocsPlaca(p.dataset.ctpl)});
+$('ctal').addEventListener('click',e=>{const p=e.target.closest('[data-ctpl]');if(p)abrirDocsPlaca(p.dataset.ctpl)});
 $('cttabs').onclick=e=>{const b=e.target.closest('[data-ctf]');if(!b)return;ctFiltro=b.dataset.ctf;$('cttabs').querySelectorAll('[data-ctf]').forEach(x=>x.setAttribute('aria-pressed',x===b));renderCT()};
 function cerrarMenuMovil(){document.querySelector('.shell').classList.remove('abierto');$('velo').hidden=true}
 $('sidemob').onclick=()=>{document.querySelector('.shell').classList.add('abierto');$('velo').hidden=false};
@@ -3557,7 +3611,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
+  ctColF={};ctSort=null;renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
