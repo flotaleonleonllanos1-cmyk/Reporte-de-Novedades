@@ -180,7 +180,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .ctst.r{background:var(--badbg);color:var(--bad)}.ctst.a{background:var(--wipbg);color:var(--wip)}.ctst.o{background:var(--okbg);color:var(--ok)}.ctst.n{color:var(--mut)}
 .ctt{min-width:620px}
 .ctx{min-width:1200px}.ctx th small{display:block;font-weight:400;color:var(--mut);font-size:.68rem}
-.ctx .ctg th{text-align:center;font-size:.8rem;letter-spacing:.08em;color:#fff;border-bottom:0}.ctx .ctg .gs{background:#b45309}.ctx .ctg .gr{background:#1d4ed8}.ctx .ctg .ctfix{color:var(--mut);background:var(--card);text-align:left;vertical-align:bottom}
+.ctx .ctg th{text-align:center;font-size:.8rem;letter-spacing:.08em;color:#fff;border-bottom:0}.ctx .ctg .gs{background:#b45309}.ctx .ctg .gx{background:#334155}.ctx .ctg .gr{background:#1d4ed8}.ctx .ctg .ctfix{color:var(--mut);background:var(--card);text-align:left;vertical-align:bottom}
 .ctx td,.ctx th{white-space:nowrap}.ctx .ctfix{position:sticky;left:0;background:var(--card);z-index:1}
 .ctx tr.al td.ctfix{background:var(--wipbg)}.ctx tr.alr td.ctfix{background:var(--badbg)}.kpi b.warc{color:var(--wip)}.kpi b.okc{color:var(--ok)}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
@@ -1679,31 +1679,34 @@ function renderCT(){
   const vis=fs.filter(f=>(!q||CT_COLS.some(k=>sinTilde(f.c[k]||'').includes(q)))&&(ctFiltro==='todos'||(ctFiltro==='alerta'?'ra'.includes(f.s.k)||'ra'.includes(f.r.k):ctFiltro==='soat'?'ra'.includes(f.s.k):'ra'.includes(f.r.k))));
   const T=D.titulos||{};
   const celda=(f,k)=>{const v=f.c[k]||'';if(k==='AA'||k==='AF'){const e=k==='AA'?f.s:f.r;return `<td><b>${esc(v||'—')}</b>${e.k!=='n'?`<br><span class="ctst ${e.k}">${e.t}</span>`:''}</td>`}return `<td${k==='D'?' class="ctfix"':''}>${k==='D'?`<b>${esc(v||'—')}</b>`:esc(v||'—')}</td>`};
-  $('cttab').innerHTML=vis.length?`<div class="tscroll"><table class="kmt ctt ctx"><thead><tr>${CT_COLS.map(k=>`<th${k==='D'?' class="ctfix"':''}>${esc(T[k]||'')}<small>Columna ${k}</small></th>`).join('')}</tr></thead>
+  const G=D.grupos||{},gr=[];CT_COLS.forEach(k=>{const g=G[k]||'';if(gr.length&&gr[gr.length-1].g===g)gr[gr.length-1].n++;else gr.push({g,n:1})});
+  const filaG=gr.some(x=>x.g)?`<tr class="ctg">${gr.map((x,i)=>`<th colspan="${x.n}" class="${i===0?'ctfix':''} ${/soat/i.test(x.g)?'gs':/rtm|tecno|revisi/i.test(sinTilde(x.g))?'gr':x.g?'gx':''}">${esc(x.g)}</th>`).join('')}</tr>`:'';
+  $('cttab').innerHTML=vis.length?`<div class="tscroll"><table class="kmt ctt ctx"><thead>${filaG}<tr>${CT_COLS.map(k=>`<th${k==='D'?' class="ctfix"':''}>${esc(T[k]||'')}<small>Columna ${k}</small></th>`).join('')}</tr></thead>
     <tbody>${vis.map(f=>`<tr class="${f.s.k==='r'||f.r.k==='r'?'alr':f.s.k==='a'||f.r.k==='a'?'al':''}">${CT_COLS.map(k=>celda(f,k)).join('')}</tr>`).join('')}</tbody></table></div>`
     :'<p class="empty" style="margin:0">Ningún registro coincide con el filtro.</p>';
 }
-function ctLeerTabla(t){
-  const iD=ctIdx('D');let hi=-1;
-  for(let i=0;i<Math.min(6,t.length);i++){const v=(t[i]||[])[iD];if(v!==undefined&&String(v).trim()!==''&&!esPlaca(v)){hi=i;break}}
-  const filas=t.slice(hi+1).filter(r=>r&&esPlaca(r[iD]));
-  return{hi,filas,titulos:Object.fromEntries(CT_COLS.map(k=>[k,hi>=0?String((t[hi]||[])[ctIdx(k)]??'').trim():'']))};
+function ctLeerTabla(t,tx){
+  // t: valores reales (para calcular alertas) · tx: el texto tal como se ve en Excel (para mostrar sin cambios)
+  tx=tx||t;const iD=ctIdx('D'),txt=(row,k)=>{const v=((tx[row]||[])[ctIdx(k)]);return v===undefined||v===null?'':String(v).trim()};
+  let f0=-1;for(let i=0;i<t.length;i++){if(esPlaca(txt(i,'D'))){f0=i;break}}
+  const hi=f0-1;const filas=[];if(f0>=0)for(let i=f0;i<t.length;i++){if(esPlaca(txt(i,'D')))filas.push(i)}
+  // fila de grupos (encima de los títulos): celdas combinadas → se arrastra el último valor hacia la derecha
+  const grupos={};if(hi>=1){let g='';for(let c=0;c<=ctIdx('AF');c++){const v=String(((tx[hi-1]||[])[c])??'').trim();if(v)g=v;CT_COLS.forEach(k=>{if(ctIdx(k)===c)grupos[k]=g})}}
+  return{hi,grupos,titulos:Object.fromEntries(CT_COLS.map(k=>[k,hi>=0?txt(hi,k):''])),
+    filas:filas.map(i=>{const c={};CT_COLS.forEach(k=>c[k]=txt(i,k));const raw=t[i]||[];return{c,soat:fechaAny(raw[ctIdx('AA')])||fechaAny(c.AA),rtm:fechaAny(raw[ctIdx('AF')])||fechaAny(c.AF)}})};
 }
 async function ctLeer(f){
-  if(/\.csv$/i.test(f.name))return ctLeerTabla(parseCSV((await f.text()).replace(/^\uFEFF/,'')));
-  const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true}),ws=wb.Sheets[wb.SheetNames[0]];
+  if(/\.csv$/i.test(f.name)){const t=parseCSV((await f.text()).replace(/^\uFEFF/,''));return ctLeerTabla(t,t)}
+  const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true,dateNF:'d/mm/yyyy'}),ws=wb.Sheets[wb.SheetNames[0]];
   const R=X.utils.decode_range(ws['!ref']||'A1');R.s.r=0;R.s.c=0;
-  return ctLeerTabla(X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:true,range:R}));
+  const o={header:1,defval:'',blankrows:true,range:R};
+  return ctLeerTabla(X.utils.sheet_to_json(ws,{...o,raw:true}),X.utils.sheet_to_json(ws,{...o,raw:false,dateNF:'d/mm/yyyy'}));
 }
 $('ctfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('ctmsg').textContent='Leyendo el archivo…';
   try{const L=await ctLeer(f);
     if(!L.filas.length){$('ctmsg').textContent='No se encontraron placas en la columna D del archivo.';return}
-    const filas=L.filas.map(r=>{const c={};CT_COLS.forEach(k=>c[k]=ctTexto(r[ctIdx(k)]));c.D=normP(r[ctIdx('D')]);
-      const soat=fechaAny(r[ctIdx('AA')]),rtm=fechaAny(r[ctIdx('AF')]);if(soat)c.AA=fd(soat);if(rtm)c.AF=fd(rtm);
-      CT_COLS.forEach(k=>{if(k!=='AA'&&k!=='AF'&&r[ctIdx(k)] instanceof Date)c[k]=fd(fechaAny(r[ctIdx(k)]))});
-      return{c,soat,rtm}});
-    await setDoc(doc(db,'ctiempo',sede),{sede,nombre:f.name,filaTitulos:L.hi+1,titulos:L.titulos,filas,fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
-    $('ctmsg').textContent=`«${f.name}» cargado: ${filas.length} registros. Títulos tomados de la fila ${L.hi+1}; datos desde la fila ${L.hi+2}. Columnas: ${CT_COLS.join(', ')}.`}
+    await setDoc(doc(db,'ctiempo',sede),{sede,nombre:f.name,filaTitulos:L.hi+1,titulos:L.titulos,grupos:L.grupos,filas:L.filas,fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
+    $('ctmsg').textContent=`«${f.name}» cargado: ${L.filas.length} registros, tal como están en el Excel. Títulos tomados de la fila ${L.hi+1}; datos desde la fila ${L.hi+2}. Columnas: ${CT_COLS.join(', ')}.`}
   catch(x){console.error(x);$('ctmsg').textContent='No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
 $('ctup').onclick=()=>{if(canEdit())$('ctfile').click()};
 $('ctdel').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar toda la información de Control Tiempo de ${sede}?`))return;try{await deleteDoc(doc(db,'ctiempo',sede));$('ctmsg').textContent='Información borrada.'}catch(x){alert(ERR(x.code))}};
