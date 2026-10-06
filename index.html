@@ -739,7 +739,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="kpis" id="ctkpi" style="margin-top:10px"></div><div id="ctal"></div>
     <div class="ralbar" style="margin:12px 0 8px"><div class="tabs" role="group" aria-label="Filtrar" id="cttabs" style="margin:0"><button class="tab" data-ctf="todos" aria-pressed="true">Todos</button><button class="tab" data-ctf="alerta" aria-pressed="false">Con alerta</button><button class="tab" data-ctf="soat" aria-pressed="false">SOAT</button><button class="tab" data-ctf="rtm" aria-pressed="false">RTM</button></div>
       <input type="search" id="ctbusca" placeholder="Buscar placa…" aria-label="Buscar placa" style="width:200px;margin:0"></div>
-    <div id="cttab"></div><small class="mnota" style="margin-top:8px">Alertas: SOAT desde 5 días antes de vencer y RTM desde 21 días antes. El Excel debe tener las columnas «PLACA / MATRÍCULA», «Fecha de Fecha de vencimiento» (SOAT) y «Fecha de vencimiento5» (RTM).</small>
+    <div id="cttab"></div><small class="mnota" style="margin-top:8px">Alertas: SOAT desde 5 días antes de vencer y RTM desde 22 días antes. Del Excel se toman la columna «PLACA / MATRÍCULA», la columna AA (vencimiento del SOAT) y la columna AF (vencimiento de la RTM).</small>
     <input type="file" id="ctfile" accept=".xlsx,.xls,.csv" hidden></div>
   <div class="dc docw"><h2 id="doctit">Documentos de vehículos</h2><small id="docsub"></small>
     <div class="docnav" id="docnav"><button type="button" class="btn ghost" id="docup" hidden aria-label="Volver a la carpeta anterior">‹ Atrás</button><nav class="docmiga" id="docmiga" aria-label="Ubicación en las carpetas"></nav>
@@ -1648,7 +1648,7 @@ async function descargarVistaPDF(){
 }
 $('pdfv').onclick=descargarVistaPDF;
 /* ---------- Control Tiempo: vencimientos de SOAT (5 días) y RTM (21 días) ---------- */
-const CT_SOAT=5,CT_RTM=21;let ctDatos={},unsubT=null,ctFiltro='todos',ctTabla=null;
+/* columnas AA y AF del Excel */const CT_SOAT=5,CT_RTM=22,CT_COL_SOAT=26,CT_COL_RTM=31;let ctDatos={},unsubT=null,ctFiltro='todos',ctTabla=null;
 const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 function fechaAny(v){
   if(v===null||v===undefined||v==='')return '';
@@ -1692,11 +1692,11 @@ function renderCT(){
   $('cttab').innerHTML=vis.length?`<div class="tscroll"><table class="kmt ctt"><thead><tr><th>Placa</th><th>Vence SOAT</th><th>Estado SOAT</th><th>Vence RTM</th><th>Estado RTM</th></tr></thead><tbody>${vis.map(f=>`<tr class="${f.s.k==='r'||f.r.k==='r'?'alr':f.s.k==='a'||f.r.k==='a'?'al':''}"><td><b>${esc(f.placa)}</b></td>${cel(f.soat,f.s)}${cel(f.rtm,f.r)}</tr>`).join('')}</tbody></table></div>`:'<p class="empty" style="margin:0">Ningún vehículo coincide con el filtro.</p>';
 }
 async function ctLeer(f){
-  if(/\.csv$/i.test(f.name)){const t=parseCSV((await f.text()).replace(/^\uFEFF/,''));const hi=Math.max(0,t.findIndex(r=>{const c=ctDetectar(r);return c.pla>=0&&(c.soat>=0||c.rtm>=0)}));return{cols:(t[hi]||[]).map((c,i)=>String(c??'').trim()||`Columna ${i+1}`),filas:t.slice(hi+1)}}
+  if(/\.csv$/i.test(f.name)){const t=parseCSV((await f.text()).replace(/^\uFEFF/,''));const hi=Math.max(0,t.findIndex(r=>ctDetectar(r).pla>=0)),nc=Math.max(...t.slice(hi,hi+50).map(r=>r.length),0);return{cols:Array.from({length:nc},(_,i)=>String((t[hi]||[])[i]??'').trim()||`Columna ${colL(i)}`),filas:t.slice(hi+1)}}
   const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true}),ws=wb.Sheets[wb.SheetNames[0]];
   const t=X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:false});
-  const hi=t.findIndex(r=>{const c=ctDetectar(r.map(x=>String(x??'')));return c.pla>=0&&(c.soat>=0||c.rtm>=0)});
-  const h=hi>=0?hi:0;return{cols:(t[h]||[]).map((c,i)=>String(c??'').trim()||`Columna ${i+1}`),filas:t.slice(h+1)};
+  const hi=t.findIndex(r=>ctDetectar(r.map(x=>String(x??''))).pla>=0);
+  const h=hi>=0?hi:0,nc=Math.max(...t.slice(h,h+50).map(r=>r.length),0);return{cols:Array.from({length:nc},(_,i)=>String((t[h]||[])[i]??'').trim()||`Columna ${colL(i)}`),filas:t.slice(h+1)};
 }
 let ctPend=null;
 async function ctGuardar(T,cc,nombre){
@@ -1704,12 +1704,14 @@ async function ctGuardar(T,cc,nombre){
   if(!out.length){alert('No se encontraron placas en la columna elegida.');return false}
   out.sort((a,b)=>cmpP(a.placa,b.placa));
   await setDoc(doc(db,'vencimientos',sede),{sede,nombre,filas:out,cols:{placa:T.cols[cc.pla]||'',soat:T.cols[cc.soat]||'',rtm:T.cols[cc.rtm]||''},fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
-  $('ctmsg').textContent=`«${nombre}» cargado: ${out.length} vehículos. Columnas usadas: Placa = «${T.cols[cc.pla]}», SOAT = «${T.cols[cc.soat]||'—'}», RTM = «${T.cols[cc.rtm]||'—'}».`;return true;
+  $('ctmsg').textContent=`«${nombre}» cargado: ${out.length} vehículos. Columnas usadas: Placa = ${colL(cc.pla)} «${T.cols[cc.pla]}», SOAT = ${cc.soat>=0?colL(cc.soat):'—'}, RTM = ${cc.rtm>=0?colL(cc.rtm):'—'}.`;return true;
 }
 $('ctfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('ctmsg').textContent='Leyendo el archivo…';
-  try{const T=await ctLeer(f),cc=ctDetectar(T.cols);
-    if(cc.pla<0||cc.soat<0||cc.rtm<0){ctPend={T,nombre:f.name};const op=sel=>'<option value="-1">(No tiene)</option>'+T.cols.map((c,i)=>`<option value="${i}"${i===sel?' selected':''}>${esc(c)}</option>`).join('');
-      $('ctc-pla').innerHTML=op(cc.pla);$('ctc-soat').innerHTML=op(cc.soat);$('ctc-rtm').innerHTML=op(cc.rtm);$('ctcerr').textContent='';$('ctmsg').textContent='';$('ctcdlg').showModal();return}
+  try{const T=await ctLeer(f),dt=ctDetectar(T.cols);
+    const fechas=k=>T.filas.slice(0,60).filter(r=>fechaAny(r[k])).length,hay=k=>T.filas.some(r=>r[k]!==undefined&&String(r[k]).trim()!=='');
+    const cc={pla:dt.pla,soat:hay(CT_COL_SOAT)?CT_COL_SOAT:-1,rtm:hay(CT_COL_RTM)?CT_COL_RTM:-1};
+    if(cc.pla<0||cc.soat<0||cc.rtm<0||!fechas(CT_COL_SOAT)||!fechas(CT_COL_RTM)){ctPend={T,nombre:f.name};const op=sel=>'<option value="-1">(No tiene)</option>'+T.cols.map((c,i)=>`<option value="${i}"${i===sel?' selected':''}>Columna ${colL(i)} · ${esc(c)}</option>`).join('');
+      $('ctc-pla').innerHTML=op(cc.pla);$('ctc-soat').innerHTML=op(cc.soat>=0?cc.soat:dt.soat);$('ctc-rtm').innerHTML=op(cc.rtm>=0?cc.rtm:dt.rtm);$('ctcerr').textContent='';$('ctmsg').textContent='';$('ctcdlg').showModal();return}
     await ctGuardar(T,cc,f.name)}
   catch(x){console.error(x);$('ctmsg').textContent='No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
 $('ctcfrm').onsubmit=async e=>{e.preventDefault();if(!ctPend)return;const cc={pla:+$('ctc-pla').value,soat:+$('ctc-soat').value,rtm:+$('ctc-rtm').value};
