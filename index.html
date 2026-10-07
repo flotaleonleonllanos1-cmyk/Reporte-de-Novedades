@@ -200,6 +200,11 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .docpl .blq.s h3{background:#b45309}.docpl .blq.r h3{background:#1d4ed8}
 .docpl dl{display:grid;grid-template-columns:auto auto;gap:4px 14px;margin:0;font-size:.86rem}.docpl dt{color:var(--mut)}.docpl dt small{font-size:.68rem}.docpl dd{margin:0;font-weight:700}
 .docpl .pl{align-self:center;font-weight:800;font-size:1.1rem;letter-spacing:.05em}
+.docnom{font-size:1.05rem}
+.fcbox{display:inline-flex;align-items:center;gap:10px;margin-left:14px}
+.fcbox img,.fcvac{width:64px;height:64px;border-radius:10px;object-fit:cover;border:2px solid var(--acc);background:var(--soft);display:inline-grid;place-items:center;font-size:1.8rem;cursor:zoom-in}
+.fcvac{cursor:default;border-style:dashed;color:var(--mut)}
+.fclinks{display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-size:.85rem}
 .docconf{display:grid;gap:8px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}.docconf label{margin:0}.docconf input{margin-top:4px}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
@@ -769,6 +774,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="hb"><button type="button" class="btn" id="docsave">Guardar enlace</button><button type="button" class="del" id="docquita">Eliminar enlace</button></div>
     <small class="mnota" id="docconfn"></small>
   </div>
+  <input type="file" id="fccam" accept="image/*" capture="environment" hidden><input type="file" id="fcgal" accept="image/*" hidden>
   <div class="dc docw"><div class="dochead"><div><h2 id="doctit">Documentos de vehículos</h2><small id="docsub"></small></div><div class="docpl" id="docpl" hidden></div></div>
     <div class="docnav" id="docnav"><button type="button" class="btn ghost" id="docup" hidden aria-label="Volver a la carpeta anterior">‹ Atrás</button><nav class="docmiga" id="docmiga" aria-label="Ubicación en las carpetas"></nav>
       <input type="search" id="docbusca" placeholder="Buscar por nombre…" aria-label="Buscar documentos"><button type="button" class="btn ghost" id="docref" title="Actualizar">Actualizar</button></div>
@@ -1298,6 +1304,8 @@ function salir(){
   if(unsubR){unsubR();unsubR=null}
   if(unsubB){unsubB();unsubB=null}
   if(unsubT){unsubT();unsubT=null}
+  if(unsubFC){unsubFC();unsubFC=null}
+  fotosCond={};
   ctDatos={};
   aseo=[];
   ralArch=[];ralSel='';
@@ -1330,6 +1338,7 @@ async function entrar(user){
   if(puedeVer('cal'))unsubC=onSnapshot(collection(db,'calibraciones'),snap=>{
     cals=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal();
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
+  if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
   if(puedeVer('bar')||puedeVer('lav'))unsubB=onSnapshot(collection(db,'aseo'),snap=>{aseo=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderBL()},()=>{});
   if(puedeVer('ral'))unsubR=onSnapshot(collection(db,'ralenti'),snap=>{ralArch=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderRal()},()=>{});
@@ -1545,6 +1554,9 @@ async function renderDoc(reiniciar){
   $('docfr').hidden=true;$('doclist').hidden=false;$('docnav').hidden=false;
   const act=docRuta[docRuta.length-1];$('docdrive').href=`https://drive.google.com/drive/folders/${act.id.startsWith('__')?docsRaiz():act.id}`;
   $('docmiga').innerHTML=docRuta.map((c,k)=>k<docRuta.length-1?`<button type="button" class="docmb" data-dk="${k}">${esc(c.name)}</button><span aria-hidden="true">›</span>`:`<b>${esc(c.name)}</b>`).join('');
+  if(docSec==='con'&&docRuta.length>1){const esCond=docRuta.length>=3,fc=fotosCond[act.id];
+    $('docmiga').innerHTML=`<b class="docnom">${esc(act.name)}</b>${esCond?`<span class="fcbox">${fc&&fc.foto?`<img src="${fc.foto}" alt="Foto de ${esc(act.name)}" data-fcver>`:'<span class="fcvac" aria-hidden="true">👤</span>'}
+      ${canEdit()?`<span class="fclinks"><button type="button" class="ver" data-fccam>${fc&&fc.foto?'Cambiar foto':'📷 Tomar foto'}</button><button type="button" class="ver" data-fcgal>Subir desde galería</button>${fc&&fc.foto&&cur.rol==='admin'?'<button type="button" class="ver" data-fcdel>Quitar</button>':''}</span>`:''}</span>`:''}`}
   $('docup').hidden=docRuta.length<2;pintarDocPlaca(act);
   let items;try{if(!docCache[act.id])$('doclist').innerHTML='<p class="empty" style="margin:0">Cargando documentos…</p>';items=await driveLista(act.id)}catch(x){docFallback(x);return}
   if(docRuta[docRuta.length-1]!==act)return;
@@ -1571,6 +1583,12 @@ function docFallback(x){
   $('docsub').innerHTML=cur&&cur.rol==='admin'?`No se pudo leer la carpeta directamente (${esc(x.razon||x.message||'error')}), así que se muestra la vista básica de Google Drive. Para abrir carpetas y ver los PDF dentro de la página, activa la «Google Drive API» en el proyecto de Firebase (ver instrucciones).`:'Se muestra la vista básica de Google Drive.';
 }
 document.querySelectorAll('[data-doc]').forEach(b=>b.addEventListener('click',()=>{if(!cur)return;const cambia=docSec!==b.dataset.doc;docSec=b.dataset.doc;if($('docv').hidden)modulo('doc');else renderDoc(cambia);cerrarMenuMovil()}));
+let fotosCond={},unsubFC=null;
+async function guardarFotoCond(file){
+  const act=docRuta[docRuta.length-1];if(!act||!canEdit())return;
+  try{const foto=await imgJpeg(file,480,.78);await setDoc(doc(db,'fotoscond',act.id),{nombre:act.name,foto,por:cur.nombre,editado:serverTimestamp()});fotosCond[act.id]={nombre:act.name,foto};renderDoc()}
+  catch(x){alert('No se pudo guardar la foto. '+(x&&x.code?ERR(x.code):''))}
+}
 function placaDeNombre(n){const t=normP(n),m=t.match(/[A-Z]{3}\d{3}[A-Z]?|[A-Z]{3}\d{2}[A-Z]/);return m?m[0]:''}
 function pintarDocPlaca(act){
   const box=$('docpl'),p=docSec==='veh'&&act&&!String(act.id).startsWith('__')?placaDeNombre(act.name):'';
@@ -1598,6 +1616,12 @@ $('docquita').onclick=async()=>{if(cur.rol!=='admin'||!confirm('¿Eliminar el en
 $('docvista').onclick=e=>{const b=e.target.closest('[data-dv]');if(!b)return;docVista=b.dataset.dv;renderDoc()};
 $('docbusca').oninput=()=>{docBusca=$('docbusca').value;clearTimeout(window.__dbt);window.__dbt=setTimeout(()=>renderDoc(),200)};
 $('docup').onclick=()=>{if(docRuta.length>1){docRuta.pop();renderDoc()}};
+$('fccam').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)guardarFotoCond(f)};
+$('fcgal').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)guardarFotoCond(f)};
+$('docmiga').addEventListener('click',e=>{
+  if(e.target.closest('[data-fccam]')){$('fccam').click();return}if(e.target.closest('[data-fcgal]')){$('fcgal').click();return}
+  const v=e.target.closest('[data-fcver]');if(v){$('bigimg').src=v.src;$('big').showModal();return}
+  if(e.target.closest('[data-fcdel]')&&cur.rol==='admin'&&confirm('¿Quitar la foto de este conductor?')){const a=docRuta[docRuta.length-1];deleteDoc(doc(db,'fotoscond',a.id)).then(()=>{delete fotosCond[a.id];renderDoc()}).catch(x=>alert(ERR(x.code)))}});
 $('docmiga').onclick=e=>{const b=e.target.closest('[data-dk]');if(b){docRuta=docRuta.slice(0,Number(b.dataset.dk)+1);renderDoc()}};
 $('docref').onclick=()=>{const a=docRuta[docRuta.length-1];if(a)delete docCache[a.id];if(docRuta.length<=1){delete docCache[docsRaiz()];docBase=''}renderDoc()};
 let docItems=[];
