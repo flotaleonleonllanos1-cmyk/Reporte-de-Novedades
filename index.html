@@ -1541,7 +1541,7 @@ function urlsDoc(f){const id=f.id,m=f.mimeType;
 }
 const icoDoc=m=>m===MIME_FOLDER?'📁':m==='application/pdf'?'PDF':m&&m.startsWith('image/')?'IMG':m==='application/vnd.google-apps.document'?'DOC':m==='application/vnd.google-apps.spreadsheet'?'XLS':m==='application/vnd.google-apps.presentation'?'PPT':'ARC';
 async function renderDoc(reiniciar){
-  const tie=docSec==='tie';$('ctw').hidden=!tie;document.querySelector('.docw').hidden=tie;$('dochb').hidden=tie;$('ctup').hidden=!canEdit();
+  const tie=docSec==='tie';$('ctw').hidden=!tie;document.querySelector('.docw').hidden=tie;$('dochb').hidden=tie;$('ctup').hidden=!cur||cur.rol!=='admin';
   if(tie){$('doctabs').querySelectorAll('[data-doc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.doc===docSec));if(typeof titulo==='function')titulo();renderCT();return}
   $('doctabs').querySelectorAll('[data-doc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.doc===docSec));
   $('docvista').querySelectorAll('[data-dv]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dv===docVista));
@@ -1789,8 +1789,8 @@ function renderCT(){
   ctBadge();if(!cur||$('docv').hidden||docSec!=='tie')return;
   const D=ctDatos[sede],fs=ctFilas(),q=sinTilde($('ctbusca').value.trim());
   $('ctdel').hidden=!(D&&cur.rol==='admin');
-  $('ctsub').textContent=D?`Archivo «${D.nombre||'Excel'}»${(D.hojas||[]).length>1?` · ${D.hojas.length} pestañas unidas (${D.hojas.map(h=>h.n).join(' + ')})`:''} · cargado por ${D.por||'—'}${D.fecha?' el '+dtTxt(D.fecha):''} · ${fs.length} registros · actualizado a hoy ${fd(ymd(new Date()))}`:'';
-  if(!D){$('ctkpi').innerHTML='';$('ctal').innerHTML='';$('cttab').innerHTML=`<p class="empty" style="margin:0">Aún no hay información de Control Tiempo para ${esc(sede)}.${canEdit()?' Usa «Cargar Excel» para subir el archivo.':''}</p>`;return}
+  $('ctsub').textContent=D?`Última carga: ${D.fecha?dtTxt(D.fecha):'—'} · ${D.nombre||'Excel'}`:'';
+  if(!D){$('ctkpi').innerHTML='';$('ctal').innerHTML='';$('cttab').innerHTML=`<p class="empty" style="margin:0">Aún no hay información de Control Tiempo para ${esc(sede)}.${cur.rol==='admin'?' Usa «Cargar Excel» para subir el archivo.':''}</p>`;return}
   const c=(k,t)=>fs.filter(f=>f[t].k===k).length;
   $('ctkpi').innerHTML=[[fs.length,'Registros',''],[c('r','s'),'SOAT vencidos (AA)',c('r','s')?'badc':''],[c('a','s'),`SOAT por vencer (≤${CT_SOAT} días)`,c('a','s')?'warc':''],[c('r','r'),'RTM vencidas (AF)',c('r','r')?'badc':''],[c('a','r'),`RTM por vencer (≤${CT_RTM} días)`,c('a','r')?'warc':'']]
     .map(([v,l,k])=>`<div class="kpi"><b class="${k}">${v}</b><span>${l}</span></div>`).join('');
@@ -1841,13 +1841,13 @@ async function ctLeer(f){
   if(!base)return{hi:-1,grupos:{},titulos:{},filas:[],hojas:[]};
   return{...base,filas:todas,hojas};
 }
-$('ctfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('ctmsg').textContent='Leyendo el archivo…';
+$('ctfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!cur||cur.rol!=='admin')return;$('ctmsg').textContent='Leyendo el archivo…';
   try{const L=await ctLeer(f);
     if(!L.filas.length){$('ctmsg').textContent='No se encontraron placas en la columna D del archivo.';return}
     await setDoc(doc(db,'ctiempo',sede),{sede,nombre:f.name,filaTitulos:L.hi+1,titulos:L.titulos,grupos:L.grupos,hojas:L.hojas,filas:L.filas,fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
-    const nd=L.filas.filter(x=>Object.keys(x.din||{}).length).length;$('ctmsg').textContent=`«${f.name}» cargado: ${L.filas.length} registros de ${L.hojas.length} pestaña${L.hojas.length===1?'':'s'} (${L.hojas.map(h=>`${h.n}: ${h.c}`).join(' · ')}), tal como están en el Excel.${nd?` Las columnas calculadas con la fecha de hoy se actualizan solas cada día.`:''}`}
+    $('ctmsg').textContent='';}
   catch(x){console.error(x);$('ctmsg').textContent='No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
-$('ctup').onclick=()=>{if(canEdit())$('ctfile').click()};
+$('ctup').onclick=()=>{if(cur&&cur.rol==='admin')$('ctfile').click()};
 $('ctdel').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar toda la información de Control Tiempo de ${sede}?`))return;try{await deleteDoc(doc(db,'ctiempo',sede));$('ctmsg').textContent='Información borrada.'}catch(x){alert(ERR(x.code))}};
 $('ctbusca').oninput=renderCT;
 $('ctlimpia').onclick=()=>{ctColF={};ctSort=null;renderCT()};
