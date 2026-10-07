@@ -193,6 +193,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .ctpop label{display:flex;gap:8px;align-items:center;margin:0;font-weight:400;font-size:.85rem;padding:2px 0;cursor:pointer}.ctpop label input{width:auto;margin:0;accent-color:var(--acc)}
 .ctpop .pie{display:flex;justify-content:space-between;gap:6px}.ctpop .pie .btn{padding:6px 12px;font-size:.85rem}.cthoja{display:block;font-size:.7rem;color:var(--mut);font-weight:600}.ctx .ctfix{position:sticky;left:0;background:var(--card);z-index:1}
 .ctx tr.al td.ctfix{background:var(--wipbg)}.ctx tr.alr td.ctfix{background:var(--badbg)}.kpi b.warc{color:var(--wip)}.kpi b.okc{color:var(--ok)}
+.docconf{display:grid;gap:8px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}.docconf label{margin:0}.docconf input{margin-top:4px}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
 .docmiga{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:200px;font-size:.92rem}
@@ -756,6 +757,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="ctpop" id="ctpop" hidden role="dialog" aria-label="Filtro de columna"></div>
     <div id="cttab"></div><small class="mnota" style="margin-top:8px">Se muestran las columnas D, X, Y, Z, AA, AB, AC, AD y AF del Excel, con sus títulos. Alertas: SOAT (columna AA) desde 5 días antes de vencer y RTM (columna AF) desde 22 días antes.</small>
     <input type="file" id="ctfile" accept=".xlsx,.xls,.csv" hidden></div>
+  <div class="docconf" id="docconf" hidden>
+    <label>Enlace de la carpeta de Google Drive<input id="docurl" inputmode="url" placeholder="Pega aquí el enlace de la carpeta (https://drive.google.com/drive/folders/…)"></label>
+    <div class="hb"><button type="button" class="btn" id="docsave">Guardar enlace</button><button type="button" class="del" id="docquita">Eliminar enlace</button></div>
+    <small class="mnota" id="docconfn"></small>
+  </div>
   <div class="dc docw"><h2 id="doctit">Documentos de vehículos</h2><small id="docsub"></small>
     <div class="docnav" id="docnav"><button type="button" class="btn ghost" id="docup" hidden aria-label="Volver a la carpeta anterior">‹ Atrás</button><nav class="docmiga" id="docmiga" aria-label="Ubicación en las carpetas"></nav>
       <input type="search" id="docbusca" placeholder="Buscar por nombre…" aria-label="Buscar documentos"><button type="button" class="btn ghost" id="docref" title="Actualizar">Actualizar</button></div>
@@ -1321,7 +1327,7 @@ async function entrar(user){
   if(puedeVer('bar')||puedeVer('lav'))unsubB=onSnapshot(collection(db,'aseo'),snap=>{aseo=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderBL()},()=>{});
   if(puedeVer('ral'))unsubR=onSnapshot(collection(db,'ralenti'),snap=>{ralArch=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderRal()},()=>{});
   if(puedeVer('km'))unsubK=onSnapshot(collection(db,'kilometrajes'),snap=>{kms=snap.docs.map(d=>({id:d.id,...d.data()}));renderKm()},x=>{if(!$('kmv').hidden)$('kmlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
-  unsubL=onSnapshot(collection(db,'listas'),snap=>{listas={};snap.docs.forEach(d=>listas[d.id]=d.data());renderKm();renderBL();if($('vdlg').open&&!vedit)llenarConductores($('vcon').value)},()=>{});
+  unsubL=onSnapshot(collection(db,'listas'),snap=>{listas={};snap.docs.forEach(d=>listas[d.id]=d.data());renderKm();renderBL();if(!$('docv').hidden&&docSec!=='tie')renderDoc();if($('vdlg').open&&!vedit)llenarConductores($('vcon').value)},()=>{});
   if(puedeVer('var'))unsubV=onSnapshot(collection(db,'varadas'),snap=>{varadas=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderVar()},x=>{if(!$('varv').hidden)$('vlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
   if(puedeVer('cal'))unsubA=onSnapshot(collection(db,'archivos'),snap=>{archivos=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal()},()=>{});
   unsubM=onSnapshot(collection(db,'metas'),snap=>{metas={};snap.docs.forEach(d=>metas[d.id]=d.data());renderCal()},()=>{});
@@ -1488,11 +1494,13 @@ function titulo(){
 }
 
 /* ---------- Documentos (carpeta fija de Google Drive, navegación dentro de la página) ---------- */
-const DOCS_RAIZ='1LjHLPaFsitXqcaC9NM0o6Ogiw03lO0dm';
+const DOCS_RAIZ_DEF='1LjHLPaFsitXqcaC9NM0o6Ogiw03lO0dm';
+function docsRaiz(){const c=listas['docs_drive'];if(!c)return DOCS_RAIZ_DEF;return c.raiz||''}
+const idDrive=u=>{u=String(u||'').trim();let m=u.match(/\/folders\/([\w-]{10,})/)||u.match(/[?&]id=([\w-]{10,})/);if(m)return m[1];return /^[\w-]{20,}$/.test(u)?u:''};
 let docSec='veh',docVista='list',docRuta=[],docBase='',docErr=null,docBusca='';const docCache={};
 const MIME_FOLDER='application/vnd.google-apps.folder';
 async function driveLista(id){
-  if(docCache[id])return docCache[id];
+  if(docCache[id])return docCache[id];if(String(id).startsWith('__'))return [];
   let out=[],tok='';
   do{const q=encodeURIComponent(`'${id}' in parents and trashed=false`);
     const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=nextPageToken,files(id,name,mimeType,size,modifiedTime)&orderBy=folder,name&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true&key=${firebaseConfig.apiKey}${tok?'&pageToken='+tok:''}`);
@@ -1502,9 +1510,11 @@ async function driveLista(id){
 }
 const sedeTok=()=>sede==='Yopal'?'yopal':'villa';
 async function baseSeccion(){
-  const raiz=await driveLista(DOCS_RAIZ),pal=docSec==='veh'?'vehicul':'conductor';
-  const f=raiz.find(x=>x.mimeType===MIME_FOLDER&&sinTilde(x.name).includes(pal)&&sinTilde(x.name).includes(sedeTok()))||raiz.find(x=>x.mimeType===MIME_FOLDER&&sinTilde(x.name).includes(pal));
-  return f?{id:f.id,name:f.name}:{id:DOCS_RAIZ,name:'Documentos'};
+  const R=docsRaiz();if(!R){const e=new Error('sin carpeta');e.sinRaiz=true;throw e}
+  const raiz=await driveLista(R),pal=docSec==='veh'?'vehicul':'conductor';
+  const fs=raiz.filter(x=>x.mimeType===MIME_FOLDER&&sinTilde(x.name).includes(pal)&&SEDES.some(sd=>sinTilde(x.name).includes(sd==='Yopal'?'yopal':'villa')&&puedeSede(sd))).sort((a,b)=>a.name.localeCompare(b.name,'es'));
+  const lista=fs.length?fs:raiz.filter(x=>x.mimeType===MIME_FOLDER&&sinTilde(x.name).includes(pal));
+  docCache['__'+docSec]=lista;return{id:'__'+docSec,name:docSec==='veh'?'Vehículos':'Conductores'};
 }
 const esGoogle=m=>m&&m.startsWith('application/vnd.google-apps.');
 function urlsDoc(f){const id=f.id,m=f.mimeType;
@@ -1519,14 +1529,14 @@ async function renderDoc(reiniciar){
   if(tie){$('doctabs').querySelectorAll('[data-doc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.doc===docSec));if(typeof titulo==='function')titulo();renderCT();return}
   $('doctabs').querySelectorAll('[data-doc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.doc===docSec));
   $('docvista').querySelectorAll('[data-dv]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dv===docVista));
-  $('doctit').textContent=`Documentos de ${docSec==='veh'?'vehículos':'conductores'} · ${sede}`;
+  $('doctit').textContent=`Documentos de ${docSec==='veh'?'vehículos':'conductores'}`;pintarDocConf();
   if(typeof titulo==='function')titulo();
-  const clave=docSec+'|'+sede;
+  const clave=docSec+'|'+docsRaiz()+'|'+SEDES.filter(puedeSede).join();
   if(reiniciar||docBase!==clave||!docRuta.length){docBase=clave;docRuta=[];$('docbusca').value='';docBusca='';$('doclist').innerHTML='<p class="empty" style="margin:0">Cargando documentos…</p>';
     try{docRuta=[await baseSeccion()];docErr=null}catch(x){docErr=x}}
   if(docErr){docFallback(docErr);return}
   $('docfr').hidden=true;$('doclist').hidden=false;$('docnav').hidden=false;
-  const act=docRuta[docRuta.length-1];$('docdrive').href=`https://drive.google.com/drive/folders/${act.id}`;
+  const act=docRuta[docRuta.length-1];$('docdrive').href=`https://drive.google.com/drive/folders/${act.id.startsWith('__')?docsRaiz():act.id}`;
   $('docmiga').innerHTML=docRuta.map((c,k)=>k<docRuta.length-1?`<button type="button" class="docmb" data-dk="${k}">${esc(c.name)}</button><span aria-hidden="true">›</span>`:`<b>${esc(c.name)}</b>`).join('');
   $('docup').hidden=docRuta.length<2;
   let items;try{if(!docCache[act.id])$('doclist').innerHTML='<p class="empty" style="margin:0">Cargando documentos…</p>';items=await driveLista(act.id)}catch(x){docFallback(x);return}
@@ -1546,17 +1556,30 @@ async function renderDoc(reiniciar){
         ${dir?`<button type="button" class="btn ghost" data-dir="${f.id}">Abrir</button>`:`<div class="hb"><button type="button" class="btn ghost" data-dver="${f.id}">Ver</button><a class="btn" href="${u.pdf}" target="_blank" rel="noopener" download>Descargar PDF</a></div>`}</div>`}).join('');
 }
 function docFallback(x){
-  console.error(x);const id=docRuta.length?docRuta[docRuta.length-1].id:DOCS_RAIZ,src=`https://drive.google.com/embeddedfolderview?id=${id}#${docVista}`;
+  if(x&&x.sinRaiz){$('docnav').hidden=true;$('docfr').hidden=true;$('doclist').hidden=false;$('docsub').textContent='';$('doclist').innerHTML=`<p class="empty" style="margin:0">No hay una carpeta de Google Drive configurada.${cur&&cur.rol==='admin'?' Pega el enlace de la carpeta arriba y pulsa «Guardar enlace».':' Pídele al administrador que la configure.'}</p>`;return}
+  console.error(x);const id=docRuta.length&&!docRuta[docRuta.length-1].id.startsWith('__')?docRuta[docRuta.length-1].id:docsRaiz(),src=`https://drive.google.com/embeddedfolderview?id=${id}#${docVista}`;
   $('docnav').hidden=true;$('doclist').hidden=true;$('docfr').hidden=false;if($('docfr').dataset.src!==src){$('docfr').dataset.src=src;$('docfr').src=src}
   $('docdrive').href=`https://drive.google.com/drive/folders/${id}`;
   $('docsub').innerHTML=cur&&cur.rol==='admin'?`No se pudo leer la carpeta directamente (${esc(x.razon||x.message||'error')}), así que se muestra la vista básica de Google Drive. Para abrir carpetas y ver los PDF dentro de la página, activa la «Google Drive API» en el proyecto de Firebase (ver instrucciones).`:'Se muestra la vista básica de Google Drive.';
 }
 document.querySelectorAll('[data-doc]').forEach(b=>b.addEventListener('click',()=>{if(!cur)return;const cambia=docSec!==b.dataset.doc;docSec=b.dataset.doc;if($('docv').hidden)modulo('doc');else renderDoc(cambia);cerrarMenuMovil()}));
+function pintarDocConf(){
+  const adm=cur&&cur.rol==='admin';$('docconf').hidden=!adm||docSec==='tie';if(!adm)return;
+  const c=listas['docs_drive'],r=docsRaiz();if(document.activeElement!==$('docurl'))$('docurl').value=c?(c.url||''):(r?`https://drive.google.com/drive/folders/${r}`:'');
+  $('docquita').hidden=!r;$('docconfn').textContent=r?`Carpeta actual: ${r}. En Vehículos se muestran las carpetas «VEHICULOS …» y en Conductores las carpetas «CONDUCTORES …» que estén dentro.`:'No hay carpeta configurada.';
+}
+$('docsave').onclick=async()=>{if(cur.rol!=='admin')return;const u=$('docurl').value.trim(),id=idDrive(u);
+  if(!id){$('docconfn').textContent='Ese enlace no parece de una carpeta de Google Drive. Cópialo desde Drive con «Compartir → Copiar vínculo».';return}
+  try{await setDoc(doc(db,'listas','docs_drive'),{tipo:'docs_drive',raiz:id,url:u,por:cur.nombre,editado:serverTimestamp()});Object.keys(docCache).forEach(k=>delete docCache[k]);listas['docs_drive']={raiz:id,url:u};renderDoc(true)}
+  catch(x){$('docconfn').textContent=ERR(x.code)}};
+$('docquita').onclick=async()=>{if(cur.rol!=='admin'||!confirm('¿Eliminar el enlace de la carpeta de Google Drive? Documentos quedará vacío hasta que pegues otro enlace.'))return;
+  try{await setDoc(doc(db,'listas','docs_drive'),{tipo:'docs_drive',raiz:'',url:'',por:cur.nombre,editado:serverTimestamp()});Object.keys(docCache).forEach(k=>delete docCache[k]);listas['docs_drive']={raiz:'',url:''};$('docurl').value='';renderDoc(true)}
+  catch(x){$('docconfn').textContent=ERR(x.code)}};
 $('docvista').onclick=e=>{const b=e.target.closest('[data-dv]');if(!b)return;docVista=b.dataset.dv;renderDoc()};
 $('docbusca').oninput=()=>{docBusca=$('docbusca').value;clearTimeout(window.__dbt);window.__dbt=setTimeout(()=>renderDoc(),200)};
 $('docup').onclick=()=>{if(docRuta.length>1){docRuta.pop();renderDoc()}};
 $('docmiga').onclick=e=>{const b=e.target.closest('[data-dk]');if(b){docRuta=docRuta.slice(0,Number(b.dataset.dk)+1);renderDoc()}};
-$('docref').onclick=()=>{const a=docRuta[docRuta.length-1];if(a)delete docCache[a.id];if(docRuta.length<=1)delete docCache[DOCS_RAIZ];renderDoc()};
+$('docref').onclick=()=>{const a=docRuta[docRuta.length-1];if(a)delete docCache[a.id];if(docRuta.length<=1){delete docCache[docsRaiz()];docBase=''}renderDoc()};
 let docItems=[];
 $('doclist').onclick=e=>{const d=e.target.closest('[data-dir]');if(d){const it=(docCache[docRuta[docRuta.length-1].id]||[]).find(f=>f.id===d.dataset.dir);docRuta.push({id:d.dataset.dir,name:it?it.name:'Carpeta'});$('docbusca').value='';docBusca='';renderDoc();return}
   const v=e.target.closest('[data-dver]');if(v){e.preventDefault();verDoc(v.dataset.dver)}};
@@ -1702,12 +1725,13 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('ctpop')&&!$('ctp
 async function abrirDocsPlaca(placa){
   const p=normP(placa);if(!p)return;docSec='veh';
   if($('docv').hidden)modulo('doc');else renderDoc(true);
-  const t0=Date.now();while(!(docBase==='veh|'+sede&&(docRuta.length||docErr))&&Date.now()-t0<10000)await new Promise(r=>setTimeout(r,120));
+  const t0=Date.now();while(!(docBase.startsWith('veh|')&&(docRuta.length||docErr))&&Date.now()-t0<10000)await new Promise(r=>setTimeout(r,120));
   if(docErr||!docRuta.length)return;
-  let items;try{items=await driveLista(docRuta[0].id)}catch(x){return}
-  const dir=items.filter(f=>f.mimeType===MIME_FOLDER).find(f=>normP(f.name)===p)||items.filter(f=>f.mimeType===MIME_FOLDER).find(f=>normP(f.name).includes(p));
-  if(dir){docRuta=[docRuta[0],{id:dir.id,name:dir.name}];$('docbusca').value='';docBusca='';await renderDoc()}
-  else{$('docbusca').value=placa;docBusca=placa;await renderDoc();$('docsub').textContent=`No hay una carpeta llamada «${placa}» en ${docRuta[0].name}. Se muestran los documentos que contienen «${placa}» en el nombre.`}
+  const sedesF=(docCache['__veh']||[]).slice().sort((a,b)=>(sinTilde(b.name).includes(sedeTok())?1:0)-(sinTilde(a.name).includes(sedeTok())?1:0));
+  for(const sf of sedesF){let items;try{items=await driveLista(sf.id)}catch(x){continue}
+    const ds=items.filter(f=>f.mimeType===MIME_FOLDER),dir=ds.find(f=>normP(f.name)===p)||ds.find(f=>normP(f.name).includes(p));
+    if(dir){docRuta=[docRuta[0],{id:sf.id,name:sf.name},{id:dir.id,name:dir.name}];$('docbusca').value='';docBusca='';await renderDoc();window.scrollTo({top:0,behavior:'smooth'});return}}
+  const sf=sedesF[0];if(sf){docRuta=[docRuta[0],{id:sf.id,name:sf.name}];$('docbusca').value=placa;docBusca=placa;await renderDoc();$('docsub').textContent=`No hay una carpeta llamada «${placa}». Se muestran los documentos de ${sf.name} que contienen «${placa}» en el nombre.`}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function ctVivo(f,k,T){
