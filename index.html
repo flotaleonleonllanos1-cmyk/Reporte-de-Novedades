@@ -193,6 +193,13 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .ctpop label{display:flex;gap:8px;align-items:center;margin:0;font-weight:400;font-size:.85rem;padding:2px 0;cursor:pointer}.ctpop label input{width:auto;margin:0;accent-color:var(--acc)}
 .ctpop .pie{display:flex;justify-content:space-between;gap:6px}.ctpop .pie .btn{padding:6px 12px;font-size:.85rem}.cthoja{display:block;font-size:.7rem;color:var(--mut);font-weight:600}.ctx .ctfix{position:sticky;left:0;background:var(--card);z-index:1}
 .ctx tr.al td.ctfix{background:var(--wipbg)}.ctx tr.alr td.ctfix{background:var(--badbg)}.kpi b.warc{color:var(--wip)}.kpi b.okc{color:var(--ok)}
+.dochead{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.docpl{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+.docpl .blq{border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:220px;background:var(--bg)}
+.docpl .blq h3{margin:0 0 6px;font-size:.78rem;letter-spacing:.08em;color:#fff;display:inline-block;padding:2px 8px;border-radius:6px}
+.docpl .blq.s h3{background:#b45309}.docpl .blq.r h3{background:#1d4ed8}
+.docpl dl{display:grid;grid-template-columns:auto auto;gap:4px 14px;margin:0;font-size:.86rem}.docpl dt{color:var(--mut)}.docpl dt small{font-size:.68rem}.docpl dd{margin:0;font-weight:700}
+.docpl .pl{align-self:center;font-weight:800;font-size:1.1rem;letter-spacing:.05em}
 .docconf{display:grid;gap:8px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}.docconf label{margin:0}.docconf input{margin-top:4px}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
@@ -762,7 +769,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="hb"><button type="button" class="btn" id="docsave">Guardar enlace</button><button type="button" class="del" id="docquita">Eliminar enlace</button></div>
     <small class="mnota" id="docconfn"></small>
   </div>
-  <div class="dc docw"><h2 id="doctit">Documentos de vehículos</h2><small id="docsub"></small>
+  <div class="dc docw"><div class="dochead"><div><h2 id="doctit">Documentos de vehículos</h2><small id="docsub"></small></div><div class="docpl" id="docpl" hidden></div></div>
     <div class="docnav" id="docnav"><button type="button" class="btn ghost" id="docup" hidden aria-label="Volver a la carpeta anterior">‹ Atrás</button><nav class="docmiga" id="docmiga" aria-label="Ubicación en las carpetas"></nav>
       <input type="search" id="docbusca" placeholder="Buscar por nombre…" aria-label="Buscar documentos"><button type="button" class="btn ghost" id="docref" title="Actualizar">Actualizar</button></div>
     <div class="doclist list" id="doclist"></div>
@@ -1323,7 +1330,7 @@ async function entrar(user){
   if(puedeVer('cal'))unsubC=onSnapshot(collection(db,'calibraciones'),snap=>{
     cals=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCal();
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
-  if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT()},()=>{});
+  if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
   if(puedeVer('bar')||puedeVer('lav'))unsubB=onSnapshot(collection(db,'aseo'),snap=>{aseo=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderBL()},()=>{});
   if(puedeVer('ral'))unsubR=onSnapshot(collection(db,'ralenti'),snap=>{ralArch=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderRal()},()=>{});
   if(puedeVer('km'))unsubK=onSnapshot(collection(db,'kilometrajes'),snap=>{kms=snap.docs.map(d=>({id:d.id,...d.data()}));renderKm()},x=>{if(!$('kmv').hidden)$('kmlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
@@ -1538,7 +1545,7 @@ async function renderDoc(reiniciar){
   $('docfr').hidden=true;$('doclist').hidden=false;$('docnav').hidden=false;
   const act=docRuta[docRuta.length-1];$('docdrive').href=`https://drive.google.com/drive/folders/${act.id.startsWith('__')?docsRaiz():act.id}`;
   $('docmiga').innerHTML=docRuta.map((c,k)=>k<docRuta.length-1?`<button type="button" class="docmb" data-dk="${k}">${esc(c.name)}</button><span aria-hidden="true">›</span>`:`<b>${esc(c.name)}</b>`).join('');
-  $('docup').hidden=docRuta.length<2;
+  $('docup').hidden=docRuta.length<2;pintarDocPlaca(act);
   let items;try{if(!docCache[act.id])$('doclist').innerHTML='<p class="empty" style="margin:0">Cargando documentos…</p>';items=await driveLista(act.id)}catch(x){docFallback(x);return}
   if(docRuta[docRuta.length-1]!==act)return;
   const q=sinTilde(docBusca.trim());const vis=items.filter(f=>!q||sinTilde(f.name).includes(q));
@@ -1556,6 +1563,7 @@ async function renderDoc(reiniciar){
         ${dir?`<button type="button" class="btn ghost" data-dir="${f.id}">Abrir</button>`:`<div class="hb"><button type="button" class="btn ghost" data-dver="${f.id}">Ver</button><a class="btn" href="${u.pdf}" target="_blank" rel="noopener" download>Descargar PDF</a></div>`}</div>`}).join('');
 }
 function docFallback(x){
+  $('docpl').hidden=true;
   if(x&&x.sinRaiz){$('docnav').hidden=true;$('docfr').hidden=true;$('doclist').hidden=false;$('docsub').textContent='';$('doclist').innerHTML=`<p class="empty" style="margin:0">No hay una carpeta de Google Drive configurada.${cur&&cur.rol==='admin'?' Pega el enlace de la carpeta arriba y pulsa «Guardar enlace».':' Pídele al administrador que la configure.'}</p>`;return}
   console.error(x);const id=docRuta.length&&!docRuta[docRuta.length-1].id.startsWith('__')?docRuta[docRuta.length-1].id:docsRaiz(),src=`https://drive.google.com/embeddedfolderview?id=${id}#${docVista}`;
   $('docnav').hidden=true;$('doclist').hidden=true;$('docfr').hidden=false;if($('docfr').dataset.src!==src){$('docfr').dataset.src=src;$('docfr').src=src}
@@ -1563,6 +1571,18 @@ function docFallback(x){
   $('docsub').innerHTML=cur&&cur.rol==='admin'?`No se pudo leer la carpeta directamente (${esc(x.razon||x.message||'error')}), así que se muestra la vista básica de Google Drive. Para abrir carpetas y ver los PDF dentro de la página, activa la «Google Drive API» en el proyecto de Firebase (ver instrucciones).`:'Se muestra la vista básica de Google Drive.';
 }
 document.querySelectorAll('[data-doc]').forEach(b=>b.addEventListener('click',()=>{if(!cur)return;const cambia=docSec!==b.dataset.doc;docSec=b.dataset.doc;if($('docv').hidden)modulo('doc');else renderDoc(cambia);cerrarMenuMovil()}));
+function placaDeNombre(n){const t=normP(n),m=t.match(/[A-Z]{3}\d{3}[A-Z]?|[A-Z]{3}\d{2}[A-Z]/);return m?m[0]:''}
+function pintarDocPlaca(act){
+  const box=$('docpl'),p=docSec==='veh'&&act&&!String(act.id).startsWith('__')?placaDeNombre(act.name):'';
+  if(!p){box.hidden=true;box.innerHTML='';return}
+  let f=null,D=null;for(const sd of SEDES){const d=ctDatos[sd];const x=d&&(d.filas||[]).find(r=>normP(r.c.D)===p);if(x){f=x;D=d;break}}
+  if(!f){box.hidden=false;box.innerHTML=`<span class="pl">${esc(p)}</span><small class="mnota" style="align-self:center;max-width:260px">No hay información de esta placa en Control Tiempo.</small>`;return}
+  const T=D.titulos||{},s=ctEstado(f.soat,CT_SOAT),r=ctEstado(f.rtm,CT_RTM),v=k=>esc(ctVivo(f,k,T)||'—'),tt=k=>`${esc(T[k]||'Columna '+k)} <small>(${k})</small>`;
+  box.hidden=false;
+  box.innerHTML=`<span class="pl">${esc(f.c.D||p)}</span>
+    <div class="blq s"><h3>SOAT</h3><dl><dt>${tt('AA')}</dt><dd>${v('AA')}${s.k!=='n'?` <span class="ctst ${s.k}">${s.t}</span>`:''}</dd><dt>${tt('AB')}</dt><dd>${v('AB')}</dd></dl></div>
+    <div class="blq r"><h3>RTM</h3><dl><dt>${tt('AF')}</dt><dd>${v('AF')}${r.k!=='n'?` <span class="ctst ${r.k}">${r.t}</span>`:''}</dd><dt>${tt('AG')}</dt><dd>${v('AG')}</dd></dl></div>`;
+}
 function pintarDocConf(){
   const adm=cur&&cur.rol==='admin';$('docconf').hidden=!adm||docSec==='tie';if(!adm)return;
   const c=listas['docs_drive'],r=docsRaiz();if(document.activeElement!==$('docurl'))$('docurl').value=c?(c.url||''):(r?`https://drive.google.com/drive/folders/${r}`:'');
@@ -1677,7 +1697,7 @@ async function descargarVistaPDF(){
 }
 $('pdfv').onclick=descargarVistaPDF;
 /* ---------- Control Tiempo (desde cero): visual del Excel con las columnas D, X, Y, Z, AA, AB, AC, AD y AF ---------- */
-const CT_COLS=['D','X','Y','Z','AA','AB','AC','AD','AF'],CT_SOAT=5,CT_RTM=22;
+const CT_COLS=['D','X','Y','Z','AA','AB','AC','AD','AF'],CT_ALL=[...CT_COLS,'AG'],CT_SOAT=5,CT_RTM=22;
 const ctIdx=l=>l.split('').reduce((n,c)=>n*26+(c.charCodeAt(0)-64),0)-1;
 let ctDatos={},unsubT=null,ctFiltro='todos';
 const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -1782,8 +1802,8 @@ function ctLeerTabla(t,tx,ws,X){
   let f0=-1;for(let i=0;i<t.length;i++){if(esPlaca(txt(i,'D'))){f0=i;break}}
   const hi=f0-1;const filas=[];if(f0>=0)for(let i=f0;i<t.length;i++){if(esPlaca(txt(i,'D')))filas.push(i)}
   const grupos={};if(hi>=1){let g='';for(let c=0;c<=ctIdx('AF');c++){const v=String(((tx[hi-1]||[])[c])??'').trim();if(v)g=v;CT_COLS.forEach(k=>{if(ctIdx(k)===c)grupos[k]=g})}}
-  return{hi,grupos,titulos:Object.fromEntries(CT_COLS.map(k=>[k,hi>=0?txt(hi,k):''])),
-    filas:filas.map(i=>{const c={},din={};CT_COLS.forEach(k=>{c[k]=txt(i,k);if(ws){const cell=ws[k+(i+1)];const ex=cell&&cell.f?formulaViva(cell.f,ws,X):'';if(ex)din[k]=ex}});
+  return{hi,grupos,titulos:Object.fromEntries(CT_ALL.map(k=>[k,hi>=0?txt(hi,k):''])),
+    filas:filas.map(i=>{const c={},din={};CT_ALL.forEach(k=>{c[k]=txt(i,k);if(ws){const cell=ws[k+(i+1)];const ex=cell&&cell.f?formulaViva(cell.f,ws,X):'';if(ex)din[k]=ex}});
       const raw=t[i]||[];return{c,din,soat:fechaAny(raw[ctIdx('AA')])||fechaAny(c.AA),rtm:fechaAny(raw[ctIdx('AF')])||fechaAny(c.AF)}})};
 }
 async function ctLeer(f){
