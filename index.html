@@ -239,6 +239,13 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .estruck{position:absolute;right:1.5%;bottom:6%;width:9%}
 .estacts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.estacts small{margin-left:auto}
 .edh{margin:0 0 6px;font-size:.95rem}
+.edbtns{display:flex;flex-direction:column;gap:6px;align-items:stretch}.edbtns .btn[aria-pressed="true"]{background:var(--acc);color:#fff;border-color:var(--acc)}
+.edtp{padding:6px 0;border-bottom:1px solid var(--line)}.edtp:last-child{border-bottom:0}
+.edtpb{display:grid;grid-template-columns:22px 90px 1fr auto;gap:8px;align-items:center}.edtpb .rk{color:var(--mut);font-size:.75rem;text-align:right}
+.edtpb .tr{height:12px;background:var(--line);border-radius:6px;overflow:hidden}.edtpb .tr i{display:block;height:100%;background:var(--bad);border-radius:6px}
+.edtpi{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 0 30px}.edtpi span{font-size:.75rem;background:var(--badbg);color:var(--bad);border-radius:999px;padding:1px 8px}
+.edrings{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.edring{display:grid;justify-items:center;gap:2px}.edring svg{width:150px;height:150px}.edring small{color:var(--mut)}
 .edits{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(360px,1fr))}
 .edit{border:1px solid var(--line);border-left:5px solid var(--bad);border-radius:10px;padding:10px 12px;background:var(--card)}
 .editt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.editt b{font-size:.95rem}.editt small{color:var(--mut)}.editt .pill{margin-left:auto}
@@ -809,12 +816,13 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </div>
 <section id="estv" hidden aria-label="Estándar de Flota">
  <div id="estdatav" hidden>
-  <div class="dc"><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Datos del Excel · ítems en «NO»</h2><button type="button" class="btn" id="edup" hidden>Cargar Excel</button></div>
+  <div class="dc"><div class="chead" style="margin:0"><h2 style="font-size:1.1rem" id="edtit">Datos del Excel · ítems en «NO»</h2><div class="edbtns"><button type="button" class="btn" id="edup" hidden>Cargar Excel</button><button type="button" class="btn ghost" id="eddashb" aria-pressed="false">📊 Dashboard</button></div></div>
     <small id="edsub"></small><div class="pprog" id="edmsg" role="status"></div>
     <div class="tabs" role="group" aria-label="Filtrar por columna K" id="edk" style="margin:10px 0 0"></div>
     <div class="ralbar" style="margin:10px 0"><label>Mes<select id="edmes"></select></label><input type="search" id="edbusca" placeholder="Buscar placa…" aria-label="Buscar placa" style="width:200px;margin:0"></div>
-    <div class="kpis" id="edkpi"></div><div id="edtop" style="margin-top:12px"></div>
-    <div id="edlist" style="margin-top:12px"></div>
+    <div id="edlistaw"><div class="kpis" id="edkpi"></div><div id="edtop" style="margin-top:12px"></div>
+    <div id="edlist" style="margin-top:12px"></div></div>
+    <div id="eddash" hidden></div>
     <small class="mnota" style="margin-top:8px">Se lee la pestaña «Data», columnas N a AN, y la columna K para el filtro. Se muestra cada ítem en «NO» con las placas que lo tienen; MES se toma de la columna AN.</small>
     <input type="file" id="edfile" accept=".xlsx,.xls" hidden></div>
  </div>
@@ -3541,7 +3549,7 @@ $('estmes').onchange=()=>{estMes=Number($('estmes').value);estSel='';estF=null;r
 $('estanio').onchange=()=>{estAnio=Number($('estanio').value);estSel='';estF=null;renderEst()};
 
 /* ---------- Estándar de Flota · Datos del Excel (pestaña «Data», columnas N a AN): solo los «NO» ---------- */
-let estVista='plant',edDatos={},unsubED=null,edMesSel='',edKSel='__todos';
+let estVista='plant',edDatos={},unsubED=null,edMesSel='',edKSel='__todos',edDash=false;
 const ED_INI=13,ED_FIN=39;// N..AN
 const esNO=v=>/^no\b/.test(sinTilde(String(v??'').trim()));
 const mesIdx=t=>{const x=sinTilde(String(t||'')).slice(0,3);return ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'].indexOf(x)};
@@ -3567,8 +3575,10 @@ function edProcesar(t){
   let cPl=-1;for(let c=ED_INI;c<=ED_FIN;c++){if(/placa/.test(sinTilde(tit[colL(c)]))){cPl=c;break}}if(cPl<0)cPl=ED_INI;
   const cMes=ED_FIN,items=[];for(let c=ED_INI;c<=ED_FIN;c++)if(c!==cPl&&c!==cMes)items.push(c);
   const cK=10;tit.K=tx(hi,cK)||'Columna K';
-  const filas=[];for(let r=hi+1;r<t.length;r++){const p=tx(r,cPl);if(!p)continue;const no=items.filter(c=>esNO(tx(r,c))).map(colL);filas.push({p,mes:tx(r,cMes),k:tx(r,cK),no})}
-  return{tit,colPlaca:colL(cPl),colMes:colL(cMes),filaTitulos:hi+1,filas};
+  const cAP=41;tit.AP=tx(hi,cAP)||'Columna AP';const esSI=v=>/^s[ií]\b|^si$/.test(sinTilde(String(v??'').trim()));
+  const filas=[];for(let r=hi+1;r<t.length;r++){const p=tx(r,cPl);if(!p)continue;const no=items.filter(c=>esNO(tx(r,c))).map(colL),si=items.filter(c=>esSI(tx(r,c))).length;
+    const tpt=tx(r,cAP),tp=tpt?durSeg(tpt,tit.AP):null;filas.push({p,mes:tx(r,cMes),k:tx(r,cK),no,si,tp,tpt})}
+  return{tit,colPlaca:colL(cPl),colMes:colL(cMes),filaTitulos:hi+1,nItems:items.length,filas};
 }
 function renderED(){
   if(!cur||$('estv').hidden||estVista!=='data')return;
@@ -3578,8 +3588,9 @@ function renderED(){
   const meses=[...new Set(edFilasSede(D).map(f=>f.mes).filter(Boolean))].sort((a,b)=>(mesIdx(a)-mesIdx(b))||a.localeCompare(b,'es'));
   if(!edMesSel||(edMesSel!=='__todos'&&!meses.includes(edMesSel)))edMesSel=meses[meses.length-1]||'__todos';
   $('edmes').innerHTML=`<option value="__todos"${edMesSel==='__todos'?' selected':''}>Todos los meses</option>`+meses.map(m=>`<option${m===edMesSel?' selected':''}>${esc(m)}</option>`).join('');
-  const fsS=edFilasSede(D);$('edk').innerHTML=(D.filas||[]).some(f=>f.k)?`<span class="edkt">${esc((D.tit||{}).K||'Columna K')} <small>(K)</small>:</span><span class="tab" aria-pressed="true">${esc(sede)}</span>`:'<small class="mnota">Vuelve a cargar el Excel para traer la información de la columna K.</small>';
+  const fsS=edFilasSede(D);$('edlistaw').hidden=edDash;$('eddash').hidden=!edDash;$('eddashb').setAttribute('aria-pressed',edDash);$('eddashb').textContent=edDash?'📋 Ver listado':'📊 Dashboard';$('edtit').textContent=edDash?'Datos del Excel · Dashboard':'Datos del Excel · ítems en «NO»';$('edk').innerHTML=(D.filas||[]).some(f=>f.k)?`<span class="edkt">${esc((D.tit||{}).K||'Columna K')} <small>(K)</small>:</span><span class="tab" aria-pressed="true">${esc(sede)}</span>`:'<small class="mnota">Vuelve a cargar el Excel para traer la información de la columna K.</small>';
   const T=D.tit||{},q=normP($('edbusca').value),fs=fsS.filter(f=>edMesSel==='__todos'||f.mes===edMesSel);
+  if(edDash){dashED(D,fs);return}
   const porPl={};fs.forEach(f=>{const x=porPl[f.p]=porPl[f.p]||{p:f.p,reg:0,no:{}};x.reg++;f.no.forEach(k=>x.no[k]=(x.no[k]||0)+1)});
   const pls=Object.values(porPl),conNo=pls.filter(x=>Object.keys(x.no).length),totNo=fs.reduce((a,f)=>a+f.no.length,0);
   $('edkpi').innerHTML=[[fs.length,'Registros',''],[pls.length,'Placas',''],[conNo.length,'Placas con «NO»',conNo.length?'badc':''],[totNo,'Total de «NO»',totNo?'badc':''],[pls.length-conNo.length,'Placas sin «NO»','okc']]
@@ -3600,6 +3611,35 @@ $('edfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f
 $('edmes').onchange=()=>{edMesSel=$('edmes').value;renderED()};
 
 $('edbusca').oninput=renderED;
+$('eddashb').onclick=()=>{edDash=!edDash;renderED()};
+function anilloED(pct,color,label,det){const r=46,c=2*Math.PI*r,v=Math.max(0,Math.min(100,pct||0));
+  return `<div class="edring"><svg viewBox="0 0 120 120" role="img" aria-label="${label}: ${v.toFixed(1)}%"><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--line)" stroke-width="14"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="${color}" stroke-width="14" stroke-dasharray="${(c*v/100).toFixed(1)} ${c.toFixed(1)}" stroke-linecap="round" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" font-size="22" font-weight="800" fill="var(--ink)">${v.toFixed(1)}%</text></svg><b>${label}</b><small>${det}</small></div>`}
+function dashED(D,fs){
+  const T=D.tit||{},q=normP($('edbusca').value);const nIt=D.nItems||0;
+  if(!fs.length){$('eddash').innerHTML='<p class="empty" style="margin:0">No hay registros en este periodo.</p>';return}
+  // Top 6 placas con más NO
+  const pp={};fs.forEach(f=>{const p=normP(f.p)||f.p,x=pp[p]=pp[p]||{p,n:0,it:{}};x.n+=f.no.length;f.no.forEach(k=>x.it[k]=(x.it[k]||0)+1)});
+  const topP=Object.values(pp).filter(x=>x.n&&(!q||x.p.includes(q))).sort((a,b)=>b.n-a.n||cmpP(a.p,b.p)).slice(0,6),mxP=Math.max(1,...topP.map(x=>x.n));
+  // Top 6 ítems con más NO
+  const ii={};fs.forEach(f=>f.no.forEach(k=>ii[k]=(ii[k]||0)+1));const topI=Object.entries(ii).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  // Tiempos (columna AP)
+  const ts=fs.filter(f=>typeof f.tp==='number'&&f.tp>=0),hayT=ts.length,prom=hayT?ts.reduce((a,f)=>a+f.tp,0)/ts.length:null,mn=hayT?ts.reduce((a,f)=>f.tp<a.tp?f:a):null,mx=hayT?ts.reduce((a,f)=>f.tp>a.tp?f:a):null;
+  // Porcentajes SI / NO sobre la cantidad de placas
+  const nPl=new Set(fs.map(f=>normP(f.p)||f.p)).size,totSI=fs.reduce((a,f)=>a+(f.si||0),0),totNO=fs.reduce((a,f)=>a+f.no.length,0),base=fs.length*nIt;
+  const pSI=base?totSI/base*100:0,pNO=base?totNO/base*100:0,siOk=fs.some(f=>typeof f.si==='number');
+  $('eddash').innerHTML=`
+   <div class="kpis">${[[hayT?durF(prom):'—','Promedio de tiempo de ejecución'],[hayT?durF(mn.tp):'—',`Tiempo mínimo${mn?` · ${esc(normP(mn.p)||mn.p)}`:''}`],[hayT?durF(mx.tp):'—',`Tiempo máximo${mx?` · ${esc(normP(mx.p)||mx.p)}`:''}`],[nPl,'Placas evaluadas'],[fs.length,'Registros']].map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+   ${hayT?'':`<small class="mnota">No hay tiempos en la columna AP${(D.tit||{}).AP?` («${esc(D.tit.AP)}»)`:''}. Si tu Excel los tiene, vuelve a cargarlo.</small>`}
+   <div class="dgrid" style="margin-top:14px">
+     <div class="dc"><h2>Top 6 placas con más «NO»</h2><small>Cantidad de «NO» y los ítems de cada placa</small>
+       ${topP.length?topP.map((x,i)=>{const its=Object.entries(x.it).sort((a,b)=>b[1]-a[1]);return `<div class="edtp"><div class="edtpb"><span class="rk">${i+1}</span><b>${esc(x.p)}</b><span class="tr"><i style="width:${x.n/mxP*100}%"></i></span><b>${x.n}</b></div>
+         <div class="edtpi">${its.map(([k,n])=>`<span>${esc(T[k]||k)}${n>1?` ×${n}`:''}</span>`).join('')}</div></div>`}).join(''):'<p class="empty" style="margin:0">Sin «NO» en este periodo.</p>'}</div>
+     <div class="dc"><h2>Top 6 ítems con más «NO»</h2><small>Cuántas veces aparece cada ítem en «NO»</small>
+       ${topI.length?bars(topI.map(([k,n])=>({l:T[k]||k,n,t:`${n}`}))):'<p class="empty" style="margin:0">Sin «NO» en este periodo.</p>'}</div>
+   </div>
+   <div class="dc" style="margin-top:14px"><h2>Cumplimiento sobre la cantidad de placas</h2><small>${siOk?`${nPl} placa${nPl===1?'':'s'} · ${fs.length} registro${fs.length===1?'':'s'} × ${nIt} ítems = ${base} respuestas posibles`:'Vuelve a cargar el Excel para calcular los «SI».'}</small>
+     <div class="edrings">${anilloED(pSI,'var(--ok)','Ítems en «SI»',`${totSI} de ${base}`)}${anilloED(pNO,'var(--bad)','Ítems en «NO»',`${totNO} de ${base}`)}</div></div>`;
+}
 function estVistaSet(v){estVista=v;$('estplant').hidden=v!=='plant';$('estdatav').hidden=v!=='data';document.querySelectorAll('.si[data-estv]').forEach(b=>b.setAttribute('aria-current',b.dataset.estv===v));if(v==='data')renderED();else renderEst();if(typeof titulo==='function')titulo()}
 document.querySelectorAll('.si[data-estv]').forEach(b=>b.onclick=()=>{if(!cur)return;if($('estv').hidden)modulo('est');estVistaSet(b.dataset.estv);cerrarMenuMovil()});
 
