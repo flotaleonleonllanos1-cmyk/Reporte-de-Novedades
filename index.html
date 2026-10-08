@@ -2517,10 +2517,10 @@ function renderPpt(){
     <div class="pprog" id="pprog" role="status">${esc(pptMsg)}</div>
     ${fs.length?fs.map(a=>a.tipo==='drive'?`<div class="pfile"><span class="pico drv" aria-hidden="true">Drive</span>
       <div class="pinfo"><b>${esc(a.nombre)}</b><small>Enlace de Google Drive · Agregado por ${esc(a.por||'—')}${a.creado?' el '+f(a.creado):''}</small></div>
-      <div class="acts"><button type="button" class="btn ghost" data-pver="${a.id}">Ver</button><a class="btn ghost" href="${driveUrls(a).abrir}" target="_blank" rel="noopener">Abrir en Drive</a><a class="btn ghost" href="${driveUrls(a).bajar}" target="_blank" rel="noopener">Descargar</a>${cur.rol==='admin'?`<button type="button" class="del" data-pdel="${a.id}">Eliminar</button>`:''}</div></div>`
+      <div class="acts">${cur.rol==='admin'?`<button type="button" class="btn ghost" data-pver="${a.id}">Ver</button><a class="btn ghost" href="${driveUrls(a).abrir}" target="_blank" rel="noopener">Abrir en Drive</a><a class="btn ghost" href="${driveUrls(a).bajar}" target="_blank" rel="noopener">Descargar</a>`:''}${cur.rol==='admin'?`<button type="button" class="del" data-pdel="${a.id}">Eliminar</button>`:''}</div></div>`
       :`<div class="pfile"><span class="pico${esPdf(a)?' pdf':''}" aria-hidden="true">${esPdf(a)?'PDF':'PPT'}</span>
       <div class="pinfo"><b>${esc(a.nombre)}</b><small>${tam(a.tamano||0)} · Cargado por ${esc(a.por||'—')}${a.creado?' el '+f(a.creado):''}${a.listo?'':' · <span style="color:var(--bad);font-weight:700">Carga incompleta</span>'}</small></div>
-      <div class="acts">${a.listo?`<button type="button" class="btn ghost" data-pver="${a.id}">Ver</button><button type="button" class="btn ghost" data-pdl="${a.id}">Descargar</button>`:''}${cur.rol==='admin'?`<button type="button" class="del" data-pdel="${a.id}">Eliminar</button>`:''}</div></div>`).join('')
+      <div class="acts">${a.listo&&cur.rol==='admin'?`<button type="button" class="btn ghost" data-pver="${a.id}">Ver</button><button type="button" class="btn ghost" data-pdl="${a.id}">Descargar</button>`:''}${cur.rol==='admin'?`<button type="button" class="del" data-pdel="${a.id}">Eliminar</button>`:''}</div></div>`).join('')
       :`<p class="empty" style="margin:8px 0 0">Aún no hay documentos en este mes. Usa «Cargar PDF» o «Agregar enlace de Drive» para agregar el primero.</p>`}
   </div>`;
 }
@@ -2614,6 +2614,7 @@ let pvRz;window.addEventListener('resize',()=>{if($('pvdlg').open&&pv){clearTime
 $('cppt').onclick=async e=>{
   if(e.target.closest('#pptup')){$('pptin').click();return}
   if(e.target.closest('#drvadd')){$('drfrm').reset();$('drerr').textContent='';$('drtit').textContent=`Agregar enlace de Google Drive · ${MESES[cmes-1]} ${canio}`;$('drdlg').showModal();return}
+  if(!cur||cur.rol!=='admin')return;
   const v=e.target.closest('[data-pver]'),d=e.target.closest('[data-pdl]'),x=e.target.closest('[data-pdel]');
   if(v){const a=archivos.find(q=>q.id===v.dataset.pver);if(a&&a.tipo==='drive')verDrive(a);else verPpt(a);return}
   if(d){const a=archivos.find(q=>q.id===d.dataset.pdl);const t=d.textContent;d.disabled=true;d.textContent='Preparando…';
