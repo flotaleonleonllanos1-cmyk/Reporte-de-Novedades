@@ -221,7 +221,12 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .esbody{flex:1;display:grid;grid-template-columns:44% 1fr 1fr;gap:2.4%;padding:0 3% 0 2.4%;min-height:0}
 .esizq{display:flex;flex-direction:column;gap:12px;min-height:0}.esizq b{font-size:.95rem}
 .esacc,.esobs{width:100%;margin:0;border-radius:3px;background:#f8f8f8;color:#111;font:inherit;font-size:.92rem;padding:8px;resize:none;overflow:auto;white-space:pre-wrap}
-.esacc{height:28%;border:2px solid #2b6cb0}.esobs{flex:1;border:3px solid #d10000}
+.esacc{height:28%;border:2px solid #2b6cb0}
+.esaccw{height:40%;display:flex;gap:8px;padding:6px}.esaccw textarea{flex:1;border:0;background:transparent;font:inherit;font-size:.9rem;resize:none;margin:0;padding:2px;color:#111}
+.espl{width:34%;min-width:110px;margin:0;border:1px solid #93b4d6;border-radius:4px;background:#fff;color:#111;font:inherit;font-size:.85rem;font-weight:700;padding:2px;height:auto}
+.espl option{padding:3px 6px}.espl option:checked{background:#2b6cb0;color:#fff}
+.esplro{color:#1d4ed8}
+.esitem select{width:40%;background:#f07c12;color:#fff;border:2px solid #b45309;border-radius:3px;padding:4px 10px;font-weight:700;margin:0;font-size:1rem}.esitem select option{color:#111;background:#fff}.esobs{flex:1;border:3px solid #d10000}
 .esf{display:flex;flex-direction:column;align-items:center;min-height:0}
 .esftit{background:linear-gradient(#2c6e8f,#1d4f69);color:#fff;font-weight:700;padding:3px 22px;border-radius:4px 4px 0 0;font-size:.95rem}
 .esfbox{position:relative;width:100%;flex:1;max-height:78%;border:4px solid #111;background:#f4f4f4;display:grid;place-items:center;overflow:hidden}
@@ -1420,7 +1425,7 @@ async function entrar(user){
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
-  if(puedeVer('est'))unsubED=onSnapshot(collection(db,'estdata'),snap=>{edDatos={};snap.docs.forEach(d=>edDatos[d.id]=d.data());renderED()},()=>{});
+  if(puedeVer('est'))unsubED=onSnapshot(collection(db,'estdata'),snap=>{edDatos={};snap.docs.forEach(d=>edDatos[d.id]=d.data());renderED();if(!$('estv').hidden&&estVista==='plant')renderEst()},()=>{});
   if(puedeVer('est'))unsubE=onSnapshot(collection(db,'estandar'),snap=>{estDocs=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$('estv').hidden){const keep=estF&&estF._id!=='nuevo'?null:estF;renderEst()}},()=>{});
   if(puedeVer('bar')||puedeVer('lav'))unsubB=onSnapshot(collection(db,'aseo'),snap=>{aseo=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderBL()},()=>{});
   if(puedeVer('ral'))unsubR=onSnapshot(collection(db,'ralenti'),snap=>{ralArch=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderRal()},()=>{});
@@ -3424,7 +3429,7 @@ async function descargarEstPPT(btn,todoAnio){
       T(sl,'Ítem:',{x:3.55,y:1.1,w:0.75,h:0.38,bold:true,underline:{style:'sng'},fontSize:15,valign:'middle'});
       S(sl,4.35,1.08,5.0,0.4,'F07C12','B45309',1.5);T(sl,d.item||'',{x:4.45,y:1.08,w:4.8,h:0.4,valign:'middle',color:'FFFFFF',bold:true,fontSize:14});
       T(sl,'ACCIÓN:',{x:0.35,y:1.55,w:2,h:0.3,bold:true,fontSize:13});
-      S(sl,0.35,1.9,5.65,1.45,'F8F8F8','2B6CB0',2);T(sl,d.accion||'',{x:0.45,y:1.95,w:5.45,h:1.35,valign:'top',fontSize:12,color:'111111',fit:'shrink'});
+      S(sl,0.35,1.9,5.65,1.45,'F8F8F8','2B6CB0',2);T(sl,(d.placas&&d.placas.length?'Placas: '+d.placas.join(', ')+'\n':'')+(d.accion||''),{x:0.45,y:1.95,w:5.45,h:1.35,valign:'top',fontSize:12,color:'111111',fit:'shrink'});
       S(sl,0.35,3.5,5.65,2.9,'F8F8F8','D10000',3);T(sl,d.obs||'',{x:0.45,y:3.55,w:5.45,h:2.8,valign:'top',fontSize:12,color:'111111',fit:'shrink'});
       for(const[k,l,x]of[['antes','ANTES',6.35],['despues','DESPUÉS',9.85]]){const bw=3.2,bh=4.45,y=1.95;
         S(sl,x+0.95,y-0.36,1.3,0.33,'2C6E8F');T(sl,l,{x:x+0.95,y:y-0.36,w:1.3,h:0.33,align:'center',valign:'middle',color:'FFFFFF',bold:true,fontSize:13});
@@ -3455,7 +3460,7 @@ async function descargarEstPDF(btn){
       o+=rect(W-150,H-70,150,22,'0.75 0 0')+ctr(W-75,H-63,(d.sede||sede).toUpperCase(),11,true,'1 1 1');
       o+=rect(0,H-76,W-150,20,'0.96 0.55 0.05')+ctr((W-150)/2,H-70,d.cat||EST_CATS[0],11,true,'1 1 1');
       o+=txt(250,H-102,'Ítem:',12,true)+rect(292,H-110,300,22,'0.94 0.49 0.07')+borde(292,H-110,300,22,'0.7 0.33 0.04',1.2)+txt(300,H-103,String(d.item||'').slice(0,48),11,true,'1 1 1');
-      o+=txt(24,H-132,'ACCIÓN:',11,true)+rect(22,H-232,350,92,'0.97 0.97 0.97')+borde(22,H-232,350,92,'0.17 0.42 0.69',1.5)+parrafo(22,H-140,350,92,d.accion||'',9.5);
+      o+=txt(24,H-132,'ACCIÓN:',11,true)+rect(22,H-232,350,92,'0.97 0.97 0.97')+borde(22,H-232,350,92,'0.17 0.42 0.69',1.5)+parrafo(22,H-140,350,92,(d.placas&&d.placas.length?'Placas: '+d.placas.join(', ')+'\n':'')+(d.accion||''),9.5);
       o+=rect(22,98,350,H-340,'0.97 0.97 0.97')+borde(22,98,350,H-340,'0.82 0 0',2.2)+parrafo(22,H-242,350,H-340,d.obs||'',9.5);
       [['a','ANTES',395],['b','DESPUÉS',618]].forEach(([k,l,x])=>{const bw=205,bh=H-250,y=100;o+=rect(x+55,y+bh+2,95,18,'0.17 0.43 0.56')+ctr(x+102,y+bh+7,l,10,true,'1 1 1')+rect(x,y,bw,bh,'0.95 0.95 0.95');
         const v=im[k];if(v){const s=Math.min((bw-6)/v.w,(bh-6)/v.h),w=v.w*s,h=v.h*s;o+=`q ${w.toFixed(1)} 0 0 ${h.toFixed(1)} ${(x+(bw-w)/2).toFixed(1)} ${(y+(bh-h)/2).toFixed(1)} cm /Im${v.id} Do Q `}else o+=ctr(x+bw/2,y+bh/2,'Sin foto',10,false,'0.5 0.5 0.5');
@@ -3479,26 +3484,28 @@ function renderEst(){
     +(canEdit()?`<button type="button" class="btn estnew" data-est="nuevo" aria-pressed="${estSel==='nuevo'}">+ Nuevo ítem</button>`:'');
   const d=estSel==='nuevo'?null:L.find(x=>x.id===estSel);
   if(!d&&estSel!=='nuevo'){$('estslide').innerHTML=`<div class="empty" style="margin:20px">No hay ítems en ${MESES[estMes-1]} ${estAnio} para ${esc(sede)}.</div>`;$('estacts').innerHTML='';return}
-  if(!estF||estF._id!==(d?d.id:'nuevo'))estF={...(d?{cat:d.cat||EST_CATS[0],item:d.item||'',accion:d.accion||'',obs:d.obs||'',antes:d.antes||'',despues:d.despues||'',antesMarca:!!d.antesMarca,despuesMarca:!!d.despuesMarca}:estNuevo()),_id:d?d.id:'nuevo'};
-  const ed=canEdit(),F=estF;
+  if(!estF||estF._id!==(d?d.id:'nuevo'))estF={...(d?{placas:d.placas||[],cat:d.cat||EST_CATS[0],item:d.item||'',accion:d.accion||'',obs:d.obs||'',antes:d.antes||'',despues:d.despues||'',antesMarca:!!d.antesMarca,despuesMarca:!!d.despuesMarca}:estNuevo()),_id:d?d.id:'nuevo'};
+  const ed=canEdit(),F=estF;F.placas=F.placas||[];
+  const IMall=edItemsMes(),usados=new Set(L.filter(x=>x.id!==(d&&d.id)).map(x=>x.item));const IM=IMall?IMall.filter(x=>!usados.has(x.t)):null;
+  const plItem=IMall?((IMall.find(x=>x.t===F.item)||{}).pl||[]):[];const plOps=[...new Set([...plItem,...F.placas])];
   const foto=(k,l)=>`<div class="esf"><div class="esftit">${l}</div><div class="esfbox">${F[k]?`<img src="${F[k]}" alt="${l}" data-estimg>`:'<span class="esvac">Sin foto</span>'}
     ${ed?`<div class="esfb"><button type="button" data-estcam="${k}">📷 Tomar foto</button><button type="button" data-estgal="${k}">Subir</button>${F[k]?`<button type="button" data-estq="${k}">Quitar</button>`:''}</div>`:''}</div></div>`;
   $('estslide').innerHTML=`<div class="esl">
     <div class="eshead"><div class="eslogo">FLOTA LLANOS</div><div class="estitulo">ESTÁNDAR FLOTA ${estAnio} - &nbsp;MES: <span class="esmes">${MESES[estMes-1].toUpperCase()}</span></div><div class="esdeco"><i></i><i></i></div></div>
     <div class="essede">${esc(sede.toUpperCase())}</div>
     <div class="esbar">${ed?`<select id="es-cat" aria-label="Categoría">${EST_CATS.map(c=>`<option${c===F.cat?' selected':''}>${c}</option>`).join('')}</select>`:esc(F.cat)}</div>
-    <div class="esitem"><b>Ítem:</b>${ed?`<input id="es-item" maxlength="120" value="${esc(F.item)}" placeholder="Escribe el ítem">`:`<span>${esc(F.item||'—')}</span>`}</div>
+    <div class="esitem"><b>Ítem:</b>${ed?(IM?`<select id="es-item"><option value="">${IM.length?'Elige un ítem en «NO»…':'No hay ítems en «NO» pendientes este mes'}</option>${(F.item&&!IM.some(x=>x.t===F.item)?[{t:F.item}]:[]).concat(IM).map(x=>`<option${x.t===F.item?' selected':''}>${esc(x.t)}</option>`).join('')}</select>`:`<input id="es-item" maxlength="120" value="${esc(F.item)}" placeholder="Escribe el ítem">`):`<span>${esc(F.item||'—')}</span>`}</div>
     <div class="esbody">
       <div class="esizq"><b>ACCIÓN:</b>
-        ${ed?`<textarea id="es-accion" class="esacc" maxlength="1200" placeholder="Describe la acción">${esc(F.accion)}</textarea><textarea id="es-obs" class="esobs" maxlength="1500" placeholder="Hallazgo / observación">${esc(F.obs)}</textarea>`
-          :`<div class="esacc">${esc(F.accion||'')}</div><div class="esobs">${esc(F.obs||'')}</div>`}</div>
+        ${ed?`<div class="esacc esaccw">${IMall?`<select id="es-pl" class="espl" multiple size="4" aria-label="Placas con este ítem en NO">${plOps.length?plOps.map(p=>`<option value="${esc(p)}"${F.placas.includes(p)?' selected':''}>${esc(p)}</option>`).join(''):'<option disabled>Elige un ítem para ver sus placas</option>'}</select>`:''}<textarea id="es-accion" maxlength="1200" placeholder="Describe la acción">${esc(F.accion)}</textarea></div><textarea id="es-obs" class="esobs" maxlength="1500" placeholder="Hallazgo / observación">${esc(F.obs)}</textarea>`
+          :`<div class="esacc">${F.placas.length?`<b class="esplro">Placas: ${esc(F.placas.join(', '))}</b><br>`:''}${esc(F.accion||'')}</div><div class="esobs">${esc(F.obs||'')}</div>`}</div>
       ${foto('antes','ANTES')}${foto('despues','DESPUÉS')}
     </div>
     <div class="espie"><div class="esanio"><span>${String(estAnio).slice(0,2)}</span><span>${String(estAnio).slice(2)}</span></div><div><b>FLOTA</b><small>CD Reg. Sur</small></div>
       <svg class="estruck" viewBox="0 0 64 40" aria-hidden="true"><path d="M2 8h34v22H2z" fill="#e5e7eb" stroke="#475569"/><path d="M37 14h13l9 10v6H37z" fill="#f1f5f9" stroke="#475569"/><path d="M40 17h8l5 6H40z" fill="#93c5fd"/><circle cx="13" cy="32" r="5" fill="#1f2937"/><circle cx="48" cy="32" r="5" fill="#1f2937"/><circle cx="13" cy="32" r="2" fill="#cbd5e1"/><circle cx="48" cy="32" r="2" fill="#cbd5e1"/></svg></div>
   </div>`;
   $('estacts').innerHTML=(ed?`<button type="button" class="btn" id="estsave">${estSel==='nuevo'?'Guardar ítem':'Guardar cambios'}</button>`:'')+(cur.rol==='admin'&&d?`<button type="button" class="del" id="estdel">Eliminar ítem</button>`:'')+(cur.rol==='admin'&&L.length?`<button type="button" class="btn ghost" id="estpdf">⬇ PDF de todos los ítems</button><button type="button" class="btn ghost" id="estpptm">⬇ PowerPoint del mes</button>`:'')+(cur.rol==='admin'&&estDocs.some(x=>(x.sede||SEDES[0])===sede&&x.anio===estAnio)?`<button type="button" class="btn ghost" id="estpptA">⬇ PowerPoint del año ${estAnio}</button>`:'')+(d?`<small class="mnota">Registrado por ${esc(d.por||'—')}${d.editadoPor?` · editado por ${esc(d.editadoPor)}`:''}</small>`:'');
-  if(ed){['item','accion','obs'].forEach(k=>{const el=$('es-'+k);if(el)el.oninput=()=>{estF[k]=el.value}});const sc=$('es-cat');if(sc)sc.onchange=()=>{estF.cat=sc.value}}
+  if(ed){['item','accion','obs'].forEach(k=>{const el=$('es-'+k);if(el)el.oninput=()=>{estF[k]=el.value}});const sc=$('es-cat');if(sc)sc.onchange=()=>{estF.cat=sc.value};const si=$('es-item');if(si&&si.tagName==='SELECT')si.onchange=()=>{estF.item=si.value;estF.placas=[];renderEst()};const sp=$('es-pl');if(sp)sp.onchange=()=>{estF.placas=[...sp.selectedOptions].map(o=>o.value)}}
 }
 async function estFoto(k,file,cam){
   try{estF[k]=await imgJpeg(file);estF[k+'Marca']=false}
@@ -3513,8 +3520,8 @@ $('estv').addEventListener('click',async e=>{
   const q=e.target.closest('[data-estq]');if(q&&canEdit()){estF[q.dataset.estq]='';estF[q.dataset.estq+'Marca']=false;renderEst();return}
   const im=e.target.closest('[data-estimg]');if(im){$('bigimg').src=im.src;$('big').showModal();return}
   if(e.target.closest('#estsave')&&canEdit()){const F=estF,b=e.target.closest('#estsave');
-    if(!F.item.trim()){alert('Escribe el ítem.');return}
-    const data={cat:EST_CATS.includes(F.cat)?F.cat:EST_CATS[0],item:F.item.trim(),accion:F.accion.trim(),obs:F.obs.trim(),antes:F.antes,despues:F.despues,antesMarca:F.antesMarca,despuesMarca:F.despuesMarca};
+    if(!F.item.trim()){alert('Elige o escribe el ítem.');return}
+    const data={placas:F.placas||[],cat:EST_CATS.includes(F.cat)?F.cat:EST_CATS[0],item:F.item.trim(),accion:F.accion.trim(),obs:F.obs.trim(),antes:F.antes,despues:F.despues,antesMarca:F.antesMarca,despuesMarca:F.despuesMarca};
     if(JSON.stringify(data).length>950000){alert('Las fotos pesan demasiado. Vuelve a tomarlas o súbelas de nuevo.');return}
     b.disabled=true;
     try{if(estSel==='nuevo'){const ref=doc(collection(db,'estandar'));await setDoc(ref,{...data,sede,anio:estAnio,mes:estMes,orden:Date.now(),por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});estSel=ref.id;estPend=ref.id;estF=null}
@@ -3533,6 +3540,12 @@ let estVista='plant',edDatos={},unsubED=null,edMesSel='',edKSel='__todos';
 const ED_INI=13,ED_FIN=39;// N..AN
 const esNO=v=>/^no\b/.test(sinTilde(String(v??'').trim()));
 const mesIdx=t=>{const x=sinTilde(String(t||'')).slice(0,3);return ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'].indexOf(x)};
+function edDoc(){return edDatos['todas']||edDatos[sede]||null}
+function edFilasSede(D){if(!D)return[];const tok=sede==='Yopal'?'yopal':'villa',fs=D.filas||[];return fs.some(f=>sinTilde(f.k||'').includes('villa')||sinTilde(f.k||'').includes('yopal'))?fs.filter(f=>sinTilde(f.k||'').includes(tok)):fs}
+/* Ítems en «NO» del mes de la plantilla (para la lista desplegable de Ítem) y sus placas */
+function edItemsMes(){const D=edDoc();if(!D)return null;const T=D.tit||{},m={};
+  edFilasSede(D).filter(f=>mesIdx(f.mes)===estMes-1).forEach(f=>f.no.forEach(k=>{const t=T[k]||k;(m[t]=m[t]||{k,t,pl:new Set()}).pl.add(normP(f.p)||f.p)}));
+  return Object.values(m).map(x=>({...x,pl:[...x.pl].sort(cmpP)})).sort((a,b)=>ctIdx(a.k)-ctIdx(b.k))}
 async function edLeer(f){
   const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true,dateNF:'d/mm/yyyy'});
   const nom=wb.SheetNames.find(n=>sinTilde(n).trim()==='data')||wb.SheetNames.find(n=>sinTilde(n).includes('data'));
@@ -3554,15 +3567,14 @@ function edProcesar(t){
 }
 function renderED(){
   if(!cur||$('estv').hidden||estVista!=='data')return;
-  const D=edDatos[sede];$('edup').hidden=cur.rol!=='admin';
+  const D=edDoc();$('edup').hidden=cur.rol!=='admin';
   $('edsub').textContent=D?`Última carga: ${D.fecha?dtTxt(D.fecha):'—'} · ${D.nombre||'Excel'}`:'';
   if(!D){$('edmes').innerHTML='';$('edkpi').innerHTML='';$('edtop').innerHTML='';$('edlist').innerHTML=`<p class="empty" style="margin:0">Aún no hay datos cargados para ${esc(sede)}.${cur.rol==='admin'?' Usa «Cargar Excel» y elige el archivo que tiene la pestaña «Data».':''}</p>`;return}
-  const meses=[...new Set(D.filas.map(f=>f.mes).filter(Boolean))].sort((a,b)=>(mesIdx(a)-mesIdx(b))||a.localeCompare(b,'es'));
+  const meses=[...new Set(edFilasSede(D).map(f=>f.mes).filter(Boolean))].sort((a,b)=>(mesIdx(a)-mesIdx(b))||a.localeCompare(b,'es'));
   if(!edMesSel||(edMesSel!=='__todos'&&!meses.includes(edMesSel)))edMesSel=meses[meses.length-1]||'__todos';
   $('edmes').innerHTML=`<option value="__todos"${edMesSel==='__todos'?' selected':''}>Todos los meses</option>`+meses.map(m=>`<option${m===edMesSel?' selected':''}>${esc(m)}</option>`).join('');
-  const ks=[...new Set(D.filas.map(f=>f.k||'').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));if(edKSel!=='__todos'&&!ks.includes(edKSel))edKSel='__todos';
-  $('edk').innerHTML=ks.length?`<span class="edkt">${esc((D.tit||{}).K||'Columna K')} <small>(K)</small></span><button type="button" class="tab" data-edk="__todos" aria-pressed="${edKSel==='__todos'}">Todos</button>`+ks.map(k=>`<button type="button" class="tab" data-edk="${esc(k)}" aria-pressed="${k===edKSel}">${esc(k)}</button>`).join(''):'<small class="mnota">Vuelve a cargar el Excel para traer la información de la columna K.</small>';
-  const T=D.tit||{},q=normP($('edbusca').value),fs=D.filas.filter(f=>(edMesSel==='__todos'||f.mes===edMesSel)&&(edKSel==='__todos'||f.k===edKSel));
+  const fsS=edFilasSede(D);$('edk').innerHTML=(D.filas||[]).some(f=>f.k)?`<span class="edkt">${esc((D.tit||{}).K||'Columna K')} <small>(K)</small>:</span><span class="tab" aria-pressed="true">${esc(sede)}</span>`:'<small class="mnota">Vuelve a cargar el Excel para traer la información de la columna K.</small>';
+  const T=D.tit||{},q=normP($('edbusca').value),fs=fsS.filter(f=>edMesSel==='__todos'||f.mes===edMesSel);
   const porPl={};fs.forEach(f=>{const x=porPl[f.p]=porPl[f.p]||{p:f.p,reg:0,no:{}};x.reg++;f.no.forEach(k=>x.no[k]=(x.no[k]||0)+1)});
   const pls=Object.values(porPl),conNo=pls.filter(x=>Object.keys(x.no).length),totNo=fs.reduce((a,f)=>a+f.no.length,0);
   $('edkpi').innerHTML=[[fs.length,'Registros',''],[pls.length,'Placas',''],[conNo.length,'Placas con «NO»',conNo.length?'badc':''],[totNo,'Total de «NO»',totNo?'badc':''],[pls.length-conNo.length,'Placas sin «NO»','okc']]
@@ -3578,10 +3590,10 @@ function renderED(){
 $('edup').onclick=()=>{if(cur&&cur.rol==='admin')$('edfile').click()};
 $('edfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!cur||cur.rol!=='admin')return;$('edmsg').textContent='Leyendo el archivo…';
   try{const{t}=await edLeer(f),P=edProcesar(t);if(!P.filas.length){$('edmsg').textContent='La pestaña «Data» no tiene placas en las columnas N a AN.';return}
-    await setDoc(doc(db,'estdata',sede),{sede,nombre:f.name,fecha:ahoraDT(),...P,por:cur.nombre,editado:serverTimestamp()});edMesSel='';$('edmsg').textContent=''}
+    await setDoc(doc(db,'estdata','todas'),{sede:'todas',nombre:f.name,fecha:ahoraDT(),...P,por:cur.nombre,editado:serverTimestamp()});edMesSel='';$('edmsg').textContent=''}
   catch(x){console.error(x);$('edmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
 $('edmes').onchange=()=>{edMesSel=$('edmes').value;renderED()};
-$('edk').onclick=e=>{const b=e.target.closest('[data-edk]');if(!b)return;edKSel=b.dataset.edk;renderED()};
+
 $('edbusca').oninput=renderED;
 function estVistaSet(v){estVista=v;$('estplant').hidden=v!=='plant';$('estdatav').hidden=v!=='data';document.querySelectorAll('.si[data-estv]').forEach(b=>b.setAttribute('aria-current',b.dataset.estv===v));if(v==='data')renderED();else renderEst();if(typeof titulo==='function')titulo()}
 document.querySelectorAll('.si[data-estv]').forEach(b=>b.onclick=()=>{if(!cur)return;if($('estv').hidden)modulo('est');estVistaSet(b.dataset.estv);cerrarMenuMovil()});
