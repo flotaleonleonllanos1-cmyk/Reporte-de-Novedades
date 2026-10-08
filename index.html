@@ -244,6 +244,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .edtpb{display:grid;grid-template-columns:22px 90px 1fr auto;gap:8px;align-items:center}.edtpb .rk{color:var(--mut);font-size:.75rem;text-align:right}
 .edtpb .tr{height:12px;background:var(--line);border-radius:6px;overflow:hidden}.edtpb .tr i{display:block;height:100%;background:var(--bad);border-radius:6px}
 .edtpi{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 0 30px}.edtpi span{font-size:.75rem;background:var(--badbg);color:var(--bad);border-radius:999px;padding:1px 8px}
+.kmt.edtt{min-width:0;font-size:.85rem}.kmt.edtt th,.kmt.edtt td{padding:6px 5px}.edtt td small{display:block;color:var(--mut);font-size:.72rem}.edtt tr.sel td{background:var(--soft)}.edtts{max-height:420px;overflow:auto}
 .edrings{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;margin-top:10px}
 .edring{display:grid;justify-items:center;gap:2px}.edring svg{width:150px;height:150px}.edring small{color:var(--mut)}
 .edits{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(360px,1fr))}
@@ -3565,9 +3566,16 @@ async function edLeer(f){
   if(!nom)throw{msg:`El archivo no tiene una pestaña llamada «Data». Pestañas encontradas: ${wb.SheetNames.join(', ')}.`};
   const ws=wb.Sheets[nom],R=X.utils.decode_range(ws['!ref']||'A1');R.s.r=0;R.s.c=0;
   const t=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:true,range:R,dateNF:'d/mm/yyyy'});
-  return{t,hoja:nom};
+  const tr=X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:true,range:R});
+  return{t,tr,hoja:nom};
 }
-function edProcesar(t){
+// Tiempo de ejecución (columna AP) en segundos, desde el valor real de Excel o desde el texto
+function tiempoAP(raw,txt,tit){
+  if(raw instanceof Date&&!isNaN(raw)){const d=Math.round((raw-new Date(1899,11,30))/1000);if(d>=0&&d<86400*60)return d;return raw.getHours()*3600+raw.getMinutes()*60+raw.getSeconds()}
+  if(typeof raw==='number'&&isFinite(raw)){if(raw>0&&raw<1)return Math.round(raw*86400);const h=sinTilde(tit||'');return Math.round(raw*(/seg/.test(h)?1:/hora|hr/.test(h)?3600:60))}
+  const v=durSeg(txt,tit);return v===null?null:v;
+}
+function edProcesar(t,tr){
   const tx=(r,c)=>String(((t[r]||[])[c])??'').trim();
   // fila de títulos: la primera que tenga texto en varias columnas de N a AN
   let hi=t.findIndex(r=>r&&r.slice(ED_INI,ED_FIN+1).filter(v=>String(v??'').trim()).length>=3);if(hi<0)hi=0;
@@ -3577,7 +3585,7 @@ function edProcesar(t){
   const cK=10;tit.K=tx(hi,cK)||'Columna K';
   const cAP=41;tit.AP=tx(hi,cAP)||'Columna AP';const esSI=v=>/^s[ií]\b|^si$/.test(sinTilde(String(v??'').trim()));
   const filas=[];for(let r=hi+1;r<t.length;r++){const p=tx(r,cPl);if(!p)continue;const no=items.filter(c=>esNO(tx(r,c))).map(colL),si=items.filter(c=>esSI(tx(r,c))).length;
-    const tpt=tx(r,cAP),tp=tpt?durSeg(tpt,tit.AP):null;filas.push({p,mes:tx(r,cMes),k:tx(r,cK),no,si,tp,tpt})}
+    const tpt=tx(r,cAP),tp=tpt||((tr||[])[r]||[])[cAP]!==''?tiempoAP(((tr||[])[r]||[])[cAP],tpt,tit.AP):null;filas.push({p,mes:tx(r,cMes),k:tx(r,cK),no,si,tp,tpt})}
   return{tit,colPlaca:colL(cPl),colMes:colL(cMes),filaTitulos:hi+1,nItems:items.length,filas};
 }
 function renderED(){
@@ -3605,7 +3613,7 @@ function renderED(){
 }
 $('edup').onclick=()=>{if(cur&&cur.rol==='admin')$('edfile').click()};
 $('edfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!cur||cur.rol!=='admin')return;$('edmsg').textContent='Leyendo el archivo…';
-  try{const{t}=await edLeer(f),P=edProcesar(t);if(!P.filas.length){$('edmsg').textContent='La pestaña «Data» no tiene placas en las columnas N a AN.';return}
+  try{const{t,tr}=await edLeer(f),P=edProcesar(t,tr);if(!P.filas.length){$('edmsg').textContent='La pestaña «Data» no tiene placas en las columnas N a AN.';return}
     await setDoc(doc(db,'estdata','todas'),{sede:'todas',nombre:f.name,fecha:ahoraDT(),...P,por:cur.nombre,editado:serverTimestamp()});edMesSel='';$('edmsg').textContent=''}
   catch(x){console.error(x);$('edmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
 $('edmes').onchange=()=>{edMesSel=$('edmes').value;renderED()};
@@ -3614,6 +3622,21 @@ $('edbusca').oninput=renderED;
 $('eddashb').onclick=()=>{edDash=!edDash;renderED()};
 function anilloED(pct,color,label,det){const r=46,c=2*Math.PI*r,v=Math.max(0,Math.min(100,pct||0));
   return `<div class="edring"><svg viewBox="0 0 120 120" role="img" aria-label="${label}: ${v.toFixed(1)}%"><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--line)" stroke-width="14"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="${color}" stroke-width="14" stroke-dasharray="${(c*v/100).toFixed(1)} ${c.toFixed(1)}" stroke-linecap="round" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" font-size="22" font-weight="800" fill="var(--ink)">${v.toFixed(1)}%</text></svg><b>${label}</b><small>${det}</small></div>`}
+function tablasTiempo(D,fs){
+  const agr=lst=>{const v=lst.filter(f=>typeof f.tp==='number'&&f.tp>0);if(!v.length)return null;const mn=v.reduce((a,f)=>f.tp<a.tp?f:a),mx=v.reduce((a,f)=>f.tp>a.tp?f:a);return{n:v.length,prom:v.reduce((a,f)=>a+f.tp,0)/v.length,mn,mx}};
+  const pl=f=>esc(normP(f.p)||f.p);
+  const todos=edFilasSede(D),meses=[...new Set(todos.map(f=>f.mes).filter(Boolean))].sort((a,b)=>(mesIdx(a)-mesIdx(b))||a.localeCompare(b,'es'));
+  const filasMes=meses.map(m=>({m,a:agr(todos.filter(f=>f.mes===m))})).filter(x=>x.a);
+  const q=normP($('edbusca').value),porP={};fs.forEach(f=>{const p=normP(f.p)||f.p;(porP[p]=porP[p]||[]).push(f)});
+  const filasPl=Object.entries(porP).map(([p,l])=>({p,a:agr(l)})).filter(x=>x.a&&(!q||x.p.includes(q))).sort((a,b)=>b.a.prom-a.a.prom);
+  return `<div class="dgrid" style="margin-top:14px">
+    <div class="dc"><h2>Tiempos de ejecución por mes</h2><small>Columna AP · todos los meses de ${esc(sede)}</small>
+      <div class="tscroll"><table class="kmt edtt"><thead><tr><th>Mes</th><th class="num">Registros</th><th class="num">Promedio</th><th class="num">Mínimo</th><th class="num">Máximo</th></tr></thead><tbody>
+      ${filasMes.map(x=>`<tr${x.m===edMesSel?' class="sel"':''}><td><b>${esc(x.m)}</b></td><td class="num">${x.a.n}</td><td class="num"><b>${durF(x.a.prom)}</b></td><td class="num">${durF(x.a.mn.tp)}<small>${pl(x.a.mn)}</small></td><td class="num">${durF(x.a.mx.tp)}<small>${pl(x.a.mx)}</small></td></tr>`).join('')}</tbody></table></div></div>
+    <div class="dc"><h2>Tiempos de ejecución por placa</h2><small>Columna AP · ${edMesSel==='__todos'?'todos los meses':esc(edMesSel)} · de mayor a menor promedio</small>
+      <div class="tscroll edtts"><table class="kmt edtt"><thead><tr><th>Placa</th><th class="num">Registros</th><th class="num">Promedio</th><th class="num">Mínimo</th><th class="num">Máximo</th></tr></thead><tbody>
+      ${filasPl.map(x=>`<tr><td><b>${esc(x.p)}</b></td><td class="num">${x.a.n}</td><td class="num"><b>${durF(x.a.prom)}</b></td><td class="num">${durF(x.a.mn.tp)}</td><td class="num">${durF(x.a.mx.tp)}</td></tr>`).join('')}</tbody></table></div></div></div>`;
+}
 function dashED(D,fs){
   const T=D.tit||{},q=normP($('edbusca').value);const nIt=D.nItems||0;
   if(!fs.length){$('eddash').innerHTML='<p class="empty" style="margin:0">No hay registros en este periodo.</p>';return}
@@ -3623,13 +3646,14 @@ function dashED(D,fs){
   // Top 6 ítems con más NO
   const ii={};fs.forEach(f=>f.no.forEach(k=>ii[k]=(ii[k]||0)+1));const topI=Object.entries(ii).sort((a,b)=>b[1]-a[1]).slice(0,6);
   // Tiempos (columna AP)
-  const ts=fs.filter(f=>typeof f.tp==='number'&&f.tp>=0),hayT=ts.length,prom=hayT?ts.reduce((a,f)=>a+f.tp,0)/ts.length:null,mn=hayT?ts.reduce((a,f)=>f.tp<a.tp?f:a):null,mx=hayT?ts.reduce((a,f)=>f.tp>a.tp?f:a):null;
+  const ts=fs.filter(f=>typeof f.tp==='number'&&f.tp>0),hayT=ts.length,prom=hayT?ts.reduce((a,f)=>a+f.tp,0)/ts.length:null,mn=hayT?ts.reduce((a,f)=>f.tp<a.tp?f:a):null,mx=hayT?ts.reduce((a,f)=>f.tp>a.tp?f:a):null;
   // Porcentajes SI / NO sobre la cantidad de placas
   const nPl=new Set(fs.map(f=>normP(f.p)||f.p)).size,totSI=fs.reduce((a,f)=>a+(f.si||0),0),totNO=fs.reduce((a,f)=>a+f.no.length,0),base=fs.length*nIt;
   const pSI=base?totSI/base*100:0,pNO=base?totNO/base*100:0,siOk=fs.some(f=>typeof f.si==='number');
   $('eddash').innerHTML=`
    <div class="kpis">${[[hayT?durF(prom):'—','Promedio de tiempo de ejecución'],[hayT?durF(mn.tp):'—',`Tiempo mínimo${mn?` · ${esc(normP(mn.p)||mn.p)}`:''}`],[hayT?durF(mx.tp):'—',`Tiempo máximo${mx?` · ${esc(normP(mx.p)||mx.p)}`:''}`],[nPl,'Placas evaluadas'],[fs.length,'Registros']].map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
-   ${hayT?'':`<small class="mnota">No hay tiempos en la columna AP${(D.tit||{}).AP?` («${esc(D.tit.AP)}»)`:''}. Si tu Excel los tiene, vuelve a cargarlo.</small>`}
+   ${hayT?'':`<small class="mnota">No se encontraron tiempos en la columna AP${(D.tit||{}).AP?` («${esc(D.tit.AP)}»)`:''}${(()=>{const e=fs.find(f=>f.tpt);return e?`; valor encontrado: «${esc(e.tpt)}»`:''})()}. Vuelve a cargar el Excel con esta versión de la página.</small>`}
+   ${hayT?tablasTiempo(D,fs):''}
    <div class="dgrid" style="margin-top:14px">
      <div class="dc"><h2>Top 6 placas con más «NO»</h2><small>Cantidad de «NO» y los ítems de cada placa</small>
        ${topP.length?topP.map((x,i)=>{const its=Object.entries(x.it).sort((a,b)=>b[1]-a[1]);return `<div class="edtp"><div class="edtpb"><span class="rk">${i+1}</span><b>${esc(x.p)}</b><span class="tr"><i style="width:${x.n/mxP*100}%"></i></span><b>${x.n}</b></div>
