@@ -249,6 +249,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .edct{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.edct b{font-size:1.1rem;letter-spacing:.04em}
 .edc ul{margin:0;padding:0;list-style:none;display:grid;gap:4px}.edc li{font-size:.88rem;display:flex;gap:8px;align-items:baseline}.edc li small{color:var(--mut)}
 .edno{background:var(--badbg);color:var(--bad);font-weight:800;font-size:.7rem;border-radius:4px;padding:1px 6px;flex:none}
+.estaviso{background:var(--okbg);color:var(--ok);font-weight:700;border-radius:8px;padding:8px 12px;margin-bottom:10px}
 .esitems{margin-top:16px;display:grid;gap:12px}.esith{margin:0;font-size:1rem}
 .esgrp>b{display:block;font-size:.78rem;letter-spacing:.08em;color:#fff;background:linear-gradient(90deg,#f59e0b,#ea7a0c);padding:4px 10px;border-radius:6px 6px 0 0}
 .esgrp .esbtns{display:flex;flex-wrap:wrap;gap:8px;border:1px solid var(--line);border-top:0;border-radius:0 0 8px 8px;padding:10px}
@@ -819,6 +820,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
  </div>
  <div id="estplant">
   <div class="ralbar"><label>Mes<select id="estmes"></select></label><label>Año<select id="estanio"></select></label></div>
+  <div class="estaviso" id="estaviso" hidden role="status"></div>
   <div class="eswrap"><div id="estslide"></div></div>
   <div class="estacts" id="estacts"></div>
   <div class="esitems" id="estitems" role="group" aria-label="Ítems guardados"></div>
@@ -3474,7 +3476,9 @@ async function descargarEstPDF(btn){
 
 let estPend='',estDocs=[],unsubE=null,estSel='',estF=null,estMes=new Date().getMonth()+1,estAnio=new Date().getFullYear();
 function estLista(){return estDocs.filter(d=>(d.sede||SEDES[0])===sede&&d.anio===estAnio&&d.mes===estMes).sort((a,b)=>(a.orden||0)-(b.orden||0)||String(a.item).localeCompare(String(b.item),'es'))}
-function estNuevo(){return{cat:EST_CATS[0],item:'',accion:'',obs:'',antes:'',despues:'',antesMarca:false,despuesMarca:false}}
+function estLimpio(){estF={...estNuevo(),_id:'nuevo'};['estcam','estgal'].forEach(i=>{const x=$(i);if(x){x.value='';delete x.dataset.k}})}
+function estNuevo(){return{placas:[],cat:EST_CATS[0],item:'',accion:'',obs:'',antes:'',despues:'',antesMarca:false,despuesMarca:false}}
+function estAviso(t){const a=$('estaviso');if(!a)return;a.textContent=t;a.hidden=false;clearTimeout(window.__esa);window.__esa=setTimeout(()=>a.hidden=true,4500)}
 function renderEst(){
   if(!cur||$('estv').hidden)return;
   $('estanio').innerHTML=[estAnio-1,estAnio,estAnio+1].map(a=>`<option${a===estAnio?' selected':''}>${a}</option>`).join('');
@@ -3514,7 +3518,7 @@ async function estFoto(k,file,cam){
 $('estcam').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)estFoto($('estcam').dataset.k,f,true)};
 $('estgal').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)estFoto($('estgal').dataset.k,f,false)};
 $('estv').addEventListener('click',async e=>{
-  const t=e.target.closest('[data-est]');if(t){estSel=t.dataset.est;estF=null;renderEst();return}
+  const t=e.target.closest('[data-est]');if(t){estSel=t.dataset.est;if(estSel==='nuevo')estLimpio();else estF=null;renderEst();if(estSel==='nuevo')$('estslide').scrollIntoView({behavior:'smooth',block:'start'});return}
   const c=e.target.closest('[data-estcam]');if(c&&canEdit()){$('estcam').dataset.k=c.dataset.estcam;$('estcam').click();return}
   const g=e.target.closest('[data-estgal]');if(g&&canEdit()){$('estgal').dataset.k=g.dataset.estgal;$('estgal').click();return}
   const q=e.target.closest('[data-estq]');if(q&&canEdit()){estF[q.dataset.estq]='';estF[q.dataset.estq+'Marca']=false;renderEst();return}
@@ -3524,7 +3528,7 @@ $('estv').addEventListener('click',async e=>{
     const data={placas:F.placas||[],cat:EST_CATS.includes(F.cat)?F.cat:EST_CATS[0],item:F.item.trim(),accion:F.accion.trim(),obs:F.obs.trim(),antes:F.antes,despues:F.despues,antesMarca:F.antesMarca,despuesMarca:F.despuesMarca};
     if(JSON.stringify(data).length>950000){alert('Las fotos pesan demasiado. Vuelve a tomarlas o súbelas de nuevo.');return}
     b.disabled=true;
-    try{if(estSel==='nuevo'){const ref=doc(collection(db,'estandar'));await setDoc(ref,{...data,sede,anio:estAnio,mes:estMes,orden:Date.now(),por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});estSel=ref.id;estPend=ref.id;estF=null}
+    try{if(estSel==='nuevo'){const ref=doc(collection(db,'estandar'));await setDoc(ref,{...data,sede,anio:estAnio,mes:estMes,orden:Date.now(),por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});estSel='nuevo';estPend='';estLimpio();estAviso(`«${data.item}» quedó guardado. Ya puedes registrar el siguiente ítem.`)}
       else await updateDoc(doc(db,'estandar',estSel),{...data,editadoPor:cur.nombre,editado:serverTimestamp()});
       renderEst()}catch(x){alert(ERR(x.code))}b.disabled=false;return}
   if(e.target.closest('#estdel')&&cur.rol==='admin'&&confirm('¿Eliminar este ítem del estándar de flota?')){try{await deleteDoc(doc(db,'estandar',estSel));estSel='';estF=null}catch(x){alert(ERR(x.code))}return}
