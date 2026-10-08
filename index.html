@@ -73,7 +73,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .mi[data-m="km"]::after{animation-delay:3s}
 .mi[data-m="ral"]::after{animation-delay:4s}
 .mi[data-m="doc"]::after{animation-delay:5s}
-.mi[data-m="bar"]::after{animation-delay:6s}.mi[data-m="lav"]::after{animation-delay:7s}
+.mi[data-m="bar"]::after{animation-delay:6s}.mi[data-m="est"]::after{animation-delay:1.5s}.mi[data-m="lav"]::after{animation-delay:7s}
 .bpolvo{animation:polvo 1.8s ease-out infinite}.bpolvo+.bpolvo{animation-delay:.6s}
 @keyframes polvo{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(3px,-4px)}}
 .brillo{transform-box:fill-box;transform-origin:center;animation:brilla 2s ease-in-out infinite}.brillo+.brillo{animation-delay:1s}
@@ -206,6 +206,34 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .fcvac{cursor:default;border-style:dashed;color:var(--mut)}
 .fclinks{display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-size:.85rem}
 .docconf{display:grid;gap:8px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}.docconf label{margin:0}.docconf input{margin-top:4px}
+.eswrap{overflow-x:auto;padding-bottom:6px}
+.esl{position:relative;width:100%;min-width:760px;aspect-ratio:16/9;background:#fff;color:#111;border-radius:6px;box-shadow:0 6px 22px rgba(0,0,0,.18);overflow:hidden;font-family:Calibri,Arial,sans-serif;display:flex;flex-direction:column}
+.eshead{height:9%;background:linear-gradient(90deg,#163a4d,#1f5f7a 60%,#163a4d);display:flex;align-items:center;color:#fff}
+.eslogo{width:19%;height:100%;display:grid;place-items:center;font-weight:800;letter-spacing:.12em;font-size:.95rem;background:#0f2a37}
+.estitulo{flex:1;text-align:center;font-weight:800;font-size:1.25rem;letter-spacing:.02em}
+.esmes{display:inline-block;min-width:150px;padding:2px 10px;background:#2b6cb0;border:2px solid #fff;border-radius:3px;font-size:1rem}
+.esdeco{display:flex;height:100%}.esdeco i{width:34px;background:#34d399}.esdeco i+i{background:#facc15}
+.essede{position:absolute;right:0;top:7%;background:#c00000;color:#fff;font-weight:800;padding:4px 18px;font-size:.95rem;letter-spacing:.04em;border:2px solid #fff;z-index:2}
+.esbar{margin-top:4px;background:linear-gradient(90deg,#f59e0b,#ea7a0c);color:#fff;text-align:center;font-weight:700;letter-spacing:.06em;font-size:.95rem;padding:3px 0}
+.esitem{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0 4px}.esitem b{text-decoration:underline;font-size:1.05rem}
+.esitem input,.esitem span{width:40%;background:#f07c12;color:#fff;border:2px solid #b45309;border-radius:3px;padding:4px 10px;font-weight:700;margin:0;font-size:1rem}
+.esitem input::placeholder{color:#ffe3c2}
+.esbody{flex:1;display:grid;grid-template-columns:44% 1fr 1fr;gap:2.4%;padding:0 3% 0 2.4%;min-height:0}
+.esizq{display:flex;flex-direction:column;gap:12px;min-height:0}.esizq b{font-size:.95rem}
+.esacc,.esobs{width:100%;margin:0;border-radius:3px;background:#f8f8f8;color:#111;font:inherit;font-size:.92rem;padding:8px;resize:none;overflow:auto;white-space:pre-wrap}
+.esacc{height:28%;border:2px solid #2b6cb0}.esobs{flex:1;border:3px solid #d10000}
+.esf{display:flex;flex-direction:column;align-items:center;min-height:0}
+.esftit{background:linear-gradient(#2c6e8f,#1d4f69);color:#fff;font-weight:700;padding:3px 22px;border-radius:4px 4px 0 0;font-size:.95rem}
+.esfbox{position:relative;width:100%;flex:1;max-height:78%;border:4px solid #111;background:#f4f4f4;display:grid;place-items:center;overflow:hidden}
+.esfbox img{width:100%;height:100%;object-fit:contain;background:#111;cursor:zoom-in}.esvac{color:#888;font-size:.85rem}
+.esfb{position:absolute;bottom:6px;left:6px;right:6px;display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+.esfb button{border:0;border-radius:6px;background:rgba(14,116,144,.92);color:#fff;font-size:.75rem;font-weight:700;padding:5px 8px;cursor:pointer}
+.espie{height:12%;display:flex;align-items:center;gap:10px;padding:0 2.4%;position:relative}
+.esanio{display:grid;font-weight:700;font-size:.95rem;line-height:1.05;border-right:2px solid #f59e0b;padding-right:8px;letter-spacing:.3em}
+.espie b{display:block;font-weight:400;font-size:1rem}.espie small{font-size:.65rem;color:#555}
+.estruck{position:absolute;right:1.5%;bottom:6%;width:9%}
+.estacts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.estacts small{margin-left:auto}
+.tab.estnew{border-style:dashed}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
 .docmiga{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:200px;font-size:.92rem}
@@ -518,6 +546,9 @@ textarea{font:inherit;color:inherit;width:100%;margin-top:4px;padding:9px 10px;b
 html.tema-cal{--bg:#eef4ef;--card:#fff;--ink:#16261c;--mut:#5b7062;--line:#d2e2d6;--acc:#1f6b3f;--acc2:#2f8a52;--soft:#e2f1e6;--band1:#2f8a52;--band2:#1f6b3f}
 html.tema-cal[data-theme="dark"]{--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}
 @media (prefers-color-scheme:dark){html.tema-cal:not([data-theme="light"]){--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}}
+html.tema-est{--acc:#0e7490;--acc2:#0891b2;--soft:#e0f2f7;--band1:#0891b2;--band2:#164e63}
+html.tema-est[data-theme="dark"]{--acc:#22b5d0;--acc2:#38c6de;--soft:#0f3340}
+@media (prefers-color-scheme:dark){html.tema-est:not([data-theme="light"]){--acc:#22b5d0;--acc2:#38c6de;--soft:#0f3340}}
 html.tema-bar{--acc:#a16207;--acc2:#ca8a04;--soft:#fef3c7;--band1:#ca8a04;--band2:#713f12}
 html.tema-lav{--acc:#0369a1;--acc2:#0ea5e9;--soft:#e0f2fe;--band1:#0ea5e9;--band2:#0c4a6e}
 html.tema-bar[data-theme="dark"]{--acc:#ca8a04;--acc2:#eab308;--soft:#3b2f12}html.tema-lav[data-theme="dark"]{--acc:#0ea5e9;--acc2:#38bdf8;--soft:#0c2a3d}
@@ -683,6 +714,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       </div>
     </div>
     <div class="grp">
+      <button type="button" class="mi" data-m="est" aria-pressed="false" aria-expanded="false" title="Estándar de Flota"><span class="docico" aria-hidden="true"><svg viewBox="0 0 32 26" width="28" height="24"><rect x="1" y="1" width="30" height="20" rx="2" fill="#f8fafc" stroke="rgba(255,255,255,.8)"/><rect x="1" y="1" width="30" height="5" rx="2" fill="#0e7490"/><rect x="4" y="9" width="9" height="9" fill="#fff" stroke="#2563eb"/><rect x="15" y="9" width="6" height="9" fill="#e2e8f0" stroke="#111"/><rect x="23" y="9" width="6" height="9" fill="#e2e8f0" stroke="#111"/><rect x="9" y="22" width="14" height="2" rx="1" fill="#f59e0b"/><circle cx="26" cy="3.5" r="1.2" fill="#facc15" class="brillo"/></svg></span><span class="lbl">Estándar de Flota</span></button>
+    </div>
+    <div class="grp">
       <button type="button" class="mi" data-m="var" aria-pressed="false" aria-expanded="false" title="Varadas"><svg class="ic icv" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3zM12 10v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Varadas</span><span class="humo" aria-hidden="true"><svg viewBox="0 0 48 36" width="44" height="33">
 <g class="nube"><circle cx="38" cy="14" r="3.4"/><circle cx="36" cy="14" r="3"/><circle cx="40" cy="14" r="3.2"/></g>
 <path d="M4 25v-6.5c0-1.2.7-2.2 1.8-2.6l5.2-2 4.4-4.6c.7-.7 1.6-1.1 2.6-1.1H33c1 0 1.9.5 2.5 1.3l4.3 6.2 3.6 1.4c1 .4 1.6 1.4 1.6 2.4V25c0 .8-.7 1.5-1.5 1.5H5.5C4.7 26.5 4 25.8 4 25z" fill="#f2f2f2" stroke="#2b2b2b" stroke-width="1.2"/>
@@ -744,6 +778,13 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </div>
 <div id="list"></div>
 </div>
+<section id="estv" hidden aria-label="Estándar de Flota">
+  <div class="ralbar"><label>Mes<select id="estmes"></select></label><label>Año<select id="estanio"></select></label></div>
+  <div class="tabs" role="group" aria-label="Ítems del mes" id="estitems"></div>
+  <div class="eswrap"><div id="estslide"></div></div>
+  <div class="estacts" id="estacts"></div>
+  <input type="file" id="estcam" accept="image/*" capture="environment" hidden><input type="file" id="estgal" accept="image/*" hidden>
+</section>
 <section id="blv" hidden aria-label="Barridos y Lavadero">
   <div class="ralbar"><label>Placa<select id="blpl"></select></label><label>Mes<input type="month" id="blmes"></label><button type="button" class="btn" id="blpdf" hidden>Descargar PDF</button></div>
   <div class="kpis" id="blkpi"></div>
@@ -1159,7 +1200,7 @@ const DOM='@novedades-leon.app';
 const mail=u=>u.trim().toLowerCase()+DOM;
 const okUser=u=>/^[a-z0-9._-]{3,30}$/.test(u);
 const ROLES={admin:'Administrador',editor:'Editor',visual:'Visual',inactivo:'Sin acceso'};
-const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
+const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
 const puedeSede=x=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.sedes)||!cur.sedes.length||cur.sedes.includes(x));
 const sedesHTML=(pre,sel)=>`<div class="mudchk">${SEDES.map(x=>`<label><input type="checkbox" data-${pre}="${x}"${!sel||!sel.length||sel.includes(x)?' checked':''}> ${x}</label>`).join('')}</div>`;
 function aplicarSedes(){const ok=SEDES.filter(puedeSede);$('sede').innerHTML=ok.map(x=>`<option${x===sede?' selected':''}>${x}</option>`).join('');$('sede').disabled=ok.length<2;$('sede').title=ok.length<2?'Tu usuario solo tiene acceso a esta sede':'';
@@ -1303,6 +1344,8 @@ function salir(){
   if(unsubK){unsubK();unsubK=null}
   if(unsubR){unsubR();unsubR=null}
   if(unsubB){unsubB();unsubB=null}
+  if(unsubE){unsubE();unsubE=null}
+  estDocs=[];
   if(unsubT){unsubT();unsubT=null}
   if(unsubFC){unsubFC();unsubFC=null}
   fotosCond={};
@@ -1340,6 +1383,7 @@ async function entrar(user){
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
+  if(puedeVer('est'))unsubE=onSnapshot(collection(db,'estandar'),snap=>{estDocs=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$('estv').hidden){const keep=estF&&estF._id!=='nuevo'?null:estF;renderEst()}},()=>{});
   if(puedeVer('bar')||puedeVer('lav'))unsubB=onSnapshot(collection(db,'aseo'),snap=>{aseo=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderBL()},()=>{});
   if(puedeVer('ral'))unsubR=onSnapshot(collection(db,'ralenti'),snap=>{ralArch=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderRal()},()=>{});
   if(puedeVer('km'))unsubK=onSnapshot(collection(db,'kilometrajes'),snap=>{kms=snap.docs.map(d=>({id:d.id,...d.data()}));renderKm()},x=>{if(!$('kmv').hidden)$('kmlist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
@@ -1478,7 +1522,8 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
   if(m!=='ini'&&!puedeVer(m))m='ini';
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est';
+  document.documentElement.classList.toggle('tema-est',es);$('estv').hidden=!es;if(es){estF=null;renderEst()}
   if(bl)blTipo=m==='bar'?'barrido':'lavado';
   document.documentElement.classList.toggle('tema-bar',m==='bar');document.documentElement.classList.toggle('tema-lav',m==='lav');$('blv').hidden=!bl;
   $('bladd').hidden=!bl||!canEdit();$('blplb').hidden=!bl||!cur||cur.rol!=='admin';if(bl){$('bladd').textContent=`+ Registrar ${BLN[blTipo].u}`;$('blpl').value='';renderBL()}
@@ -1486,9 +1531,9 @@ function modulo(m){
   document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km||ral||dc||bl)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl;
-  $('add').hidden=cal||ini||vr||km||ral||dc||bl||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(cal||ini||vr||km||ral||dc||bl||es)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es;
+  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||!canEdit();$('raladd').hidden=!ral||!canEdit();
   if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';$('kmllanos').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
@@ -1501,10 +1546,10 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden;
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!cal&&$('dash').hidden);
+  $('vtit').textContent=ini?'':es?'Estándar de Flota':bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
@@ -1670,6 +1715,7 @@ function vistaPDF(){
   if(vis('ralv'))return{el:$('ralv'),titulo:'Ralentí'};
   if(vis('docv'))return{el:$('docv'),titulo:$('vtit').textContent};
   if(vis('blv'))return{el:$('blv'),titulo:BLN[blTipo].t};
+  if(vis('estv'))return{el:$('estslide'),titulo:'Estándar de Flota'};
   return null;
 }
 function expandirTodo(on){
@@ -3292,6 +3338,68 @@ $('bplist').onclick=e=>{const b=e.target.closest('[data-bk]');if(b){bpl.splice(N
 $('bpclear').onclick=()=>{if(confirm('¿Quitar todas las placas de la lista?')){bpl=[];pintarBP()}};
 $('bpfrm').onsubmit=async e=>{e.preventDefault();$('bpsave').disabled=true;
   try{await setDoc(doc(db,'listas','placasbl_'+sede),{tipo:'placasbl',sede,placas:bpl,por:cur.nombre,editado:serverTimestamp()});$('bpdlg').close()}catch(x){$('bperr').textContent=ERR(x.code)}$('bpsave').disabled=false};
+/* ---------- Estándar de Flota (plantilla: Documentación e imagen) ---------- */
+let estPend='',estDocs=[],unsubE=null,estSel='',estF=null,estMes=new Date().getMonth()+1,estAnio=new Date().getFullYear();
+function estLista(){return estDocs.filter(d=>(d.sede||SEDES[0])===sede&&d.anio===estAnio&&d.mes===estMes).sort((a,b)=>(a.orden||0)-(b.orden||0)||String(a.item).localeCompare(String(b.item),'es'))}
+function estNuevo(){return{item:'',accion:'',obs:'',antes:'',despues:'',antesMarca:false,despuesMarca:false}}
+function renderEst(){
+  if(!cur||$('estv').hidden)return;
+  $('estanio').innerHTML=[estAnio-1,estAnio,estAnio+1].map(a=>`<option${a===estAnio?' selected':''}>${a}</option>`).join('');
+  $('estmes').innerHTML=MESES.map((n,k)=>`<option value="${k+1}"${k+1===estMes?' selected':''}>${n}</option>`).join('');
+  const L=estLista();if(estPend&&L.some(d=>d.id===estPend))estPend='';if(estSel&&estSel!=='nuevo'&&!L.some(d=>d.id===estSel)){if(estSel===estPend){$('estslide').innerHTML='<div class="empty" style="margin:20px">Guardando…</div>';return}estSel=''}if(!estSel)estSel=L[0]?L[0].id:(canEdit()?'nuevo':'');
+  $('estitems').innerHTML=L.map((d,i)=>`<button type="button" class="tab" data-est="${d.id}" aria-pressed="${d.id===estSel}">${i+1}. ${esc(d.item||'Sin ítem')}</button>`).join('')+(canEdit()?`<button type="button" class="tab estnew" data-est="nuevo" aria-pressed="${estSel==='nuevo'}">+ Nuevo ítem</button>`:'');
+  const d=estSel==='nuevo'?null:L.find(x=>x.id===estSel);
+  if(!d&&estSel!=='nuevo'){$('estslide').innerHTML=`<div class="empty" style="margin:20px">No hay ítems en ${MESES[estMes-1]} ${estAnio} para ${esc(sede)}.</div>`;$('estacts').innerHTML='';return}
+  if(!estF||estF._id!==(d?d.id:'nuevo'))estF={...(d?{item:d.item||'',accion:d.accion||'',obs:d.obs||'',antes:d.antes||'',despues:d.despues||'',antesMarca:!!d.antesMarca,despuesMarca:!!d.despuesMarca}:estNuevo()),_id:d?d.id:'nuevo'};
+  const ed=canEdit(),F=estF;
+  const foto=(k,l)=>`<div class="esf"><div class="esftit">${l}</div><div class="esfbox">${F[k]?`<img src="${F[k]}" alt="${l}" data-estimg>`:'<span class="esvac">Sin foto</span>'}
+    ${ed?`<div class="esfb"><button type="button" data-estcam="${k}">📷 Tomar foto</button><button type="button" data-estgal="${k}">Subir</button>${F[k]?`<button type="button" data-estq="${k}">Quitar</button>`:''}</div>`:''}</div></div>`;
+  $('estslide').innerHTML=`<div class="esl">
+    <div class="eshead"><div class="eslogo">FLOTA LLANOS</div><div class="estitulo">ESTÁNDAR FLOTA ${estAnio} - &nbsp;MES: <span class="esmes">${MESES[estMes-1].toUpperCase()}</span></div><div class="esdeco"><i></i><i></i></div></div>
+    <div class="essede">${esc(sede.toUpperCase())}</div>
+    <div class="esbar">DOCUMENTACIÓN E IMAGEN</div>
+    <div class="esitem"><b>Ítem:</b>${ed?`<input id="es-item" maxlength="120" value="${esc(F.item)}" placeholder="Escribe el ítem">`:`<span>${esc(F.item||'—')}</span>`}</div>
+    <div class="esbody">
+      <div class="esizq"><b>ACCIÓN:</b>
+        ${ed?`<textarea id="es-accion" class="esacc" maxlength="1200" placeholder="Describe la acción">${esc(F.accion)}</textarea><textarea id="es-obs" class="esobs" maxlength="1500" placeholder="Hallazgo / observación">${esc(F.obs)}</textarea>`
+          :`<div class="esacc">${esc(F.accion||'')}</div><div class="esobs">${esc(F.obs||'')}</div>`}</div>
+      ${foto('antes','ANTES')}${foto('despues','DESPUÉS')}
+    </div>
+    <div class="espie"><div class="esanio"><span>${String(estAnio).slice(0,2)}</span><span>${String(estAnio).slice(2)}</span></div><div><b>FLOTA</b><small>CD Reg. Sur</small></div>
+      <svg class="estruck" viewBox="0 0 64 40" aria-hidden="true"><path d="M2 8h34v22H2z" fill="#e5e7eb" stroke="#475569"/><path d="M37 14h13l9 10v6H37z" fill="#f1f5f9" stroke="#475569"/><path d="M40 17h8l5 6H40z" fill="#93c5fd"/><circle cx="13" cy="32" r="5" fill="#1f2937"/><circle cx="48" cy="32" r="5" fill="#1f2937"/><circle cx="13" cy="32" r="2" fill="#cbd5e1"/><circle cx="48" cy="32" r="2" fill="#cbd5e1"/></svg></div>
+  </div>`;
+  $('estacts').innerHTML=(ed?`<button type="button" class="btn" id="estsave">${estSel==='nuevo'?'Guardar ítem':'Guardar cambios'}</button>`:'')+(cur.rol==='admin'&&d?`<button type="button" class="del" id="estdel">Eliminar ítem</button>`:'')+(cur.rol==='admin'&&L.length?`<button type="button" class="btn ghost" id="estpdf">PDF del mes</button>`:'')+(d?`<small class="mnota">Registrado por ${esc(d.por||'—')}${d.editadoPor?` · editado por ${esc(d.editadoPor)}`:''}</small>`:'');
+  if(ed){['item','accion','obs'].forEach(k=>{const el=$('es-'+k);if(el)el.oninput=()=>{estF[k]=el.value}})}
+}
+async function estFoto(k,file,cam){
+  try{if(cam){const c=await posicionRapida(),d=new Date(),p=n=>String(n).padStart(2,'0');
+      estF[k]=await marcaAgua(file,[`FLOTA LLANOS · ESTÁNDAR FLOTA · ${k==='antes'?'ANTES':'DESPUÉS'}`,`${estF.item?estF.item.slice(0,50)+' · ':''}${MESES[estMes-1]} ${estAnio} · ${sede}`,`${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}${c?` · ${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}`:''}`,`Tomada por: ${cur.nombre}`]);estF[k+'Marca']=true}
+    else{estF[k]=await imgJpeg(file);estF[k+'Marca']=false}}
+  catch(x){alert('No se pudo procesar la foto.')}renderEst();
+}
+$('estcam').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)estFoto($('estcam').dataset.k,f,true)};
+$('estgal').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)estFoto($('estgal').dataset.k,f,false)};
+$('estv').addEventListener('click',async e=>{
+  const t=e.target.closest('[data-est]');if(t){estSel=t.dataset.est;estF=null;renderEst();return}
+  const c=e.target.closest('[data-estcam]');if(c&&canEdit()){$('estcam').dataset.k=c.dataset.estcam;$('estcam').click();return}
+  const g=e.target.closest('[data-estgal]');if(g&&canEdit()){$('estgal').dataset.k=g.dataset.estgal;$('estgal').click();return}
+  const q=e.target.closest('[data-estq]');if(q&&canEdit()){estF[q.dataset.estq]='';estF[q.dataset.estq+'Marca']=false;renderEst();return}
+  const im=e.target.closest('[data-estimg]');if(im){$('bigimg').src=im.src;$('big').showModal();return}
+  if(e.target.closest('#estsave')&&canEdit()){const F=estF,b=e.target.closest('#estsave');
+    if(!F.item.trim()){alert('Escribe el ítem.');return}
+    const data={item:F.item.trim(),accion:F.accion.trim(),obs:F.obs.trim(),antes:F.antes,despues:F.despues,antesMarca:F.antesMarca,despuesMarca:F.despuesMarca};
+    if(JSON.stringify(data).length>950000){alert('Las fotos pesan demasiado. Vuelve a tomarlas o súbelas de nuevo.');return}
+    b.disabled=true;
+    try{if(estSel==='nuevo'){const ref=doc(collection(db,'estandar'));await setDoc(ref,{...data,sede,anio:estAnio,mes:estMes,orden:Date.now(),por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});estSel=ref.id;estPend=ref.id;estF=null}
+      else await updateDoc(doc(db,'estandar',estSel),{...data,editadoPor:cur.nombre,editado:serverTimestamp()});
+      renderEst()}catch(x){alert(ERR(x.code))}b.disabled=false;return}
+  if(e.target.closest('#estdel')&&cur.rol==='admin'&&confirm('¿Eliminar este ítem del estándar de flota?')){try{await deleteDoc(doc(db,'estandar',estSel));estSel='';estF=null}catch(x){alert(ERR(x.code))}return}
+  if(e.target.closest('#estpdf')&&cur.rol==='admin'){const L=estLista(),gen=new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'});
+    const blob=await crearPDF(L.map((d,i)=>({titulo:`ESTÁNDAR FLOTA ${estAnio} · ${MESES[estMes-1].toUpperCase()} · ${sede.toUpperCase()} · ${d.item}`,sub:`Acción: ${(d.accion||'—').replace(/\s+/g,' ').slice(0,140)}${d.obs?' · Observación: '+d.obs.replace(/\s+/g,' ').slice(0,80):''}`,fotos:[{label:'ANTES',src:d.antes},{label:'DESPUÉS',src:d.despues}],pie:`Documentación e imagen · Generado el ${gen} por ${cur.nombre} · Ítem ${i+1} de ${L.length}`})));
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`estandar_flota_${sede}_${estAnio}-${String(estMes).padStart(2,'0')}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+});
+$('estmes').onchange=()=>{estMes=Number($('estmes').value);estSel='';estF=null;renderEst()};
+$('estanio').onchange=()=>{estAnio=Number($('estanio').value);estSel='';estF=null;renderEst()};
 
 $('vper').onchange=()=>renderVar();
 
@@ -3679,7 +3787,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  ctColF={};ctSort=null;renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
+  ctColF={};ctSort=null;estSel='';estF=null;renderEst();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
