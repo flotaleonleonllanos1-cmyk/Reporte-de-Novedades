@@ -233,7 +233,12 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .espie b{display:block;font-weight:400;font-size:1rem}.espie small{font-size:.65rem;color:#555}
 .estruck{position:absolute;right:1.5%;bottom:6%;width:9%}
 .estacts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.estacts small{margin-left:auto}
-.edh{margin:0 0 6px;font-size:.95rem}.edkt{font-weight:700;font-size:.9rem;align-self:center;margin-right:4px}.edkt small{color:var(--mut);font-weight:400}
+.edh{margin:0 0 6px;font-size:.95rem}
+.edits{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(360px,1fr))}
+.edit{border:1px solid var(--line);border-left:5px solid var(--bad);border-radius:10px;padding:10px 12px;background:var(--card)}
+.editt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.editt b{font-size:.95rem}.editt small{color:var(--mut)}.editt .pill{margin-left:auto}
+.edpl{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.edpl span{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-weight:700;font-size:.82rem;letter-spacing:.03em;background:var(--soft)}
+.edpl span.hit{background:var(--acc);color:#fff;border-color:var(--acc)}.edkt{font-weight:700;font-size:.9rem;align-self:center;margin-right:4px}.edkt small{color:var(--mut);font-weight:400}
 .edgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 .edc{border:1px solid var(--line);border-left:5px solid var(--bad);border-radius:10px;padding:10px 12px;background:var(--card)}
 .edct{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.edct b{font-size:1.1rem;letter-spacing:.04em}
@@ -804,7 +809,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     <div class="ralbar" style="margin:10px 0"><label>Mes<select id="edmes"></select></label><input type="search" id="edbusca" placeholder="Buscar placa…" aria-label="Buscar placa" style="width:200px;margin:0"></div>
     <div class="kpis" id="edkpi"></div><div id="edtop" style="margin-top:12px"></div>
     <div id="edlist" style="margin-top:12px"></div>
-    <small class="mnota" style="margin-top:8px">Se lee la pestaña «Data», columnas N a AN, y la columna K para el filtro. Solo se muestran las placas con ítems en «NO»; MES se toma de la columna AN.</small>
+    <small class="mnota" style="margin-top:8px">Se lee la pestaña «Data», columnas N a AN, y la columna K para el filtro. Se muestra cada ítem en «NO» con las placas que lo tienen; MES se toma de la columna AN.</small>
     <input type="file" id="edfile" accept=".xlsx,.xls" hidden></div>
  </div>
  <div id="estplant">
@@ -3562,12 +3567,13 @@ function renderED(){
   const pls=Object.values(porPl),conNo=pls.filter(x=>Object.keys(x.no).length),totNo=fs.reduce((a,f)=>a+f.no.length,0);
   $('edkpi').innerHTML=[[fs.length,'Registros',''],[pls.length,'Placas',''],[conNo.length,'Placas con «NO»',conNo.length?'badc':''],[totNo,'Total de «NO»',totNo?'badc':''],[pls.length-conNo.length,'Placas sin «NO»','okc']]
     .map(([v,l,k])=>`<div class="kpi"><b class="${k}">${v}</b><span>${l}</span></div>`).join('');
-  const cnt={};fs.forEach(f=>f.no.forEach(k=>cnt[k]=(cnt[k]||0)+1));const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  $('edtop').innerHTML=top.length?`<h3 class="edh">Ítems con más «NO»</h3>${bars(top.map(([k,n])=>({l:`${T[k]||k} (${k})`,n,t:`${n}`})))}`:'';
-  const vis=conNo.filter(x=>!q||normP(x.p).includes(q)).sort((a,b)=>Object.values(b.no).reduce((s,v)=>s+v,0)-Object.values(a.no).reduce((s,v)=>s+v,0)||cmpP(a.p,b.p));
-  $('edlist').innerHTML=vis.length?`<div class="edgrid">${vis.map(x=>{const ks=Object.keys(x.no).sort((a,b)=>ctIdx(a)-ctIdx(b));return `<article class="edc"><div class="edct"><b>${esc(x.p)}</b><span class="pill b">${ks.length} ítem${ks.length===1?'':'s'} en NO</span></div>
-      <ul>${ks.map(k=>`<li><span class="edno">NO</span>${esc(T[k]||k)} <small>${k}${x.reg>1&&x.no[k]>1?` · ${x.no[k]} veces`:''}</small></li>`).join('')}</ul>${x.reg>1?`<small class="mnota">${x.reg} registros en el periodo</small>`:''}</article>`}).join('')}</div>`
-    :`<p class="empty" style="margin:0">${q?'Ninguna placa coincide con la búsqueda.':'Ninguna placa tiene ítems en «NO» en este periodo.'}</p>`;
+  // Agrupado por ítem: cada ítem en «NO» con las placas que lo tienen
+  const porIt={};fs.forEach(f=>f.no.forEach(k=>{(porIt[k]=porIt[k]||new Set()).add(normP(f.p)||f.p)}));
+  const its=Object.entries(porIt).map(([k,st])=>({k,pl:[...st].sort(cmpP)})).filter(x=>!q||x.pl.some(p=>p.includes(q))).sort((a,b)=>b.pl.length-a.pl.length||ctIdx(a.k)-ctIdx(b.k));
+  $('edtop').innerHTML='';
+  $('edlist').innerHTML=its.length?`<div class="edits">${its.map(x=>`<article class="edit"><div class="editt"><span class="edno">NO</span><b>${esc(T[x.k]||x.k)}</b><small>${x.k}</small><span class="pill b">${x.pl.length} placa${x.pl.length===1?'':'s'}</span></div>
+      <div class="edpl">${x.pl.map(p=>`<span class="${q&&p.includes(q)?'hit':''}">${esc(p)}</span>`).join('')}</div></article>`).join('')}</div>`
+    :`<p class="empty" style="margin:0">${q?'Ninguna placa coincide con la búsqueda.':'No hay ítems en «NO» en este periodo.'}</p>`;
 }
 $('edup').onclick=()=>{if(cur&&cur.rol==='admin')$('edfile').click()};
 $('edfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!cur||cur.rol!=='admin')return;$('edmsg').textContent='Leyendo el archivo…';
