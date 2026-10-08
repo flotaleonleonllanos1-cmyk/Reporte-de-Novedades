@@ -206,8 +206,8 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .fcvac{cursor:default;border-style:dashed;color:var(--mut)}
 .fclinks{display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-size:.85rem}
 .docconf{display:grid;gap:8px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}.docconf label{margin:0}.docconf input{margin-top:4px}
-.eswrap{overflow-x:auto;padding:28px}
-.esl{position:relative;width:100%;min-width:760px;aspect-ratio:16/9;background:#fff;color:#111;border-radius:6px;box-shadow:0 0 18px 4px rgba(255,255,255,.55),0 0 42px 12px rgba(255,255,255,.22),0 6px 22px rgba(0,0,0,.18);overflow:hidden;font-family:Calibri,Arial,sans-serif;display:flex;flex-direction:column}
+.eswrap{overflow-x:auto;padding-bottom:6px}
+.esl{position:relative;width:100%;min-width:760px;aspect-ratio:16/9;background:#fff;color:#111;border-radius:6px;box-shadow:none;overflow:hidden;font-family:Calibri,Arial,sans-serif;display:flex;flex-direction:column}
 .eshead{height:9%;background:linear-gradient(90deg,#163a4d,#1f5f7a 60%,#163a4d);display:flex;align-items:center;color:#fff}
 .eslogo{width:19%;height:100%;display:grid;place-items:center;font-weight:800;letter-spacing:.12em;font-size:.95rem;background:#0f2a37}
 .estitulo{flex:1;text-align:center;font-weight:800;font-size:1.25rem;letter-spacing:.02em}
@@ -233,7 +233,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .espie b{display:block;font-weight:400;font-size:1rem}.espie small{font-size:.65rem;color:#555}
 .estruck{position:absolute;right:1.5%;bottom:6%;width:9%}
 .estacts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.estacts small{margin-left:auto}
-.edh{margin:0 0 6px;font-size:.95rem}
+.edh{margin:0 0 6px;font-size:.95rem}.edkt{font-weight:700;font-size:.9rem;align-self:center;margin-right:4px}.edkt small{color:var(--mut);font-weight:400}
 .edgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 .edc{border:1px solid var(--line);border-left:5px solid var(--bad);border-radius:10px;padding:10px 12px;background:var(--card)}
 .edct{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.edct b{font-size:1.1rem;letter-spacing:.04em}
@@ -800,10 +800,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
  <div id="estdatav" hidden>
   <div class="dc"><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Datos del Excel · ítems en «NO»</h2><button type="button" class="btn" id="edup" hidden>Cargar Excel</button></div>
     <small id="edsub"></small><div class="pprog" id="edmsg" role="status"></div>
+    <div class="tabs" role="group" aria-label="Filtrar por columna K" id="edk" style="margin:10px 0 0"></div>
     <div class="ralbar" style="margin:10px 0"><label>Mes<select id="edmes"></select></label><input type="search" id="edbusca" placeholder="Buscar placa…" aria-label="Buscar placa" style="width:200px;margin:0"></div>
     <div class="kpis" id="edkpi"></div><div id="edtop" style="margin-top:12px"></div>
     <div id="edlist" style="margin-top:12px"></div>
-    <small class="mnota" style="margin-top:8px">Se lee la pestaña «Data», columnas N a AN. Solo se muestran las placas con ítems en «NO»; MES se toma de la columna AN.</small>
+    <small class="mnota" style="margin-top:8px">Se lee la pestaña «Data», columnas N a AN, y la columna K para el filtro. Solo se muestran las placas con ítems en «NO»; MES se toma de la columna AN.</small>
     <input type="file" id="edfile" accept=".xlsx,.xls" hidden></div>
  </div>
  <div id="estplant">
@@ -3523,7 +3524,7 @@ $('estmes').onchange=()=>{estMes=Number($('estmes').value);estSel='';estF=null;r
 $('estanio').onchange=()=>{estAnio=Number($('estanio').value);estSel='';estF=null;renderEst()};
 
 /* ---------- Estándar de Flota · Datos del Excel (pestaña «Data», columnas N a AN): solo los «NO» ---------- */
-let estVista='plant',edDatos={},unsubED=null,edMesSel='';
+let estVista='plant',edDatos={},unsubED=null,edMesSel='',edKSel='__todos';
 const ED_INI=13,ED_FIN=39;// N..AN
 const esNO=v=>/^no\b/.test(sinTilde(String(v??'').trim()));
 const mesIdx=t=>{const x=sinTilde(String(t||'')).slice(0,3);return ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'].indexOf(x)};
@@ -3542,7 +3543,8 @@ function edProcesar(t){
   const tit={};for(let c=ED_INI;c<=ED_FIN;c++)tit[colL(c)]=tx(hi,c)||`Columna ${colL(c)}`;
   let cPl=-1;for(let c=ED_INI;c<=ED_FIN;c++){if(/placa/.test(sinTilde(tit[colL(c)]))){cPl=c;break}}if(cPl<0)cPl=ED_INI;
   const cMes=ED_FIN,items=[];for(let c=ED_INI;c<=ED_FIN;c++)if(c!==cPl&&c!==cMes)items.push(c);
-  const filas=[];for(let r=hi+1;r<t.length;r++){const p=tx(r,cPl);if(!p)continue;const no=items.filter(c=>esNO(tx(r,c))).map(colL);filas.push({p,mes:tx(r,cMes),no})}
+  const cK=10;tit.K=tx(hi,cK)||'Columna K';
+  const filas=[];for(let r=hi+1;r<t.length;r++){const p=tx(r,cPl);if(!p)continue;const no=items.filter(c=>esNO(tx(r,c))).map(colL);filas.push({p,mes:tx(r,cMes),k:tx(r,cK),no})}
   return{tit,colPlaca:colL(cPl),colMes:colL(cMes),filaTitulos:hi+1,filas};
 }
 function renderED(){
@@ -3553,7 +3555,9 @@ function renderED(){
   const meses=[...new Set(D.filas.map(f=>f.mes).filter(Boolean))].sort((a,b)=>(mesIdx(a)-mesIdx(b))||a.localeCompare(b,'es'));
   if(!edMesSel||(edMesSel!=='__todos'&&!meses.includes(edMesSel)))edMesSel=meses[meses.length-1]||'__todos';
   $('edmes').innerHTML=`<option value="__todos"${edMesSel==='__todos'?' selected':''}>Todos los meses</option>`+meses.map(m=>`<option${m===edMesSel?' selected':''}>${esc(m)}</option>`).join('');
-  const T=D.tit||{},q=normP($('edbusca').value),fs=D.filas.filter(f=>edMesSel==='__todos'||f.mes===edMesSel);
+  const ks=[...new Set(D.filas.map(f=>f.k||'').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));if(edKSel!=='__todos'&&!ks.includes(edKSel))edKSel='__todos';
+  $('edk').innerHTML=ks.length?`<span class="edkt">${esc((D.tit||{}).K||'Columna K')} <small>(K)</small></span><button type="button" class="tab" data-edk="__todos" aria-pressed="${edKSel==='__todos'}">Todos</button>`+ks.map(k=>`<button type="button" class="tab" data-edk="${esc(k)}" aria-pressed="${k===edKSel}">${esc(k)}</button>`).join(''):'<small class="mnota">Vuelve a cargar el Excel para traer la información de la columna K.</small>';
+  const T=D.tit||{},q=normP($('edbusca').value),fs=D.filas.filter(f=>(edMesSel==='__todos'||f.mes===edMesSel)&&(edKSel==='__todos'||f.k===edKSel));
   const porPl={};fs.forEach(f=>{const x=porPl[f.p]=porPl[f.p]||{p:f.p,reg:0,no:{}};x.reg++;f.no.forEach(k=>x.no[k]=(x.no[k]||0)+1)});
   const pls=Object.values(porPl),conNo=pls.filter(x=>Object.keys(x.no).length),totNo=fs.reduce((a,f)=>a+f.no.length,0);
   $('edkpi').innerHTML=[[fs.length,'Registros',''],[pls.length,'Placas',''],[conNo.length,'Placas con «NO»',conNo.length?'badc':''],[totNo,'Total de «NO»',totNo?'badc':''],[pls.length-conNo.length,'Placas sin «NO»','okc']]
@@ -3571,6 +3575,7 @@ $('edfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f
     await setDoc(doc(db,'estdata',sede),{sede,nombre:f.name,fecha:ahoraDT(),...P,por:cur.nombre,editado:serverTimestamp()});edMesSel='';$('edmsg').textContent=''}
   catch(x){console.error(x);$('edmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
 $('edmes').onchange=()=>{edMesSel=$('edmes').value;renderED()};
+$('edk').onclick=e=>{const b=e.target.closest('[data-edk]');if(!b)return;edKSel=b.dataset.edk;renderED()};
 $('edbusca').oninput=renderED;
 function estVistaSet(v){estVista=v;$('estplant').hidden=v!=='plant';$('estdatav').hidden=v!=='data';document.querySelectorAll('.si[data-estv]').forEach(b=>b.setAttribute('aria-current',b.dataset.estv===v));if(v==='data')renderED();else renderEst();if(typeof titulo==='function')titulo()}
 document.querySelectorAll('.si[data-estv]').forEach(b=>b.onclick=()=>{if(!cur)return;if($('estv').hidden)modulo('est');estVistaSet(b.dataset.estv);cerrarMenuMovil()});
