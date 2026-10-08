@@ -233,6 +233,12 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .espie b{display:block;font-weight:400;font-size:1rem}.espie small{font-size:.65rem;color:#555}
 .estruck{position:absolute;right:1.5%;bottom:6%;width:9%}
 .estacts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.estacts small{margin-left:auto}
+.edh{margin:0 0 6px;font-size:.95rem}
+.edgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.edc{border:1px solid var(--line);border-left:5px solid var(--bad);border-radius:10px;padding:10px 12px;background:var(--card)}
+.edct{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.edct b{font-size:1.1rem;letter-spacing:.04em}
+.edc ul{margin:0;padding:0;list-style:none;display:grid;gap:4px}.edc li{font-size:.88rem;display:flex;gap:8px;align-items:baseline}.edc li small{color:var(--mut)}
+.edno{background:var(--badbg);color:var(--bad);font-weight:800;font-size:.7rem;border-radius:4px;padding:1px 6px;flex:none}
 .esitems{margin-top:16px;display:grid;gap:12px}.esith{margin:0;font-size:1rem}
 .esgrp>b{display:block;font-size:.78rem;letter-spacing:.08em;color:#fff;background:linear-gradient(90deg,#f59e0b,#ea7a0c);padding:4px 10px;border-radius:6px 6px 0 0}
 .esgrp .esbtns{display:flex;flex-wrap:wrap;gap:8px;border:1px solid var(--line);border-top:0;border-radius:0 0 8px 8px;padding:10px}
@@ -722,7 +728,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       </div>
     </div>
     <div class="grp">
-      <button type="button" class="mi" data-m="est" aria-pressed="false" aria-expanded="false" title="Estándar de Flota"><span class="docico" aria-hidden="true"><svg viewBox="0 0 32 26" width="28" height="24"><rect x="1" y="1" width="30" height="20" rx="2" fill="#f8fafc" stroke="rgba(255,255,255,.8)"/><rect x="1" y="1" width="30" height="5" rx="2" fill="#0e7490"/><rect x="4" y="9" width="9" height="9" fill="#fff" stroke="#2563eb"/><rect x="15" y="9" width="6" height="9" fill="#e2e8f0" stroke="#111"/><rect x="23" y="9" width="6" height="9" fill="#e2e8f0" stroke="#111"/><rect x="9" y="22" width="14" height="2" rx="1" fill="#f59e0b"/><circle cx="26" cy="3.5" r="1.2" fill="#facc15" class="brillo"/></svg></span><span class="lbl">Estándar de Flota</span></button>
+      <button type="button" class="mi" data-m="est" aria-pressed="false" aria-expanded="false" title="Estándar de Flota"><span class="docico" aria-hidden="true"><svg viewBox="0 0 32 26" width="28" height="24"><rect x="1" y="1" width="30" height="20" rx="2" fill="#f8fafc" stroke="rgba(255,255,255,.8)"/><rect x="1" y="1" width="30" height="5" rx="2" fill="#0e7490"/><rect x="4" y="9" width="9" height="9" fill="#fff" stroke="#2563eb"/><rect x="15" y="9" width="6" height="9" fill="#e2e8f0" stroke="#111"/><rect x="23" y="9" width="6" height="9" fill="#e2e8f0" stroke="#111"/><rect x="9" y="22" width="14" height="2" rx="1" fill="#f59e0b"/><circle cx="26" cy="3.5" r="1.2" fill="#facc15" class="brillo"/></svg></span><span class="lbl">Estándar de Flota</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="sub">
+        <button type="button" class="si" data-estv="plant">Plantilla de evidencias</button>
+        <button type="button" class="si" data-estv="data">Datos del Excel</button>
+      </div>
     </div>
     <div class="grp">
       <button type="button" class="mi" data-m="var" aria-pressed="false" aria-expanded="false" title="Varadas"><svg class="ic icv" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3zM12 10v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Varadas</span><span class="humo" aria-hidden="true"><svg viewBox="0 0 48 36" width="44" height="33">
@@ -787,11 +797,22 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 <div id="list"></div>
 </div>
 <section id="estv" hidden aria-label="Estándar de Flota">
+ <div id="estdatav" hidden>
+  <div class="dc"><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Datos del Excel · ítems en «NO»</h2><button type="button" class="btn" id="edup" hidden>Cargar Excel</button></div>
+    <small id="edsub"></small><div class="pprog" id="edmsg" role="status"></div>
+    <div class="ralbar" style="margin:10px 0"><label>Mes<select id="edmes"></select></label><input type="search" id="edbusca" placeholder="Buscar placa…" aria-label="Buscar placa" style="width:200px;margin:0"></div>
+    <div class="kpis" id="edkpi"></div><div id="edtop" style="margin-top:12px"></div>
+    <div id="edlist" style="margin-top:12px"></div>
+    <small class="mnota" style="margin-top:8px">Se lee la pestaña «Data», columnas N a AN. Solo se muestran las placas con ítems en «NO»; MES se toma de la columna AN.</small>
+    <input type="file" id="edfile" accept=".xlsx,.xls" hidden></div>
+ </div>
+ <div id="estplant">
   <div class="ralbar"><label>Mes<select id="estmes"></select></label><label>Año<select id="estanio"></select></label></div>
   <div class="eswrap"><div id="estslide"></div></div>
   <div class="estacts" id="estacts"></div>
   <div class="esitems" id="estitems" role="group" aria-label="Ítems guardados"></div>
   <input type="file" id="estcam" accept="image/*" capture="environment" hidden><input type="file" id="estgal" accept="image/*" hidden>
+ </div>
 </section>
 <section id="blv" hidden aria-label="Barridos y Lavadero">
   <div class="ralbar"><label>Placa<select id="blpl"></select></label><label>Mes<input type="month" id="blmes"></label><button type="button" class="btn" id="blpdf" hidden>Descargar PDF</button></div>
@@ -1353,6 +1374,8 @@ function salir(){
   if(unsubR){unsubR();unsubR=null}
   if(unsubB){unsubB();unsubB=null}
   if(unsubE){unsubE();unsubE=null}
+  if(unsubED){unsubED();unsubED=null}
+  edDatos={};
   estDocs=[];
   if(unsubT){unsubT();unsubT=null}
   if(unsubFC){unsubFC();unsubFC=null}
@@ -1391,6 +1414,7 @@ async function entrar(user){
   },x=>{$('calist').innerHTML=`<div class="empty">${esc(ERR(x.code))}</div>`});
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
+  if(puedeVer('est'))unsubED=onSnapshot(collection(db,'estdata'),snap=>{edDatos={};snap.docs.forEach(d=>edDatos[d.id]=d.data());renderED()},()=>{});
   if(puedeVer('est'))unsubE=onSnapshot(collection(db,'estandar'),snap=>{estDocs=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$('estv').hidden){const keep=estF&&estF._id!=='nuevo'?null:estF;renderEst()}},()=>{});
   if(puedeVer('bar')||puedeVer('lav'))unsubB=onSnapshot(collection(db,'aseo'),snap=>{aseo=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderBL()},()=>{});
   if(puedeVer('ral'))unsubR=onSnapshot(collection(db,'ralenti'),snap=>{ralArch=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderRal()},()=>{});
@@ -1531,7 +1555,7 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 function modulo(m){
   if(m!=='ini'&&!puedeVer(m))m='ini';
   const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est';
-  document.documentElement.classList.toggle('tema-est',es);$('estv').hidden=!es;if(es){estF=null;renderEst()}
+  document.documentElement.classList.toggle('tema-est',es);$('estv').hidden=!es;if(es){estF=null;estVistaSet(estVista)}
   if(bl)blTipo=m==='bar'?'barrido':'lavado';
   document.documentElement.classList.toggle('tema-bar',m==='bar');document.documentElement.classList.toggle('tema-lav',m==='lav');$('blv').hidden=!bl;
   $('bladd').hidden=!bl||!canEdit();$('blplb').hidden=!bl||!cur||cur.rol!=='admin';if(bl){$('bladd').textContent=`+ Registrar ${BLN[blTipo].u}`;$('blpl').value='';renderBL()}
@@ -1556,7 +1580,7 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
 function titulo(){
   const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':es?'Estándar de Flota':bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('vtit').textContent=ini?'':es?(estVista==='data'?'Estándar de Flota · Datos del Excel':'Estándar de Flota'):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
   $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
@@ -1723,7 +1747,7 @@ function vistaPDF(){
   if(vis('ralv'))return{el:$('ralv'),titulo:'Ralentí'};
   if(vis('docv'))return{el:$('docv'),titulo:$('vtit').textContent};
   if(vis('blv'))return{el:$('blv'),titulo:BLN[blTipo].t};
-  if(vis('estv'))return{el:$('estslide'),titulo:'Estándar de Flota'};
+  if(vis('estv'))return estVista==='data'?{el:$('estdatav'),titulo:'Estándar de Flota · Datos del Excel'}:{el:$('estslide'),titulo:'Estándar de Flota'};
   return null;
 }
 function expandirTodo(on){
@@ -3498,6 +3522,59 @@ $('estv').addEventListener('click',async e=>{
 $('estmes').onchange=()=>{estMes=Number($('estmes').value);estSel='';estF=null;renderEst()};
 $('estanio').onchange=()=>{estAnio=Number($('estanio').value);estSel='';estF=null;renderEst()};
 
+/* ---------- Estándar de Flota · Datos del Excel (pestaña «Data», columnas N a AN): solo los «NO» ---------- */
+let estVista='plant',edDatos={},unsubED=null,edMesSel='';
+const ED_INI=13,ED_FIN=39;// N..AN
+const esNO=v=>/^no\b/.test(sinTilde(String(v??'').trim()));
+const mesIdx=t=>{const x=sinTilde(String(t||'')).slice(0,3);return ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'].indexOf(x)};
+async function edLeer(f){
+  const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true,dateNF:'d/mm/yyyy'});
+  const nom=wb.SheetNames.find(n=>sinTilde(n).trim()==='data')||wb.SheetNames.find(n=>sinTilde(n).includes('data'));
+  if(!nom)throw{msg:`El archivo no tiene una pestaña llamada «Data». Pestañas encontradas: ${wb.SheetNames.join(', ')}.`};
+  const ws=wb.Sheets[nom],R=X.utils.decode_range(ws['!ref']||'A1');R.s.r=0;R.s.c=0;
+  const t=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:true,range:R,dateNF:'d/mm/yyyy'});
+  return{t,hoja:nom};
+}
+function edProcesar(t){
+  const tx=(r,c)=>String(((t[r]||[])[c])??'').trim();
+  // fila de títulos: la primera que tenga texto en varias columnas de N a AN
+  let hi=t.findIndex(r=>r&&r.slice(ED_INI,ED_FIN+1).filter(v=>String(v??'').trim()).length>=3);if(hi<0)hi=0;
+  const tit={};for(let c=ED_INI;c<=ED_FIN;c++)tit[colL(c)]=tx(hi,c)||`Columna ${colL(c)}`;
+  let cPl=-1;for(let c=ED_INI;c<=ED_FIN;c++){if(/placa/.test(sinTilde(tit[colL(c)]))){cPl=c;break}}if(cPl<0)cPl=ED_INI;
+  const cMes=ED_FIN,items=[];for(let c=ED_INI;c<=ED_FIN;c++)if(c!==cPl&&c!==cMes)items.push(c);
+  const filas=[];for(let r=hi+1;r<t.length;r++){const p=tx(r,cPl);if(!p)continue;const no=items.filter(c=>esNO(tx(r,c))).map(colL);filas.push({p,mes:tx(r,cMes),no})}
+  return{tit,colPlaca:colL(cPl),colMes:colL(cMes),filaTitulos:hi+1,filas};
+}
+function renderED(){
+  if(!cur||$('estv').hidden||estVista!=='data')return;
+  const D=edDatos[sede];$('edup').hidden=cur.rol!=='admin';
+  $('edsub').textContent=D?`Última carga: ${D.fecha?dtTxt(D.fecha):'—'} · ${D.nombre||'Excel'}`:'';
+  if(!D){$('edmes').innerHTML='';$('edkpi').innerHTML='';$('edtop').innerHTML='';$('edlist').innerHTML=`<p class="empty" style="margin:0">Aún no hay datos cargados para ${esc(sede)}.${cur.rol==='admin'?' Usa «Cargar Excel» y elige el archivo que tiene la pestaña «Data».':''}</p>`;return}
+  const meses=[...new Set(D.filas.map(f=>f.mes).filter(Boolean))].sort((a,b)=>(mesIdx(a)-mesIdx(b))||a.localeCompare(b,'es'));
+  if(!edMesSel||(edMesSel!=='__todos'&&!meses.includes(edMesSel)))edMesSel=meses[meses.length-1]||'__todos';
+  $('edmes').innerHTML=`<option value="__todos"${edMesSel==='__todos'?' selected':''}>Todos los meses</option>`+meses.map(m=>`<option${m===edMesSel?' selected':''}>${esc(m)}</option>`).join('');
+  const T=D.tit||{},q=normP($('edbusca').value),fs=D.filas.filter(f=>edMesSel==='__todos'||f.mes===edMesSel);
+  const porPl={};fs.forEach(f=>{const x=porPl[f.p]=porPl[f.p]||{p:f.p,reg:0,no:{}};x.reg++;f.no.forEach(k=>x.no[k]=(x.no[k]||0)+1)});
+  const pls=Object.values(porPl),conNo=pls.filter(x=>Object.keys(x.no).length),totNo=fs.reduce((a,f)=>a+f.no.length,0);
+  $('edkpi').innerHTML=[[fs.length,'Registros',''],[pls.length,'Placas',''],[conNo.length,'Placas con «NO»',conNo.length?'badc':''],[totNo,'Total de «NO»',totNo?'badc':''],[pls.length-conNo.length,'Placas sin «NO»','okc']]
+    .map(([v,l,k])=>`<div class="kpi"><b class="${k}">${v}</b><span>${l}</span></div>`).join('');
+  const cnt={};fs.forEach(f=>f.no.forEach(k=>cnt[k]=(cnt[k]||0)+1));const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  $('edtop').innerHTML=top.length?`<h3 class="edh">Ítems con más «NO»</h3>${bars(top.map(([k,n])=>({l:`${T[k]||k} (${k})`,n,t:`${n}`})))}`:'';
+  const vis=conNo.filter(x=>!q||normP(x.p).includes(q)).sort((a,b)=>Object.values(b.no).reduce((s,v)=>s+v,0)-Object.values(a.no).reduce((s,v)=>s+v,0)||cmpP(a.p,b.p));
+  $('edlist').innerHTML=vis.length?`<div class="edgrid">${vis.map(x=>{const ks=Object.keys(x.no).sort((a,b)=>ctIdx(a)-ctIdx(b));return `<article class="edc"><div class="edct"><b>${esc(x.p)}</b><span class="pill b">${ks.length} ítem${ks.length===1?'':'s'} en NO</span></div>
+      <ul>${ks.map(k=>`<li><span class="edno">NO</span>${esc(T[k]||k)} <small>${k}${x.reg>1&&x.no[k]>1?` · ${x.no[k]} veces`:''}</small></li>`).join('')}</ul>${x.reg>1?`<small class="mnota">${x.reg} registros en el periodo</small>`:''}</article>`}).join('')}</div>`
+    :`<p class="empty" style="margin:0">${q?'Ninguna placa coincide con la búsqueda.':'Ninguna placa tiene ítems en «NO» en este periodo.'}</p>`;
+}
+$('edup').onclick=()=>{if(cur&&cur.rol==='admin')$('edfile').click()};
+$('edfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!cur||cur.rol!=='admin')return;$('edmsg').textContent='Leyendo el archivo…';
+  try{const{t}=await edLeer(f),P=edProcesar(t);if(!P.filas.length){$('edmsg').textContent='La pestaña «Data» no tiene placas en las columnas N a AN.';return}
+    await setDoc(doc(db,'estdata',sede),{sede,nombre:f.name,fecha:ahoraDT(),...P,por:cur.nombre,editado:serverTimestamp()});edMesSel='';$('edmsg').textContent=''}
+  catch(x){console.error(x);$('edmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
+$('edmes').onchange=()=>{edMesSel=$('edmes').value;renderED()};
+$('edbusca').oninput=renderED;
+function estVistaSet(v){estVista=v;$('estplant').hidden=v!=='plant';$('estdatav').hidden=v!=='data';document.querySelectorAll('.si[data-estv]').forEach(b=>b.setAttribute('aria-current',b.dataset.estv===v));if(v==='data')renderED();else renderEst();if(typeof titulo==='function')titulo()}
+document.querySelectorAll('.si[data-estv]').forEach(b=>b.onclick=()=>{if(!cur)return;if($('estv').hidden)modulo('est');estVistaSet(b.dataset.estv);cerrarMenuMovil()});
+
 $('vper').onchange=()=>renderVar();
 
 /* ---------- Sistema "Otro" y lista de conductores ---------- */
@@ -3884,7 +3961,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  ctColF={};ctSort=null;estSel='';estF=null;renderEst();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
+  ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
