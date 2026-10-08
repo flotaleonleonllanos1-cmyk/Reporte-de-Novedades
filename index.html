@@ -206,8 +206,8 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .fcvac{cursor:default;border-style:dashed;color:var(--mut)}
 .fclinks{display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-size:.85rem}
 .docconf{display:grid;gap:8px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}.docconf label{margin:0}.docconf input{margin-top:4px}
-.eswrap{overflow-x:auto;padding-bottom:6px}
-.esl{position:relative;width:100%;min-width:760px;aspect-ratio:16/9;background:#fff;color:#111;border-radius:6px;box-shadow:0 6px 22px rgba(0,0,0,.18);overflow:hidden;font-family:Calibri,Arial,sans-serif;display:flex;flex-direction:column}
+.eswrap{overflow-x:auto;padding:28px}
+.esl{position:relative;width:100%;min-width:760px;aspect-ratio:16/9;background:#fff;color:#111;border-radius:6px;box-shadow:0 0 18px 4px rgba(255,255,255,.55),0 0 42px 12px rgba(255,255,255,.22),0 6px 22px rgba(0,0,0,.18);overflow:hidden;font-family:Calibri,Arial,sans-serif;display:flex;flex-direction:column}
 .eshead{height:9%;background:linear-gradient(90deg,#163a4d,#1f5f7a 60%,#163a4d);display:flex;align-items:center;color:#fff}
 .eslogo{width:19%;height:100%;display:grid;place-items:center;font-weight:800;letter-spacing:.12em;font-size:.95rem;background:#0f2a37}
 .estitulo{flex:1;text-align:center;font-weight:800;font-size:1.25rem;letter-spacing:.02em}
@@ -3365,6 +3365,52 @@ async function pdfLienzo(pags){
   const xr=pos;put(`xref\n0 ${n+1}\n0000000000 65535 f \n`);for(let i=1;i<=n;i++)put(String(off[i]||0).padStart(10,'0')+' 00000 n \n');
   put(`trailer\n<< /Size ${n+1} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`);return new Blob(ch,{type:'application/pdf'});
 }
+/* PowerPoint del Estándar de Flota (mes o año completo), replicando la plantilla */
+async function descargarEstPPT(btn,todoAnio){
+  if(!cur||cur.rol!=='admin')return;
+  const L=estDocs.filter(d=>(d.sede||SEDES[0])===sede&&d.anio===estAnio&&(todoAnio||d.mes===estMes)).sort((a,b)=>a.mes-b.mes||EST_CATS.indexOf(a.cat||EST_CATS[0])-EST_CATS.indexOf(b.cat||EST_CATS[0])||(a.orden||0)-(b.orden||0));
+  if(!L.length){alert(todoAnio?`No hay ítems en ${estAnio}.`:`No hay ítems en ${MESES[estMes-1]} ${estAnio}.`);return}
+  const t0=btn.textContent;btn.disabled=true;btn.textContent='Preparando PowerPoint…';
+  try{
+    const PG=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js','https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js'],'PptxGenJS');
+    const pp=new PG();pp.layout='LAYOUT_WIDE';pp.title=`Estándar de Flota ${estAnio}`;const F='Calibri';
+    const S=(sl,x,y,w,h,fill,line,lw)=>sl.addShape(pp.ShapeType.rect,{x,y,w,h,fill:{color:fill},line:line?{color:line,width:lw||1}:{type:'none'}});
+    const T=(sl,t,o)=>sl.addText(t,{fontFace:F,margin:0,...o});
+    // Portada
+    const pv=pp.addSlide();pv.background={color:'FFFFFF'};S(pv,0,0,13.33,1.1,'163A4D');S(pv,0,0,2.6,1.1,'0F2A37');T(pv,'FLOTA LLANOS',{x:0,y:0,w:2.6,h:1.1,align:'center',valign:'middle',color:'FFFFFF',bold:true,fontSize:16,charSpacing:2});
+    S(pv,12.73,0,0.3,1.1,'34D399');S(pv,13.03,0,0.3,1.1,'FACC15');
+    T(pv,`ESTÁNDAR FLOTA ${estAnio}`,{x:0.6,y:2.0,w:12,h:1,fontSize:40,bold:true,color:'163A4D'});
+    T(pv,`${todoAnio?'Consolidado del año':MESES[estMes-1]} · Sede ${sede}`,{x:0.6,y:2.95,w:12,h:0.6,fontSize:22,color:'EA7A0C',bold:true});
+    const res=EST_CATS.map(c=>`${c}: ${L.filter(d=>(d.cat||EST_CATS[0])===c).length} ítem(s)`).join('   ·   ');
+    T(pv,res,{x:0.6,y:3.7,w:12,h:0.5,fontSize:14,color:'444444'});
+    T(pv,`Generado el ${new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'})} por ${cur.nombre}`,{x:0.6,y:6.7,w:12,h:0.4,fontSize:11,color:'888888'});
+    for(let i=0;i<L.length;i++){const d=L[i],sl=pp.addSlide();sl.background={color:'FFFFFF'};
+      S(sl,0,0,13.33,0.62,'163A4D');S(sl,0,0,2.4,0.62,'0F2A37');T(sl,'FLOTA LLANOS',{x:0,y:0,w:2.4,h:0.62,align:'center',valign:'middle',color:'FFFFFF',bold:true,fontSize:13,charSpacing:2});
+      S(sl,12.73,0,0.3,0.62,'34D399');S(sl,13.03,0,0.3,0.62,'FACC15');
+      T(sl,`ESTÁNDAR FLOTA ${estAnio} -  MES:`,{x:3.0,y:0,w:5.4,h:0.62,align:'right',valign:'middle',color:'FFFFFF',bold:true,fontSize:20});
+      S(sl,8.55,0.1,2.3,0.42,'2B6CB0','FFFFFF',1.5);T(sl,MESES[d.mes-1].toUpperCase(),{x:8.55,y:0.1,w:2.3,h:0.42,align:'center',valign:'middle',color:'FFFFFF',bold:true,fontSize:14});
+      S(sl,0,0.68,11.0,0.3,'F28C0F');T(sl,d.cat||EST_CATS[0],{x:0,y:0.68,w:11.0,h:0.3,align:'center',valign:'middle',color:'FFFFFF',bold:true,fontSize:13,charSpacing:1});
+      S(sl,11.05,0.58,2.28,0.4,'C00000','FFFFFF',1.5);T(sl,(d.sede||sede).toUpperCase(),{x:11.05,y:0.58,w:2.28,h:0.4,align:'center',valign:'middle',color:'FFFFFF',bold:true,fontSize:13});
+      T(sl,'Ítem:',{x:3.55,y:1.1,w:0.75,h:0.38,bold:true,underline:{style:'sng'},fontSize:15,valign:'middle'});
+      S(sl,4.35,1.08,5.0,0.4,'F07C12','B45309',1.5);T(sl,d.item||'',{x:4.45,y:1.08,w:4.8,h:0.4,valign:'middle',color:'FFFFFF',bold:true,fontSize:14});
+      T(sl,'ACCIÓN:',{x:0.35,y:1.55,w:2,h:0.3,bold:true,fontSize:13});
+      S(sl,0.35,1.9,5.65,1.45,'F8F8F8','2B6CB0',2);T(sl,d.accion||'',{x:0.45,y:1.95,w:5.45,h:1.35,valign:'top',fontSize:12,color:'111111',fit:'shrink'});
+      S(sl,0.35,3.5,5.65,2.9,'F8F8F8','D10000',3);T(sl,d.obs||'',{x:0.45,y:3.55,w:5.45,h:2.8,valign:'top',fontSize:12,color:'111111',fit:'shrink'});
+      for(const[k,l,x]of[['antes','ANTES',6.35],['despues','DESPUÉS',9.85]]){const bw=3.2,bh=4.45,y=1.95;
+        S(sl,x+0.95,y-0.36,1.3,0.33,'2C6E8F');T(sl,l,{x:x+0.95,y:y-0.36,w:1.3,h:0.33,align:'center',valign:'middle',color:'FFFFFF',bold:true,fontSize:13});
+        S(sl,x,y,bw,bh,'F4F4F4','000000',4);
+        if(d[k]){const t=await imgTam(d[k]);if(t){const s=Math.min((bw-0.12)/t.w,(bh-0.12)/t.h),w=t.w*s,h=t.h*s;sl.addImage({data:d[k],x:x+(bw-w)/2,y:y+(bh-h)/2,w,h})}}
+        else T(sl,'Sin foto',{x,y,w:bw,h:bh,align:'center',valign:'middle',color:'888888',fontSize:12})}
+      T(sl,[{text:String(estAnio).slice(0,2),options:{breakLine:true}},{text:String(estAnio).slice(2)}],{x:0.35,y:6.55,w:0.45,h:0.6,bold:true,fontSize:13,charSpacing:4});
+      sl.addShape(pp.ShapeType.line,{x:0.85,y:6.6,w:0,h:0.5,line:{color:'F59E0B',width:2}});
+      T(sl,'FLOTA',{x:0.95,y:6.55,w:2,h:0.3,fontSize:14});T(sl,'CD Reg. Sur',{x:0.95,y:6.85,w:2,h:0.25,fontSize:9,color:'555555'});
+      T(sl,`Ítem ${i+1} de ${L.length} · Registrado por ${d.por||'—'}`,{x:6.35,y:6.75,w:6.6,h:0.3,fontSize:9,color:'888888',align:'right'});
+    }
+    await pp.writeFile({fileName:`Estandar_Flota_${sede}_${estAnio}${todoAnio?'':'-'+String(estMes).padStart(2,'0')}.pptx`});
+  }catch(x){console.error(x);alert('No se pudo generar el PowerPoint. Revisa tu conexión a internet e inténtalo de nuevo.')}
+  btn.disabled=false;btn.textContent=t0;
+}
+
 async function descargarEstPDF(btn){
   if(!cur||cur.rol!=='admin')return;const L=estLista();if(!L.length){alert('No hay ítems en este mes.');return}
   const t0=btn.textContent;btn.disabled=true;btn.textContent='Preparando PDF…';
@@ -3421,13 +3467,11 @@ function renderEst(){
     <div class="espie"><div class="esanio"><span>${String(estAnio).slice(0,2)}</span><span>${String(estAnio).slice(2)}</span></div><div><b>FLOTA</b><small>CD Reg. Sur</small></div>
       <svg class="estruck" viewBox="0 0 64 40" aria-hidden="true"><path d="M2 8h34v22H2z" fill="#e5e7eb" stroke="#475569"/><path d="M37 14h13l9 10v6H37z" fill="#f1f5f9" stroke="#475569"/><path d="M40 17h8l5 6H40z" fill="#93c5fd"/><circle cx="13" cy="32" r="5" fill="#1f2937"/><circle cx="48" cy="32" r="5" fill="#1f2937"/><circle cx="13" cy="32" r="2" fill="#cbd5e1"/><circle cx="48" cy="32" r="2" fill="#cbd5e1"/></svg></div>
   </div>`;
-  $('estacts').innerHTML=(ed?`<button type="button" class="btn" id="estsave">${estSel==='nuevo'?'Guardar ítem':'Guardar cambios'}</button>`:'')+(cur.rol==='admin'&&d?`<button type="button" class="del" id="estdel">Eliminar ítem</button>`:'')+(cur.rol==='admin'&&L.length?`<button type="button" class="btn ghost" id="estpdf">⬇ PDF de todos los ítems</button>`:'')+(d?`<small class="mnota">Registrado por ${esc(d.por||'—')}${d.editadoPor?` · editado por ${esc(d.editadoPor)}`:''}</small>`:'');
+  $('estacts').innerHTML=(ed?`<button type="button" class="btn" id="estsave">${estSel==='nuevo'?'Guardar ítem':'Guardar cambios'}</button>`:'')+(cur.rol==='admin'&&d?`<button type="button" class="del" id="estdel">Eliminar ítem</button>`:'')+(cur.rol==='admin'&&L.length?`<button type="button" class="btn ghost" id="estpdf">⬇ PDF de todos los ítems</button><button type="button" class="btn ghost" id="estpptm">⬇ PowerPoint del mes</button>`:'')+(cur.rol==='admin'&&estDocs.some(x=>(x.sede||SEDES[0])===sede&&x.anio===estAnio)?`<button type="button" class="btn ghost" id="estpptA">⬇ PowerPoint del año ${estAnio}</button>`:'')+(d?`<small class="mnota">Registrado por ${esc(d.por||'—')}${d.editadoPor?` · editado por ${esc(d.editadoPor)}`:''}</small>`:'');
   if(ed){['item','accion','obs'].forEach(k=>{const el=$('es-'+k);if(el)el.oninput=()=>{estF[k]=el.value}});const sc=$('es-cat');if(sc)sc.onchange=()=>{estF.cat=sc.value}}
 }
 async function estFoto(k,file,cam){
-  try{if(cam){const c=await posicionRapida(),d=new Date(),p=n=>String(n).padStart(2,'0');
-      estF[k]=await marcaAgua(file,[`FLOTA LLANOS · ESTÁNDAR FLOTA · ${k==='antes'?'ANTES':'DESPUÉS'}`,`${estF.item?estF.item.slice(0,50)+' · ':''}${MESES[estMes-1]} ${estAnio} · ${sede}`,`${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}${c?` · ${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}`:''}`,`Tomada por: ${cur.nombre}`]);estF[k+'Marca']=true}
-    else{estF[k]=await imgJpeg(file);estF[k+'Marca']=false}}
+  try{estF[k]=await imgJpeg(file);estF[k+'Marca']=false}
   catch(x){alert('No se pudo procesar la foto.')}renderEst();
 }
 $('estcam').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)estFoto($('estcam').dataset.k,f,true)};
@@ -3448,6 +3492,8 @@ $('estv').addEventListener('click',async e=>{
       renderEst()}catch(x){alert(ERR(x.code))}b.disabled=false;return}
   if(e.target.closest('#estdel')&&cur.rol==='admin'&&confirm('¿Eliminar este ítem del estándar de flota?')){try{await deleteDoc(doc(db,'estandar',estSel));estSel='';estF=null}catch(x){alert(ERR(x.code))}return}
   if(e.target.closest('#estpdf')&&cur.rol==='admin'){descargarEstPDF(e.target.closest('#estpdf'));return}
+  if(e.target.closest('#estpptm')&&cur.rol==='admin'){descargarEstPPT(e.target.closest('#estpptm'),false);return}
+  if(e.target.closest('#estpptA')&&cur.rol==='admin'){descargarEstPPT(e.target.closest('#estpptA'),true);return}
 });
 $('estmes').onchange=()=>{estMes=Number($('estmes').value);estSel='';estF=null;renderEst()};
 $('estanio').onchange=()=>{estAnio=Number($('estanio').value);estSel='';estF=null;renderEst()};
