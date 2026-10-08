@@ -233,7 +233,15 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .espie b{display:block;font-weight:400;font-size:1rem}.espie small{font-size:.65rem;color:#555}
 .estruck{position:absolute;right:1.5%;bottom:6%;width:9%}
 .estacts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.estacts small{margin-left:auto}
-.tab.estnew{border-style:dashed}
+.esitems{margin-top:16px;display:grid;gap:12px}.esith{margin:0;font-size:1rem}
+.esgrp>b{display:block;font-size:.78rem;letter-spacing:.08em;color:#fff;background:linear-gradient(90deg,#f59e0b,#ea7a0c);padding:4px 10px;border-radius:6px 6px 0 0}
+.esgrp .esbtns{display:flex;flex-wrap:wrap;gap:8px;border:1px solid var(--line);border-top:0;border-radius:0 0 8px 8px;padding:10px}
+.esbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:8px 14px;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.esbtn:hover{border-color:var(--acc)}.esbtn[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
+.esok{color:var(--ok);font-weight:800}.esbtn[aria-pressed="true"] .esok{color:#fff}
+.btn.estnew{justify-self:start}
+.esbar select{background:transparent;border:0;color:#fff;font:inherit;font-weight:700;letter-spacing:.06em;text-align:center;text-align-last:center;cursor:pointer;margin:0;padding:0 18px;width:auto}
+.esbar select option{color:#111}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
 .docmiga{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:200px;font-size:.92rem}
@@ -780,9 +788,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </div>
 <section id="estv" hidden aria-label="Estándar de Flota">
   <div class="ralbar"><label>Mes<select id="estmes"></select></label><label>Año<select id="estanio"></select></label></div>
-  <div class="tabs" role="group" aria-label="Ítems del mes" id="estitems"></div>
   <div class="eswrap"><div id="estslide"></div></div>
   <div class="estacts" id="estacts"></div>
+  <div class="esitems" id="estitems" role="group" aria-label="Ítems guardados"></div>
   <input type="file" id="estcam" accept="image/*" capture="environment" hidden><input type="file" id="estgal" accept="image/*" hidden>
 </section>
 <section id="blv" hidden aria-label="Barridos y Lavadero">
@@ -3339,25 +3347,70 @@ $('bpclear').onclick=()=>{if(confirm('¿Quitar todas las placas de la lista?')){
 $('bpfrm').onsubmit=async e=>{e.preventDefault();$('bpsave').disabled=true;
   try{await setDoc(doc(db,'listas','placasbl_'+sede),{tipo:'placasbl',sede,placas:bpl,por:cur.nombre,editado:serverTimestamp()});$('bpdlg').close()}catch(x){$('bperr').textContent=ERR(x.code)}$('bpsave').disabled=false};
 /* ---------- Estándar de Flota (plantilla: Documentación e imagen) ---------- */
+/* PDF del Estándar de Flota: una página por ítem, replicando la plantilla (texto real + fotos) */
+const EST_CATS=['DOCUMENTACIÓN E IMAGEN','SEGURIDAD'];
+function envolver(t,ancho,tam){const max=Math.max(8,Math.floor(ancho/(tam*0.5))),out=[];String(t||'').split(/\n/).forEach(par=>{let l='';par.split(/\s+/).forEach(w=>{if(!w)return;while(w.length>max){if(l){out.push(l);l=''}out.push(w.slice(0,max));w=w.slice(max)}if((l+' '+w).trim().length>max){out.push(l);l=w}else l=(l?l+' ':'')+w});out.push(l)});return out}
+async function pdfLienzo(pags){
+  const ch=[];let pos=0;const off=[];const put=x=>{const b=typeof x==='string'?Uint8Array.from(l1(x)):x;ch.push(b);pos+=b.length};
+  let n=4;const P=[];
+  for(const pg of pags){const im={};for(const[k,src]of Object.entries(pg.imgs||{})){if(src&&/^data:image\/jpeg/.test(src)){const t=await imgTam(src);if(t)im[k]={id:++n,w:t.w,h:t.h,bytes:deB64(src.split(',')[1])}}}
+    P.push({...pg,im,pid:++n,cid:++n})}
+  put('%PDF-1.4\n%âãÏÓ\n');const obj=(id,body)=>{off[id]=pos;put(`${id} 0 obj\n`);(Array.isArray(body)?body:[body]).forEach(put);put('\nendobj\n')};
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');obj(2,`<< /Type /Pages /Count ${P.length} /Kids [${P.map(p=>p.pid+' 0 R').join(' ')}] >>`);
+  obj(3,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');obj(4,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+  for(const p of P){const cb=Uint8Array.from(l1(p.build(p.im)));
+    for(const v of Object.values(p.im))obj(v.id,[`<< /Type /XObject /Subtype /Image /Width ${v.w} /Height ${v.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${v.bytes.length} >>\nstream\n`,v.bytes,'\nendstream']);
+    obj(p.pid,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Contents ${p.cid} 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> /XObject << ${Object.values(p.im).map(v=>`/Im${v.id} ${v.id} 0 R`).join(' ')} >> >> >>`);
+    obj(p.cid,[`<< /Length ${cb.length} >>\nstream\n`,cb,'\nendstream'])}
+  const xr=pos;put(`xref\n0 ${n+1}\n0000000000 65535 f \n`);for(let i=1;i<=n;i++)put(String(off[i]||0).padStart(10,'0')+' 00000 n \n');
+  put(`trailer\n<< /Size ${n+1} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`);return new Blob(ch,{type:'application/pdf'});
+}
+async function descargarEstPDF(btn){
+  if(!cur||cur.rol!=='admin')return;const L=estLista();if(!L.length){alert('No hay ítems en este mes.');return}
+  const t0=btn.textContent;btn.disabled=true;btn.textContent='Preparando PDF…';
+  try{const W=842,H=595,gen=new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}),mes=MESES[estMes-1].toUpperCase();
+    const rect=(x,y,w,h,f)=>`${f} rg ${x} ${y} ${w} ${h} re f `,borde=(x,y,w,h,c,lw)=>`${c} RG ${lw} w ${x} ${y} ${w} ${h} re S `;
+    const txt=(x,y,t,sz,b,c='0 0 0')=>`${c} rg BT /F${b?2:1} ${sz} Tf ${x} ${y} Td ${pdfStr(t)} Tj ET `;
+    const ctr=(cx,y,t,sz,b,c)=>txt((cx-String(t).length*sz*(b?0.29:0.26)).toFixed(1),y,t,sz,b,c);
+    const parrafo=(x,yTop,w,h,t,sz)=>{const ls=envolver(t,w-12,sz),lh=sz*1.3,max=Math.floor((h-10)/lh);let o='';ls.slice(0,max).forEach((l,i)=>{o+=txt(x+6,yTop-8-sz-i*lh,i===max-1&&ls.length>max?l.slice(0,-1)+'…':l,sz,false)});return o};
+    const pags=L.map((d,i)=>({imgs:{a:d.antes,b:d.despues},build:im=>{
+      let o=rect(0,H-48,W,48,'0.09 0.23 0.30')+rect(0,H-48,150,48,'0.06 0.16 0.22')+txt(22,H-30,'FLOTA LLANOS',13,true,'1 1 1')+rect(W-60,H-48,30,48,'0.2 0.83 0.6')+rect(W-30,H-48,30,48,'0.98 0.8 0.08');
+      o+=ctr(380,H-30,`ESTÁNDAR FLOTA ${estAnio} - MES:`,15,true,'1 1 1')+rect(520,H-38,150,22,'0.17 0.42 0.69')+borde(520,H-38,150,22,'1 1 1',1.5)+ctr(595,H-32,mes,12,true,'1 1 1');
+      o+=rect(W-150,H-70,150,22,'0.75 0 0')+ctr(W-75,H-63,(d.sede||sede).toUpperCase(),11,true,'1 1 1');
+      o+=rect(0,H-76,W-150,20,'0.96 0.55 0.05')+ctr((W-150)/2,H-70,d.cat||EST_CATS[0],11,true,'1 1 1');
+      o+=txt(250,H-102,'Ítem:',12,true)+rect(292,H-110,300,22,'0.94 0.49 0.07')+borde(292,H-110,300,22,'0.7 0.33 0.04',1.2)+txt(300,H-103,String(d.item||'').slice(0,48),11,true,'1 1 1');
+      o+=txt(24,H-132,'ACCIÓN:',11,true)+rect(22,H-232,350,92,'0.97 0.97 0.97')+borde(22,H-232,350,92,'0.17 0.42 0.69',1.5)+parrafo(22,H-140,350,92,d.accion||'',9.5);
+      o+=rect(22,98,350,H-340,'0.97 0.97 0.97')+borde(22,98,350,H-340,'0.82 0 0',2.2)+parrafo(22,H-242,350,H-340,d.obs||'',9.5);
+      [['a','ANTES',395],['b','DESPUÉS',618]].forEach(([k,l,x])=>{const bw=205,bh=H-250,y=100;o+=rect(x+55,y+bh+2,95,18,'0.17 0.43 0.56')+ctr(x+102,y+bh+7,l,10,true,'1 1 1')+rect(x,y,bw,bh,'0.95 0.95 0.95');
+        const v=im[k];if(v){const s=Math.min((bw-6)/v.w,(bh-6)/v.h),w=v.w*s,h=v.h*s;o+=`q ${w.toFixed(1)} 0 0 ${h.toFixed(1)} ${(x+(bw-w)/2).toFixed(1)} ${(y+(bh-h)/2).toFixed(1)} cm /Im${v.id} Do Q `}else o+=ctr(x+bw/2,y+bh/2,'Sin foto',10,false,'0.5 0.5 0.5');
+        o+=borde(x,y,bw,bh,'0 0 0',3)});
+      o+=txt(26,70,String(estAnio).slice(0,2),11,true)+txt(26,57,String(estAnio).slice(2),11,true)+`0.96 0.62 0.04 RG 1.5 w 46 52 m 46 82 l S `+txt(54,68,'FLOTA',12,false)+txt(54,56,'CD Reg. Sur',7,false,'0.35 0.35 0.35');
+      o+=txt(24,22,`Ítem ${i+1} de ${L.length} · ${d.cat||EST_CATS[0]} · Registrado por ${d.por||'—'} · Generado el ${gen} por ${cur.nombre}`,7.5,false,'0.45 0.45 0.45');
+      return o}}));
+    const blob=await pdfLienzo(pags),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`estandar_flota_${sede}_${estAnio}-${String(estMes).padStart(2,'0')}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  }catch(x){console.error(x);alert('No se pudo generar el PDF.')}btn.disabled=false;btn.textContent=t0;
+}
+
 let estPend='',estDocs=[],unsubE=null,estSel='',estF=null,estMes=new Date().getMonth()+1,estAnio=new Date().getFullYear();
 function estLista(){return estDocs.filter(d=>(d.sede||SEDES[0])===sede&&d.anio===estAnio&&d.mes===estMes).sort((a,b)=>(a.orden||0)-(b.orden||0)||String(a.item).localeCompare(String(b.item),'es'))}
-function estNuevo(){return{item:'',accion:'',obs:'',antes:'',despues:'',antesMarca:false,despuesMarca:false}}
+function estNuevo(){return{cat:EST_CATS[0],item:'',accion:'',obs:'',antes:'',despues:'',antesMarca:false,despuesMarca:false}}
 function renderEst(){
   if(!cur||$('estv').hidden)return;
   $('estanio').innerHTML=[estAnio-1,estAnio,estAnio+1].map(a=>`<option${a===estAnio?' selected':''}>${a}</option>`).join('');
   $('estmes').innerHTML=MESES.map((n,k)=>`<option value="${k+1}"${k+1===estMes?' selected':''}>${n}</option>`).join('');
   const L=estLista();if(estPend&&L.some(d=>d.id===estPend))estPend='';if(estSel&&estSel!=='nuevo'&&!L.some(d=>d.id===estSel)){if(estSel===estPend){$('estslide').innerHTML='<div class="empty" style="margin:20px">Guardando…</div>';return}estSel=''}if(!estSel)estSel=L[0]?L[0].id:(canEdit()?'nuevo':'');
-  $('estitems').innerHTML=L.map((d,i)=>`<button type="button" class="tab" data-est="${d.id}" aria-pressed="${d.id===estSel}">${i+1}. ${esc(d.item||'Sin ítem')}</button>`).join('')+(canEdit()?`<button type="button" class="tab estnew" data-est="nuevo" aria-pressed="${estSel==='nuevo'}">+ Nuevo ítem</button>`:'');
+  $('estitems').innerHTML=`<h3 class="esith">Ítems de ${MESES[estMes-1]} ${estAnio}</h3>`+EST_CATS.map(c=>{const it=L.filter(d=>(d.cat||EST_CATS[0])===c);return `<div class="esgrp"><b>${c}</b><div class="esbtns">${it.length?it.map(d=>`<button type="button" class="esbtn" data-est="${d.id}" aria-pressed="${d.id===estSel}">${esc(d.item||'Sin ítem')}${d.antes&&d.despues?' <span class="esok">✓</span>':''}</button>`).join(''):'<small class="mnota">Sin ítems</small>'}</div></div>`}).join('')
+    +(canEdit()?`<button type="button" class="btn estnew" data-est="nuevo" aria-pressed="${estSel==='nuevo'}">+ Nuevo ítem</button>`:'');
   const d=estSel==='nuevo'?null:L.find(x=>x.id===estSel);
   if(!d&&estSel!=='nuevo'){$('estslide').innerHTML=`<div class="empty" style="margin:20px">No hay ítems en ${MESES[estMes-1]} ${estAnio} para ${esc(sede)}.</div>`;$('estacts').innerHTML='';return}
-  if(!estF||estF._id!==(d?d.id:'nuevo'))estF={...(d?{item:d.item||'',accion:d.accion||'',obs:d.obs||'',antes:d.antes||'',despues:d.despues||'',antesMarca:!!d.antesMarca,despuesMarca:!!d.despuesMarca}:estNuevo()),_id:d?d.id:'nuevo'};
+  if(!estF||estF._id!==(d?d.id:'nuevo'))estF={...(d?{cat:d.cat||EST_CATS[0],item:d.item||'',accion:d.accion||'',obs:d.obs||'',antes:d.antes||'',despues:d.despues||'',antesMarca:!!d.antesMarca,despuesMarca:!!d.despuesMarca}:estNuevo()),_id:d?d.id:'nuevo'};
   const ed=canEdit(),F=estF;
   const foto=(k,l)=>`<div class="esf"><div class="esftit">${l}</div><div class="esfbox">${F[k]?`<img src="${F[k]}" alt="${l}" data-estimg>`:'<span class="esvac">Sin foto</span>'}
     ${ed?`<div class="esfb"><button type="button" data-estcam="${k}">📷 Tomar foto</button><button type="button" data-estgal="${k}">Subir</button>${F[k]?`<button type="button" data-estq="${k}">Quitar</button>`:''}</div>`:''}</div></div>`;
   $('estslide').innerHTML=`<div class="esl">
     <div class="eshead"><div class="eslogo">FLOTA LLANOS</div><div class="estitulo">ESTÁNDAR FLOTA ${estAnio} - &nbsp;MES: <span class="esmes">${MESES[estMes-1].toUpperCase()}</span></div><div class="esdeco"><i></i><i></i></div></div>
     <div class="essede">${esc(sede.toUpperCase())}</div>
-    <div class="esbar">DOCUMENTACIÓN E IMAGEN</div>
+    <div class="esbar">${ed?`<select id="es-cat" aria-label="Categoría">${EST_CATS.map(c=>`<option${c===F.cat?' selected':''}>${c}</option>`).join('')}</select>`:esc(F.cat)}</div>
     <div class="esitem"><b>Ítem:</b>${ed?`<input id="es-item" maxlength="120" value="${esc(F.item)}" placeholder="Escribe el ítem">`:`<span>${esc(F.item||'—')}</span>`}</div>
     <div class="esbody">
       <div class="esizq"><b>ACCIÓN:</b>
@@ -3368,8 +3421,8 @@ function renderEst(){
     <div class="espie"><div class="esanio"><span>${String(estAnio).slice(0,2)}</span><span>${String(estAnio).slice(2)}</span></div><div><b>FLOTA</b><small>CD Reg. Sur</small></div>
       <svg class="estruck" viewBox="0 0 64 40" aria-hidden="true"><path d="M2 8h34v22H2z" fill="#e5e7eb" stroke="#475569"/><path d="M37 14h13l9 10v6H37z" fill="#f1f5f9" stroke="#475569"/><path d="M40 17h8l5 6H40z" fill="#93c5fd"/><circle cx="13" cy="32" r="5" fill="#1f2937"/><circle cx="48" cy="32" r="5" fill="#1f2937"/><circle cx="13" cy="32" r="2" fill="#cbd5e1"/><circle cx="48" cy="32" r="2" fill="#cbd5e1"/></svg></div>
   </div>`;
-  $('estacts').innerHTML=(ed?`<button type="button" class="btn" id="estsave">${estSel==='nuevo'?'Guardar ítem':'Guardar cambios'}</button>`:'')+(cur.rol==='admin'&&d?`<button type="button" class="del" id="estdel">Eliminar ítem</button>`:'')+(cur.rol==='admin'&&L.length?`<button type="button" class="btn ghost" id="estpdf">PDF del mes</button>`:'')+(d?`<small class="mnota">Registrado por ${esc(d.por||'—')}${d.editadoPor?` · editado por ${esc(d.editadoPor)}`:''}</small>`:'');
-  if(ed){['item','accion','obs'].forEach(k=>{const el=$('es-'+k);if(el)el.oninput=()=>{estF[k]=el.value}})}
+  $('estacts').innerHTML=(ed?`<button type="button" class="btn" id="estsave">${estSel==='nuevo'?'Guardar ítem':'Guardar cambios'}</button>`:'')+(cur.rol==='admin'&&d?`<button type="button" class="del" id="estdel">Eliminar ítem</button>`:'')+(cur.rol==='admin'&&L.length?`<button type="button" class="btn ghost" id="estpdf">⬇ PDF de todos los ítems</button>`:'')+(d?`<small class="mnota">Registrado por ${esc(d.por||'—')}${d.editadoPor?` · editado por ${esc(d.editadoPor)}`:''}</small>`:'');
+  if(ed){['item','accion','obs'].forEach(k=>{const el=$('es-'+k);if(el)el.oninput=()=>{estF[k]=el.value}});const sc=$('es-cat');if(sc)sc.onchange=()=>{estF.cat=sc.value}}
 }
 async function estFoto(k,file,cam){
   try{if(cam){const c=await posicionRapida(),d=new Date(),p=n=>String(n).padStart(2,'0');
@@ -3387,16 +3440,14 @@ $('estv').addEventListener('click',async e=>{
   const im=e.target.closest('[data-estimg]');if(im){$('bigimg').src=im.src;$('big').showModal();return}
   if(e.target.closest('#estsave')&&canEdit()){const F=estF,b=e.target.closest('#estsave');
     if(!F.item.trim()){alert('Escribe el ítem.');return}
-    const data={item:F.item.trim(),accion:F.accion.trim(),obs:F.obs.trim(),antes:F.antes,despues:F.despues,antesMarca:F.antesMarca,despuesMarca:F.despuesMarca};
+    const data={cat:EST_CATS.includes(F.cat)?F.cat:EST_CATS[0],item:F.item.trim(),accion:F.accion.trim(),obs:F.obs.trim(),antes:F.antes,despues:F.despues,antesMarca:F.antesMarca,despuesMarca:F.despuesMarca};
     if(JSON.stringify(data).length>950000){alert('Las fotos pesan demasiado. Vuelve a tomarlas o súbelas de nuevo.');return}
     b.disabled=true;
     try{if(estSel==='nuevo'){const ref=doc(collection(db,'estandar'));await setDoc(ref,{...data,sede,anio:estAnio,mes:estMes,orden:Date.now(),por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});estSel=ref.id;estPend=ref.id;estF=null}
       else await updateDoc(doc(db,'estandar',estSel),{...data,editadoPor:cur.nombre,editado:serverTimestamp()});
       renderEst()}catch(x){alert(ERR(x.code))}b.disabled=false;return}
   if(e.target.closest('#estdel')&&cur.rol==='admin'&&confirm('¿Eliminar este ítem del estándar de flota?')){try{await deleteDoc(doc(db,'estandar',estSel));estSel='';estF=null}catch(x){alert(ERR(x.code))}return}
-  if(e.target.closest('#estpdf')&&cur.rol==='admin'){const L=estLista(),gen=new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'});
-    const blob=await crearPDF(L.map((d,i)=>({titulo:`ESTÁNDAR FLOTA ${estAnio} · ${MESES[estMes-1].toUpperCase()} · ${sede.toUpperCase()} · ${d.item}`,sub:`Acción: ${(d.accion||'—').replace(/\s+/g,' ').slice(0,140)}${d.obs?' · Observación: '+d.obs.replace(/\s+/g,' ').slice(0,80):''}`,fotos:[{label:'ANTES',src:d.antes},{label:'DESPUÉS',src:d.despues}],pie:`Documentación e imagen · Generado el ${gen} por ${cur.nombre} · Ítem ${i+1} de ${L.length}`})));
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`estandar_flota_${sede}_${estAnio}-${String(estMes).padStart(2,'0')}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+  if(e.target.closest('#estpdf')&&cur.rol==='admin'){descargarEstPDF(e.target.closest('#estpdf'));return}
 });
 $('estmes').onchange=()=>{estMes=Number($('estmes').value);estSel='';estF=null;renderEst()};
 $('estanio').onchange=()=>{estAnio=Number($('estanio').value);estSel='';estF=null;renderEst()};
