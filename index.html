@@ -274,6 +274,11 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .btn.estnew{justify-self:start}
 .esbar select{background:transparent;border:0;color:#fff;font:inherit;font-weight:700;letter-spacing:.06em;text-align:center;text-align-last:center;cursor:pointer;margin:0;padding:0 18px;width:auto}
 .esbar select option{color:#111}
+.chip.cal0{background:#fde2e2;border-color:#dc2626;color:#b91c1c}.chip.cal1{background:#fef3c7;border-color:#d97706;color:#92400e}.chip.cal2{background:#dcfce7;border-color:#16a34a;color:#166534}
+@media (prefers-color-scheme:dark){html:not([data-theme="light"]) .chip.cal0{background:#3b1414;color:#fca5a5}html:not([data-theme="light"]) .chip.cal1{background:#3a2c0b;color:#fcd34d}html:not([data-theme="light"]) .chip.cal2{background:#0f2e1b;color:#86efac}}
+html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-theme="dark"] .chip.cal1{background:#3a2c0b;color:#fcd34d}html[data-theme="dark"] .chip.cal2{background:#0f2e1b;color:#86efac}
+.calley{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 10px;font-size:.88rem}.calley i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.calley .c0 i{background:#dc2626}.calley .c1 i{background:#d97706}.calley .c2 i{background:#16a34a}
 .docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .docnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
 .docmiga{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:200px;font-size:.92rem}
@@ -2030,8 +2035,12 @@ function renderCal(){
   const s=S[cmes-1],v=del.filter(c=>c.mes===cmes).sort((a,b)=>cmpP(normP(a.placa),normP(b.placa))||String(a.f1).localeCompare(String(b.f1)));
   $('ctit').textContent=`${MESES[cmes-1]} ${canio}`;
   $('csub').textContent=`${sede} · ${s.n} registro${s.n===1?'':'s'} · ${s.comp} completa${s.comp===1?'':'s'} · ${s.inc} incompleta${s.inc===1?'':'s'}${s.mt?' · Cumplimiento '+pctTxt(s.pct)+' ('+s.ok+' de '+s.mt+' placas)':''}${s.fuera?' · '+s.fuera+' completa'+(s.fuera>1?'s':'')+' con placa que no está en la lista':''}`;
-  const faltHtml=s.lista.length?`<div class="dc" style="margin-top:14px"><h2>Placas que aún no cumplen en ${MESES[cmes-1]}</h2><small>Placas de la lista de ${MESES[cmes-1].toLowerCase()} sin sus dos calibraciones: ${s.falt.length} de ${s.lista.length}</small>
-    ${s.falt.length?`<div class="chips">${s.falt.map(p=>`<span class="chip" style="cursor:default"><b>${esc(p)}</b></span>`).join('')}</div>`:'<p class="empty" style="margin:0">Todas las placas de la lista tienen sus dos calibraciones este mes.</p>'}</div>`:'';
+  const nCal=p=>{let m=0;v.forEach(c=>{if(normP(c.placa)===p){const k=(c.f1?1:0)+(c.f2?1:0);if(k>m)m=k}});return m};
+  const est=s.lista.map(p=>({p,k:nCal(p)})),n0=est.filter(x=>x.k===0).length,n1=est.filter(x=>x.k===1).length,n2=est.filter(x=>x.k===2).length;
+  const ord=[...est].sort((a,b)=>a.k-b.k||cmpP(a.p,b.p));
+  const faltHtml=s.lista.length?`<div class="dc" style="margin-top:14px"><h2>Estado de las placas en ${MESES[cmes-1]}</h2><small>${s.lista.length} placas de la lista de ${MESES[cmes-1].toLowerCase()}</small>
+    <div class="calley"><span class="c0"><i></i>Sin calibraciones: <b>${n0}</b></span><span class="c1"><i></i>1 calibración: <b>${n1}</b></span><span class="c2"><i></i>2 calibraciones: <b>${n2}</b></span></div>
+    <div class="chips">${ord.map(x=>`<span class="chip cal${x.k}" style="cursor:default" title="${esc(x.p)}: ${x.k===0?'sin calibraciones':x.k===1?'1 calibración':'2 calibraciones'}"><b>${esc(x.p)}</b></span>`).join('')}</div></div>`:'';
   renderPpt();
   if(!v.length){$('calist').innerHTML=`<div class="empty">No hay calibraciones en ${MESES[cmes-1]} ${canio} para ${esc(sede)}.${canEdit()?' Usa «Registrar calibración» para agregar la primera.':''}</div>`+faltHtml;return}
   $('calist').innerHTML=v.map(c=>{const okc=c.f1&&c.f2,cfs=c.fotos?CF.filter(([k])=>c.fotos[k]):[];
@@ -3980,7 +3989,7 @@ function resumenCal(S,del){
       <td><div class="cbarp"><span><i style="width:${Math.min(100,s.pct||0)}%;background-size:${s.pct?Math.max(100,10000/Math.min(100,s.pct)):100}% 100%"></i></span><b style="color:${colP(s.pct)}">${pctTxt(s.pct)}</b></div></td></tr>`).join('')}</tbody></table></div>
   </div>
   <div class="dc"><h2>Placas incompletas</h2><small>Tienen solo la primera calibración. Toca una para ir a su mes.</small>
-    ${incs.length?`<div class="chips">${incs.map(c=>`<button type="button" class="chip" data-mes="${c.mes}"><b>${esc(c.placa)}</b> · ${MESES[c.mes-1].slice(0,3)} · 1ª ${fd(c.f1)}</button>`).join('')}</div>`
+    ${incs.length?`<div class="chips">${incs.map(c=>`<button type="button" class="chip cal1" data-mes="${c.mes}"><b>${esc(c.placa)}</b> · ${MESES[c.mes-1].slice(0,3)} · 1ª ${fd(c.f1)}</button>`).join('')}</div>`
       :`<p class="empty" style="margin:0">${tot?'Todas las placas registradas tienen sus dos calibraciones.':'Aún no hay calibraciones registradas en '+canio+'.'}</p>`}
   </div>
   ${cur.rol==='admin'?`<div class="xl"><p><b>Descargar información de calibraciones</b>Gráficas, cumplimiento por mes y por placa, placas incompletas y la base de datos de registros de ${esc(sede)} ${canio}.</p>
