@@ -1752,7 +1752,7 @@ function placaDeNombre(n){const t=normP(n),m=t.match(/[A-Z]{3}\d{3}[A-Z]?|[A-Z]{
 function pintarDocPlaca(act){
   const box=$('docpl'),p=docSec==='veh'&&act&&!String(act.id).startsWith('__')?placaDeNombre(act.name):'';
   if(!p){box.hidden=true;box.innerHTML='';return}
-  let f=null,D=null;for(const sd of SEDES){const d=ctDatos[sd];const x=d&&(d.filas||[]).find(r=>normP(r.c.D)===p);if(x){f=x;D=d;break}}
+  let f=null,D=null;for(const k of ['todas',...SEDES]){const d=ctDatos[k];const x=d&&(d.filas||[]).find(r=>normP(r.c.D)===p);if(x){f=x;D=d;break}}
   if(!f){box.hidden=false;box.innerHTML=`<span class="pl">${esc(p)}</span><small class="mnota" style="align-self:center;max-width:260px">No hay información de esta placa en Control Tiempo.</small>`;return}
   const T=D.titulos||{},s=ctEstado(f.soat,CT_SOAT),r=ctEstado(f.rtm,CT_RTM),v=k=>esc(ctVivo(f,k,T)||'—'),tt=k=>`${esc(T[k]||'Columna '+k)} <small>(${k})</small>`;
   box.hidden=false;
@@ -1902,7 +1902,11 @@ function ctTexto(v){if(v===null||v===undefined||v==='')return '';if(v instanceof
 const esPlaca=v=>{const p=normP(v);return p.length>=5&&p.length<=8&&/[A-Z]/.test(p)&&/\d/.test(p)};
 const diasA=f=>{if(!f)return null;const[y,m,d]=f.split('-').map(Number),h=new Date();h.setHours(0,0,0,0);return Math.round((new Date(y,m-1,d)-h)/864e5)};
 function ctEstado(f,umbral){const d=diasA(f);if(d===null)return{k:'n',t:'Sin fecha',d};if(d<0)return{k:'r',t:`Vencido hace ${-d} día${d===-1?'':'s'}`,d};if(d===0)return{k:'r',t:'Vence hoy',d};if(d<=umbral)return{k:'a',t:`Vence en ${d} día${d===1?'':'s'}`,d};return{k:'o',t:`Vigente · ${d} días`,d}}
-function ctFilas(){return ((ctDatos[sede]||{}).filas||[]).map(f=>({...f,s:ctEstado(f.soat,CT_SOAT),r:ctEstado(f.rtm,CT_RTM)}))}
+// Villavicencio = pestañas con «VILLAVO»; Yopal = pestañas con «YOPALL» (o «YOPAL»)
+const ctTok=sd=>sd==='Yopal'?'yopal':'villav';
+function ctDoc(){return ctDatos['todas']||ctDatos[sede]||null}
+function ctFilasDe(D,sd){const fs=(D&&D.filas)||[],hs=(D&&D.hojas)||[];if(hs.length&&hs.some(h=>/villav|yopal/.test(sinTilde(h.n))))return fs.filter(f=>sinTilde(f.hoja||'').includes(ctTok(sd)));return fs}
+function ctFilas(){return ctFilasDe(ctDoc(),sede).map(f=>({...f,s:ctEstado(f.soat,CT_SOAT),r:ctEstado(f.rtm,CT_RTM)}))}
 function ctBadge(){const n=ctFilas().filter(f=>'ra'.includes(f.s.k)||'ra'.includes(f.r.k)).length,b=document.querySelector('.si[data-doc="tie"]');if(b)b.innerHTML=`Control Tiempo${n?` <span class="ctbad" aria-label="${n} alertas">${n}</span>`:''}`}
 let ctColF={},ctSort=null,ctUltimo={fs:[],T:{}};
 function ctCmp(a,b){const fa=fechaAny(a),fb=fechaAny(b);if(fa&&fb)return fa.localeCompare(fb);const na=Number(String(a).replace(/\./g,'').replace(',','.')),nb=Number(String(b).replace(/\./g,'').replace(',','.'));
@@ -1948,8 +1952,9 @@ function ctVivo(f,k,T){
 let ctDia=new Date().toDateString();setInterval(()=>{const d=new Date().toDateString();if(d!==ctDia){ctDia=d;renderCT()}},600000);
 function renderCT(){
   ctBadge();if(!cur||$('docv').hidden||docSec!=='tie')return;
-  const D=ctDatos[sede],fs=ctFilas(),q=sinTilde($('ctbusca').value.trim());
+  const D=ctDoc(),fs=ctFilas(),q=sinTilde($('ctbusca').value.trim());
   $('ctdel').hidden=!(D&&cur.rol==='admin');
+  const hojaS=D&&(D.hojas||[]).find(h=>sinTilde(h.n).includes(ctTok(sede)));
   $('ctsub').textContent=D?`Última carga: ${D.fecha?dtTxt(D.fecha):'—'} · ${D.nombre||'Excel'}`:'';
   if(!D){$('ctkpi').innerHTML='';$('ctal').innerHTML='';$('cttab').innerHTML=`<p class="empty" style="margin:0">Aún no hay información de Control Tiempo para ${esc(sede)}.${cur.rol==='admin'?' Usa «Cargar Excel» para subir el archivo.':''}</p>`;return}
   const c=(k,t)=>fs.filter(f=>f[t].k===k).length;
@@ -2005,11 +2010,11 @@ async function ctLeer(f){
 $('ctfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!cur||cur.rol!=='admin')return;$('ctmsg').textContent='Leyendo el archivo…';
   try{const L=await ctLeer(f);
     if(!L.filas.length){$('ctmsg').textContent='No se encontraron placas en la columna D del archivo.';return}
-    await setDoc(doc(db,'ctiempo',sede),{sede,nombre:f.name,filaTitulos:L.hi+1,titulos:L.titulos,grupos:L.grupos,hojas:L.hojas,filas:L.filas,fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
+    await setDoc(doc(db,'ctiempo','todas'),{sede:'todas',nombre:f.name,filaTitulos:L.hi+1,titulos:L.titulos,grupos:L.grupos,hojas:L.hojas,filas:L.filas,fecha:ahoraDT(),por:cur.nombre,editado:serverTimestamp()});
     $('ctmsg').textContent='';}
   catch(x){console.error(x);$('ctmsg').textContent='No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
 $('ctup').onclick=()=>{if(cur&&cur.rol==='admin')$('ctfile').click()};
-$('ctdel').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar toda la información de Control Tiempo de ${sede}?`))return;try{await deleteDoc(doc(db,'ctiempo',sede));$('ctmsg').textContent='Información borrada.'}catch(x){alert(ERR(x.code))}};
+$('ctdel').onclick=async()=>{if(cur.rol!=='admin'||!confirm('¿Borrar toda la información de Control Tiempo (Villavicencio y Yopal)?'))return;try{for(const k of ['todas',...SEDES])if(ctDatos[k])await deleteDoc(doc(db,'ctiempo',k));$('ctmsg').textContent='Información borrada.'}catch(x){alert(ERR(x.code))}};
 $('ctbusca').oninput=renderCT;
 $('ctlimpia').onclick=()=>{ctColF={};ctSort=null;renderCT()};
 $('cttab').addEventListener('click',e=>{const h=e.target.closest('[data-ctcol]');if(h){e.stopPropagation();const P=$('ctpop');if(!P.hidden&&P.dataset.k===h.dataset.ctcol){P.hidden=true;return}ctAbrirFiltro(h.dataset.ctcol,h);return}
