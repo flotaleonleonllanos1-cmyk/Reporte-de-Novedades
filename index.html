@@ -286,6 +286,12 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .urbar .rk{color:var(--mut);font-size:.72rem;text-align:right}.urbar .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .urbar .tr{display:flex;height:14px;background:var(--line);border-radius:7px;overflow:hidden}.urbar .tr i{display:block;height:100%}
 .urbar>b{font-variant-numeric:tabular-nums;white-space:nowrap}.urpls{max-height:420px;overflow:auto;padding-right:4px}
+.urdet{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;margin-top:10px;max-height:620px;overflow:auto;padding-right:4px}
+.urdc{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:10px;padding:8px 10px;background:var(--card)}
+.urdh{display:flex;align-items:center;gap:8px;margin-bottom:6px}.urdh b{font-size:1rem;letter-spacing:.04em}.urdh small{margin-left:auto;color:var(--mut)}
+.urdc ul{list-style:none;margin:0;padding:0;display:grid;gap:2px;max-height:180px;overflow:auto}
+.urdc li{display:grid;grid-template-columns:1fr auto auto;gap:8px;font-size:.8rem;padding:2px 0;border-bottom:1px dashed var(--line)}.urdc li b{font-variant-numeric:tabular-nums}
+.urpr{font-size:.68rem;border-radius:999px;padding:1px 7px;background:var(--soft);color:var(--acc);align-self:center}.urpr.m{background:#ede9fe;color:#6d28d9}
 .resfila{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(220px,.8fr);gap:14px;align-items:start}
 .resfila.conver{grid-template-columns:minmax(0,1fr) minmax(200px,240px) minmax(0,1.5fr)}
 @media (max-width:1100px){.resfila,.resfila.conver{grid-template-columns:1fr}}
@@ -3867,30 +3873,34 @@ $('resfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!
 /* ---------- UREA: consumo por afiliado, placa y mes (columna D = conductor por sede, H = cantidad) ---------- */
 let ureaD=null,unsubUR=null,urF={mes:'__todos',prod:'',q:''};
 const URPAL=['#0891b2','#14b8a6','#2563eb','#7c3aed','#db2777','#ea580c','#65a30d','#ca8a04','#0f766e','#4f46e5','#b91c1c','#0369a1'];
+// Fecha/hora de publicación tal como se ve, con hora si la trae
+function urFH(raw,txt){if(raw instanceof Date&&!isNaN(raw)){const p=n=>String(n).padStart(2,'0'),d=raw;const h=d.getHours()||d.getMinutes()?` ${p(d.getHours())}:${p(d.getMinutes())}`:'';return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()}${h}`}return String(txt??'').trim()}
+const UR_PRODS=['UREA','UREA ACEITE MOTOS'];
+function urProd(p){const n=sinTilde(p||'');if(!n.includes('urea'))return null;return /aceite|moto/.test(n)?UR_PRODS[1]:UR_PRODS[0]}
 async function urLeer(f){
   const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true,dateNF:'d/mm/yyyy'});
   for(const n of wb.SheetNames){const ws=wb.Sheets[n];if(!ws||!ws['!ref'])continue;const R=X.utils.decode_range(ws['!ref']);R.s.r=0;R.s.c=0;ws['!ref']=X.utils.encode_range(R);
     const t=X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:false}),tx=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:false,dateNF:'d/mm/yyyy'});
     const hi=t.findIndex((r,i)=>i<15&&(r||[]).filter(v=>String(v??'').trim()).length>=4&&(r||[]).some(v=>/placa|fecha|cantidad|conductor|producto|afiliado/.test(sinTilde(String(v??'')))));if(hi<0)continue;
     const H=(tx[hi]||[]).map(v=>String(v??'').trim()),b=(...re)=>{for(const r of re){const i=H.findIndex(h=>r.test(sinTilde(h)));if(i>=0)return i}return -1};
-    const datos=t.slice(hi+1),iD=3,iQ=7,iF=b(/fecha/),iPl=b(/placa/,/vehiculo/),iA=b(/afiliado/,/nombre comercial/,/comercial/,/proveedor/,/estacion/,/distribuidor/);
+    const datos=t.slice(hi+1),iD=3,iQ=7,iF=b(/publicacion/,/fecha\/hora/,/fecha/),iPl=b(/placa/,/vehiculo/),iA=b(/afiliado/,/nombre comercial/,/comercial/,/proveedor/,/estacion/,/distribuidor/);
     let iPr=b(/producto/,/descripcion/,/articulo/,/referencia/,/item/,/combustible/);
     if(iPr<0||iPr===iA){let mejor=-1,m=0;for(let c=0;c<H.length;c++){if([iD,iQ,iF,iPl,iA].includes(c))continue;const k=datos.filter(r=>/urea/i.test(String(r[c]??''))).length;if(k>m){m=k;mejor=c}}if(m)iPr=mejor}
     const filas=[];for(let r=0;r<datos.length;r++){const raw=datos[r]||[],x=tx[hi+1+r]||[];if(!raw.some(v=>String(v??'').trim()))continue;
       const q=resNum(raw[iQ]);if(q===null&&!String(x[iPl]??'').trim())continue;
-      filas.push([String(x[iD]??'').trim(),iA>=0?String(x[iA]??'').trim():'',iPr>=0?String(x[iPr]??'').trim():'',q||0,iPl>=0?normP(x[iPl])||String(x[iPl]??'').trim():'',iF>=0?(fechaAny(raw[iF])||fechaAny(x[iF])):''])}
+      filas.push([String(x[iD]??'').trim(),iA>=0?String(x[iA]??'').trim():'',iPr>=0?String(x[iPr]??'').trim():'',q||0,iPl>=0?normP(x[iPl])||String(x[iPl]??'').trim():'',iF>=0?(fechaAny(raw[iF])||fechaAny(x[iF])):'',iF>=0?urFH(raw[iF],x[iF]):''])}
     if(filas.length)return{hoja:n,tit:{D:H[iD]||'Columna D',H:H[iQ]||'Columna H',A:iA>=0?H[iA]:'Afiliado / nombre comercial',P:iPr>=0?H[iPr]:'Producto',Pl:iPl>=0?H[iPl]:'Placa',F:iF>=0?H[iF]:'Fecha'},filas};
   }
   throw{msg:'No se encontraron datos: revisa que el Excel tenga títulos (placa, fecha, producto, afiliado) y la cantidad en la columna H.'};
 }
-function urFilasSede(){if(!ureaD)return[];const tok=sede==='Yopal'?'yopal':'villav',fs=ureaD.filas.map(r=>({d:r[0],a:r[1]||'(Sin afiliado)',p:r[2]||'(Sin producto)',q:r[3],pl:r[4]||'(Sin placa)',f:r[5]}));
+function urFilasSede(){if(!ureaD)return[];const tok=sede==='Yopal'?'yopal':'villav',fs=ureaD.filas.map(r=>({d:r[0],a:r[1]||'(Sin afiliado)',p:urProd(r[2]),q:r[3],pl:r[4]||'(Sin placa)',f:r[5],fh:r[6]||''})).filter(f=>f.p);
   return fs.some(f=>/yopal|villav/.test(sinTilde(f.d)))?fs.filter(f=>sinTilde(f.d).includes(tok)):fs}
 function renderUrea(){
   if(!cur||$('ureav').hidden)return;$('urup').hidden=!canEdit();
   if(!ureaD){$('ursub').textContent='';$('urbody').innerHTML=`<p class="empty" style="margin:0">Aún no hay un Excel de UREA.${canEdit()?' Usa «Subir Excel» para cargarlo.':''}</p>`;return}
   $('ursub').textContent=`Última carga: ${ureaD.fecha?dtTxt(ureaD.fecha):'—'} · ${ureaD.nombre||'Excel'}`;
   const T=ureaD.tit||{},todos=urFilasSede(),mk=f=>f.f?f.f.slice(0,7):'',mL=k=>{const[y,m]=k.split('-');return `${MESES[+m-1].slice(0,3)} ${y}`};
-  const meses=[...new Set(todos.map(mk).filter(Boolean))].sort(),prods=[...new Set(todos.map(f=>f.p))].sort((a,b)=>a.localeCompare(b,'es'));
+  const meses=[...new Set(todos.map(mk).filter(Boolean))].sort(),prods=UR_PRODS;
   if(urF.prod&&!prods.includes(urF.prod))urF.prod='';
   const q=normP(urF.q),fs=todos.filter(f=>(urF.mes==='__todos'||mk(f)===urF.mes)&&(!urF.prod||f.p===urF.prod)&&(!q||normP(f.pl).includes(q)));
   const fmt=n=>Number(n||0).toLocaleString('es-CO',{maximumFractionDigits:2}),sum=a=>a.reduce((s,f)=>s+f.q,0);
@@ -3905,7 +3915,7 @@ function renderUrea(){
   const pls=Object.values(pl).sort((a,b)=>b.q-a.q),mxP=Math.max(1,...pls.map(x=>x.q));
   $('urbody').innerHTML=`
    <div class="ralbar" style="margin:0 0 12px"><label>Mes<select id="ur-mes"><option value="__todos">Todos</option>${meses.map(k=>`<option value="${k}"${k===urF.mes?' selected':''}>${mL(k)}</option>`).join('')}</select></label>
-     <label>${esc(T.P||'Producto')}<select id="ur-prod"><option value="">Todos</option>${prods.map(p=>`<option${p===urF.prod?' selected':''}>${esc(p)}</option>`).join('')}</select></label>
+     <label>${esc(T.P||'Combustible')}<select id="ur-prod"><option value="">UREA y UREA ACEITE MOTOS</option>${prods.map(p=>`<option${p===urF.prod?' selected':''}>${esc(p)}</option>`).join('')}</select></label>
      <input type="search" id="ur-q" placeholder="Buscar placa…" value="${esc(urF.q)}" style="width:180px;margin:0"></div>
    <div class="kpis">${[[fmt(sum(fs)),`Cantidad total (${esc(T.H||'H')})`],[fs.length,'Registros'],[new Set(fs.map(f=>f.pl)).size,'Placas'],[afs.length,'Afiliados'],[prods.length,'Productos']].map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
    <div class="dc" style="margin-top:14px"><h2>Consumo mes a mes</h2><small>Suma de ${esc(T.H||'la columna H')} por mes${urF.prod?' · '+esc(urF.prod):''}</small>
@@ -3918,6 +3928,11 @@ function renderUrea(){
        <div class="urleg">${mesesV.map(k=>`<span><i style="background:${colM(k)}"></i>${mL(k)}</span>`).join('')}</div>
        <div class="urpls">${pls.map((x,i)=>`<div class="urbar"><span class="rk">${i+1}</span><span class="nm"><b>${esc(x.pl)}</b></span><span class="tr">${mesesV.filter(k=>x.m[k]).map(k=>`<i style="width:${x.m[k]/mxP*100}%;background:${colM(k)}" title="${mL(k)}: ${fmt(x.m[k])}"></i>`).join('')}</span><b>${fmt(x.q)}</b></div>`).join('')||'<p class="empty">Sin datos.</p>'}</div></div>
    </div>`;
+  const det={};fs.forEach(f=>{const x=det[f.pl]=det[f.pl]||{pl:f.pl,q:0,r:[]};x.q+=f.q;x.r.push(f)});
+  const dets=Object.values(det).sort((a,b)=>b.q-a.q);dets.forEach(x=>x.r.sort((a,b)=>String(a.f).localeCompare(String(b.f))||String(a.fh).localeCompare(String(b.fh))));
+  $('urbody').insertAdjacentHTML('beforeend',`<div class="dc" style="margin-top:14px"><h2>Consumo por placa ${urF.mes==='__todos'?'· todos los meses':'· '+mL(urF.mes)}</h2><small>${esc(T.H||'Cantidad')} consumida y ${esc(T.F||'Fecha/hora de publicación')} de cada reporte${urF.prod?' · '+esc(urF.prod):' · UREA y UREA ACEITE MOTOS'}</small>
+    <div class="urdet">${dets.map(x=>`<article class="urdc"><div class="urdh"><b>${esc(x.pl)}</b><span class="pill o">${fmt(x.q)}</span><small>${x.r.length} reporte${x.r.length===1?'':'s'}</small></div>
+      <ul>${x.r.map(r=>`<li><span>${esc(r.fh||(r.f?fd(r.f):'—'))}</span><span class="urpr ${r.p===UR_PRODS[1]?'m':''}">${r.p===UR_PRODS[1]?'Aceite motos':'Urea'}</span><b>${fmt(r.q)}</b></li>`).join('')}</ul></article>`).join('')||'<p class="empty" style="margin:0">Sin consumos en este periodo.</p>'}</div></div>`);
   $('ur-mes').onchange=e=>{urF.mes=e.target.value;renderUrea()};$('ur-prod').onchange=e=>{urF.prod=e.target.value;renderUrea()};
   $('ur-q').oninput=e=>{urF.q=e.target.value;clearTimeout(window.__urt);window.__urt=setTimeout(()=>{renderUrea();const i=$('ur-q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},300)};
 }
