@@ -80,7 +80,8 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .mi[data-m="km"]::after{animation-delay:3s}
 .mi[data-m="ral"]::after{animation-delay:4s}
 .mi[data-m="doc"]::after{animation-delay:5s}
-.mi[data-m="bar"]::after{animation-delay:6s}.mi[data-m="est"]::after{animation-delay:1.5s}.mi[data-m="res"]::after{animation-delay:2.5s}.mi[data-m="lav"]::after{animation-delay:7s}
+.mi[data-m="bar"]::after{animation-delay:6s}.mi[data-m="est"]::after{animation-delay:1.5s}.mi[data-m="res"]::after{animation-delay:2.5s}.mi[data-m="urea"]::after{animation-delay:.5s}
+.urola{animation:urola 2.4s ease-in-out infinite}@keyframes urola{50%{transform:translateY(-1px)}}@media (prefers-reduced-motion:reduce){.urola{animation:none}}.mi[data-m="lav"]::after{animation-delay:7s}
 .bpolvo{animation:polvo 1.8s ease-out infinite}.bpolvo+.bpolvo{animation-delay:.6s}
 @keyframes polvo{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(3px,-4px)}}
 .brillo{transform-box:fill-box;transform-origin:center;animation:brilla 2s ease-in-out infinite}.brillo+.brillo{animation-delay:1s}
@@ -280,6 +281,11 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .calley{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 10px;font-size:.88rem}.calley i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .calley .c0 i{background:#dc2626}.calley .c1 i{background:#d97706}.calley .c2 i{background:#16a34a}
 .restab{min-width:900px}
+.urleg{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 8px;font-size:.78rem;color:var(--mut)}.urleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.urbar{display:grid;grid-template-columns:22px minmax(90px,170px) 1fr auto;gap:8px;align-items:center;padding:3px 0;font-size:.85rem}
+.urbar .rk{color:var(--mut);font-size:.72rem;text-align:right}.urbar .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.urbar .tr{display:flex;height:14px;background:var(--line);border-radius:7px;overflow:hidden}.urbar .tr i{display:block;height:100%}
+.urbar>b{font-variant-numeric:tabular-nums;white-space:nowrap}.urpls{max-height:420px;overflow:auto;padding-right:4px}
 .resfila{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(220px,.8fr);gap:14px;align-items:start}
 .resfila.conver{grid-template-columns:minmax(0,1fr) minmax(200px,240px) minmax(0,1.5fr)}
 @media (max-width:1100px){.resfila,.resfila.conver{grid-template-columns:1fr}}
@@ -602,6 +608,9 @@ textarea{font:inherit;color:inherit;width:100%;margin-top:4px;padding:9px 10px;b
 html.tema-cal{--bg:#eef4ef;--card:#fff;--ink:#16261c;--mut:#5b7062;--line:#d2e2d6;--acc:#1f6b3f;--acc2:#2f8a52;--soft:#e2f1e6;--band1:#2f8a52;--band2:#1f6b3f}
 html.tema-cal[data-theme="dark"]{--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}
 @media (prefers-color-scheme:dark){html.tema-cal:not([data-theme="light"]){--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}}
+html.tema-urea{--acc:#0891b2;--acc2:#22d3ee;--soft:#cffafe;--band1:#22d3ee;--band2:#155e75}
+html.tema-urea[data-theme="dark"]{--acc:#22d3ee;--acc2:#67e8f9;--soft:#0b3440}
+@media (prefers-color-scheme:dark){html.tema-urea:not([data-theme="light"]){--acc:#22d3ee;--acc2:#67e8f9;--soft:#0b3440}}
 html.tema-res{--acc:#4d7c0f;--acc2:#65a30d;--soft:#ecfccb;--band1:#65a30d;--band2:#365314}
 html.tema-res[data-theme="dark"]{--acc:#84cc16;--acc2:#a3e635;--soft:#1f2d0b}
 @media (prefers-color-scheme:dark){html.tema-res:not([data-theme="light"]){--acc:#84cc16;--acc2:#a3e635;--soft:#1f2d0b}}
@@ -783,6 +792,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       <button type="button" class="mi" data-m="res" aria-pressed="false" aria-expanded="false" title="Residuos Llanos"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 30" width="24" height="28"><path d="M6 8h16l-1.6 19a2 2 0 0 1-2 1.8H9.6a2 2 0 0 1-2-1.8z" fill="#bbf7d0" stroke="rgba(255,255,255,.8)"/><rect x="4" y="5" width="20" height="3" rx="1" fill="#16a34a"/><rect x="11" y="2" width="6" height="3" rx="1" fill="#16a34a"/><path d="M14 12l3 5h-2v3h-2v-3h-2z" fill="#15803d" class="brillo"/><path d="M10 22h8" stroke="#15803d" stroke-width="1.6" stroke-linecap="round"/></svg></span><span class="lbl">Residuos Llanos</span></button>
     </div>
     <div class="grp">
+      <button type="button" class="mi" data-m="urea" aria-pressed="false" aria-expanded="false" title="UREA"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 30" width="24" height="28"><rect x="7" y="2" width="14" height="5" rx="1.5" fill="#0e7490"/><path d="M6 8h16a2 2 0 0 1 2 2v16a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V10a2 2 0 0 1 2-2z" fill="#ecfeff" stroke="rgba(255,255,255,.85)"/><path d="M5 18c4-2 7 2 11 0s6-1 7 0v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" fill="#22d3ee" class="urola"/><text x="14" y="16" text-anchor="middle" font-size="5.5" font-weight="800" fill="#0e7490" font-family="Arial">UREA</text></svg></span><span class="lbl">UREA</span></button>
+    </div>
+    <div class="grp">
       <button type="button" class="mi" data-m="var" aria-pressed="false" aria-expanded="false" title="Varadas"><svg class="ic icv" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3zM12 10v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Varadas</span><span class="humo" aria-hidden="true"><svg viewBox="0 0 48 36" width="44" height="33">
 <g class="nube"><circle cx="38" cy="14" r="3.4"/><circle cx="36" cy="14" r="3"/><circle cx="40" cy="14" r="3.2"/></g>
 <path d="M4 25v-6.5c0-1.2.7-2.2 1.8-2.6l5.2-2 4.4-4.6c.7-.7 1.6-1.1 2.6-1.1H33c1 0 1.9.5 2.5 1.3l4.3 6.2 3.6 1.4c1 .4 1.6 1.4 1.6 2.4V25c0 .8-.7 1.5-1.5 1.5H5.5C4.7 26.5 4 25.8 4 25z" fill="#f2f2f2" stroke="#2b2b2b" stroke-width="1.2"/>
@@ -844,6 +856,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </div>
 <div id="list"></div>
 </div>
+<section id="ureav" hidden aria-label="UREA">
+  <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">UREA · consumo y distribución</h2><button type="button" class="btn" id="urup" hidden>Subir Excel</button></div>
+    <small id="ursub"></small><div class="pprog" id="urmsg" role="status"></div><input type="file" id="urfile" accept=".xlsx,.xls" hidden></div>
+  <div id="urbody"></div>
+</section>
 <section id="resv" hidden aria-label="Residuos Llanos">
   <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Registro de disposición de residuos · Camiones 2026</h2>
     <div class="hb"><button type="button" class="btn" id="resref">Actualizar desde Drive</button><a class="btn ghost" id="resabrir" target="_blank" rel="noopener">Abrir el Excel</a><a class="btn ghost" id="resdrive" target="_blank" rel="noopener">Carpeta en Drive</a><button type="button" class="btn ghost" id="resman" hidden>Cargar Excel manualmente</button></div></div>
@@ -1286,7 +1303,7 @@ const DOM='@novedades-leon.app';
 const mail=u=>u.trim().toLowerCase()+DOM;
 const okUser=u=>/^[a-z0-9._-]{3,30}$/.test(u);
 const ROLES={admin:'Administrador',editor:'Editor',visual:'Visual',inactivo:'Sin acceso'};
-const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['res','Residuos Llanos'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
+const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['res','Residuos Llanos'],['urea','UREA'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
 const puedeSede=x=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.sedes)||!cur.sedes.length||cur.sedes.includes(x));
 const sedesHTML=(pre,sel)=>`<div class="mudchk">${SEDES.map(x=>`<label><input type="checkbox" data-${pre}="${x}"${!sel||!sel.length||sel.includes(x)?' checked':''}> ${x}</label>`).join('')}</div>`;
 function aplicarSedes(){const ok=SEDES.filter(puedeSede);$('sede').innerHTML=ok.map(x=>`<option${x===sede?' selected':''}>${x}</option>`).join('');$('sede').disabled=ok.length<2;$('sede').title=ok.length<2?'Tu usuario solo tiene acceso a esta sede':'';
@@ -1431,6 +1448,8 @@ function salir(){
   if(unsubR){unsubR();unsubR=null}
   if(unsubB){unsubB();unsubB=null}
   if(unsubE){unsubE();unsubE=null}
+  if(unsubUR){unsubUR();unsubUR=null}
+  ureaD=null;
   if(unsubED){unsubED();unsubED=null}
   edDatos={};
   estDocs=[];
@@ -1472,6 +1491,7 @@ async function entrar(user){
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
   if(puedeVer('est'))unsubED=onSnapshot(collection(db,'estdata'),snap=>{edDatos={};snap.docs.forEach(d=>edDatos[d.id]=d.data());renderED();if(!$('estv').hidden&&estVista==='plant')renderEst()},()=>{});
+  if(puedeVer('urea'))unsubUR=onSnapshot(doc(db,'urea','todas'),d=>{if(d.exists()){const x=d.data();ureaD={...x,filas:(x.filas||[]).map(r=>typeof r==='string'?JSON.parse(r):r)}}else ureaD=null;renderUrea()},()=>{});
   if(puedeVer('est'))unsubE=onSnapshot(collection(db,'estandar'),snap=>{estDocs=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$('estv').hidden){const keep=estF&&estF._id!=='nuevo'?null:estF;renderEst()}},()=>{});
   if(puedeVer('bar')||puedeVer('lav'))unsubB=onSnapshot(collection(db,'aseo'),snap=>{aseo=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderBL()},()=>{});
   if(puedeVer('ral'))unsubR=onSnapshot(collection(db,'ralenti'),snap=>{ralArch=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderRal()},()=>{});
@@ -1635,7 +1655,8 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
   if(m!=='ini'&&!puedeVer(m))m='ini';
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est',rs=m==='res';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est',rs=m==='res',ur=m==='urea';
+  document.documentElement.classList.toggle('tema-urea',ur);$('ureav').hidden=!ur;if(ur)renderUrea();
   document.documentElement.classList.toggle('tema-res',rs);$('resv').hidden=!rs;if(rs){$('resman').hidden=cur.rol!=='admin';resCargar(false);renderRes()}
   document.documentElement.classList.toggle('tema-est',es);$('estv').hidden=!es;if(es){estF=null;estVistaSet(estVista)}
   if(bl)blTipo=m==='bar'?'barrido':'lavado';
@@ -1645,9 +1666,9 @@ function modulo(m){
   document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km||ral||dc||bl||es||rs)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs;
-  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur;
+  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||!canEdit();$('raladd').hidden=!ral||!canEdit();
   if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';$('kmllanos').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
@@ -1660,10 +1681,10 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden;
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':rs?'Residuos Llanos':es?(estVista==='data'?'Estándar de Flota · Datos del Excel':'Estándar de Flota'):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!cal&&$('dash').hidden);
+  $('vtit').textContent=ini?'':ur?'UREA':rs?'Residuos Llanos':es?(estVista==='data'?'Estándar de Flota · Datos del Excel':'Estándar de Flota'):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
@@ -1829,6 +1850,7 @@ function vistaPDF(){
   if(vis('ralv'))return{el:$('ralv'),titulo:'Ralentí'};
   if(vis('docv'))return{el:$('docv'),titulo:$('vtit').textContent};
   if(vis('blv'))return{el:$('blv'),titulo:BLN[blTipo].t};
+  if(vis('ureav'))return{el:$('ureav'),titulo:'UREA'};
   if(vis('resv'))return{el:$('resv'),titulo:'Residuos Llanos'};
   if(vis('estv'))return estVista==='data'?{el:$('estdatav'),titulo:'Estándar de Flota · Datos del Excel'}:{el:$('estslide'),titulo:'Estándar de Flota'};
   return null;
@@ -3842,6 +3864,70 @@ $('resbody').addEventListener('keydown',e=>{const c=e.target.closest('[data-rver
 $('resman').onclick=()=>{if(cur&&cur.rol==='admin')$('resfile').click()};
 $('resfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{resD=await resLeer(await f.arrayBuffer(),f.name+' (cargado manualmente)');resErr=''}catch(x){resErr=x.message}renderRes()};
 
+/* ---------- UREA: consumo por afiliado, placa y mes (columna D = conductor por sede, H = cantidad) ---------- */
+let ureaD=null,unsubUR=null,urF={mes:'__todos',prod:'',q:''};
+const URPAL=['#0891b2','#14b8a6','#2563eb','#7c3aed','#db2777','#ea580c','#65a30d','#ca8a04','#0f766e','#4f46e5','#b91c1c','#0369a1'];
+async function urLeer(f){
+  const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true,dateNF:'d/mm/yyyy'});
+  for(const n of wb.SheetNames){const ws=wb.Sheets[n];if(!ws||!ws['!ref'])continue;const R=X.utils.decode_range(ws['!ref']);R.s.r=0;R.s.c=0;ws['!ref']=X.utils.encode_range(R);
+    const t=X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:false}),tx=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:false,dateNF:'d/mm/yyyy'});
+    const hi=t.findIndex((r,i)=>i<15&&(r||[]).filter(v=>String(v??'').trim()).length>=4&&(r||[]).some(v=>/placa|fecha|cantidad|conductor|producto|afiliado/.test(sinTilde(String(v??'')))));if(hi<0)continue;
+    const H=(tx[hi]||[]).map(v=>String(v??'').trim()),b=(...re)=>{for(const r of re){const i=H.findIndex(h=>r.test(sinTilde(h)));if(i>=0)return i}return -1};
+    const datos=t.slice(hi+1),iD=3,iQ=7,iF=b(/fecha/),iPl=b(/placa/,/vehiculo/),iA=b(/afiliado/,/nombre comercial/,/comercial/,/proveedor/,/estacion/,/distribuidor/);
+    let iPr=b(/producto/,/descripcion/,/articulo/,/referencia/,/item/,/combustible/);
+    if(iPr<0||iPr===iA){let mejor=-1,m=0;for(let c=0;c<H.length;c++){if([iD,iQ,iF,iPl,iA].includes(c))continue;const k=datos.filter(r=>/urea/i.test(String(r[c]??''))).length;if(k>m){m=k;mejor=c}}if(m)iPr=mejor}
+    const filas=[];for(let r=0;r<datos.length;r++){const raw=datos[r]||[],x=tx[hi+1+r]||[];if(!raw.some(v=>String(v??'').trim()))continue;
+      const q=resNum(raw[iQ]);if(q===null&&!String(x[iPl]??'').trim())continue;
+      filas.push([String(x[iD]??'').trim(),iA>=0?String(x[iA]??'').trim():'',iPr>=0?String(x[iPr]??'').trim():'',q||0,iPl>=0?normP(x[iPl])||String(x[iPl]??'').trim():'',iF>=0?(fechaAny(raw[iF])||fechaAny(x[iF])):''])}
+    if(filas.length)return{hoja:n,tit:{D:H[iD]||'Columna D',H:H[iQ]||'Columna H',A:iA>=0?H[iA]:'Afiliado / nombre comercial',P:iPr>=0?H[iPr]:'Producto',Pl:iPl>=0?H[iPl]:'Placa',F:iF>=0?H[iF]:'Fecha'},filas};
+  }
+  throw{msg:'No se encontraron datos: revisa que el Excel tenga títulos (placa, fecha, producto, afiliado) y la cantidad en la columna H.'};
+}
+function urFilasSede(){if(!ureaD)return[];const tok=sede==='Yopal'?'yopal':'villav',fs=ureaD.filas.map(r=>({d:r[0],a:r[1]||'(Sin afiliado)',p:r[2]||'(Sin producto)',q:r[3],pl:r[4]||'(Sin placa)',f:r[5]}));
+  return fs.some(f=>/yopal|villav/.test(sinTilde(f.d)))?fs.filter(f=>sinTilde(f.d).includes(tok)):fs}
+function renderUrea(){
+  if(!cur||$('ureav').hidden)return;$('urup').hidden=!canEdit();
+  if(!ureaD){$('ursub').textContent='';$('urbody').innerHTML=`<p class="empty" style="margin:0">Aún no hay un Excel de UREA.${canEdit()?' Usa «Subir Excel» para cargarlo.':''}</p>`;return}
+  $('ursub').textContent=`Última carga: ${ureaD.fecha?dtTxt(ureaD.fecha):'—'} · ${ureaD.nombre||'Excel'}`;
+  const T=ureaD.tit||{},todos=urFilasSede(),mk=f=>f.f?f.f.slice(0,7):'',mL=k=>{const[y,m]=k.split('-');return `${MESES[+m-1].slice(0,3)} ${y}`};
+  const meses=[...new Set(todos.map(mk).filter(Boolean))].sort(),prods=[...new Set(todos.map(f=>f.p))].sort((a,b)=>a.localeCompare(b,'es'));
+  if(urF.prod&&!prods.includes(urF.prod))urF.prod='';
+  const q=normP(urF.q),fs=todos.filter(f=>(urF.mes==='__todos'||mk(f)===urF.mes)&&(!urF.prod||f.p===urF.prod)&&(!q||normP(f.pl).includes(q)));
+  const fmt=n=>Number(n||0).toLocaleString('es-CO',{maximumFractionDigits:2}),sum=a=>a.reduce((s,f)=>s+f.q,0);
+  // Afiliados (con desglose por producto)
+  const af={};fs.forEach(f=>{const x=af[f.a]=af[f.a]||{a:f.a,q:0,p:{}};x.q+=f.q;x.p[f.p]=(x.p[f.p]||0)+f.q});
+  const afs=Object.values(af).sort((a,b)=>b.q-a.q),mxA=Math.max(1,...afs.map(x=>x.q)),colP=p=>URPAL[prods.indexOf(p)%URPAL.length];
+  // Mes a mes (vista sin filtro de mes)
+  const fsM=todos.filter(f=>(!urF.prod||f.p===urF.prod)&&(!q||normP(f.pl).includes(q))),porM=meses.map(k=>({k,q:sum(fsM.filter(f=>mk(f)===k))})),mxM=Math.max(1,...porM.map(x=>x.q));
+  // Placas por mes (barras apiladas por mes)
+  const mesesV=urF.mes==='__todos'?meses:[urF.mes],colM=k=>URPAL[meses.indexOf(k)%URPAL.length];
+  const pl={};fs.forEach(f=>{const x=pl[f.pl]=pl[f.pl]||{pl:f.pl,q:0,m:{}};x.q+=f.q;const k=mk(f)||'—';x.m[k]=(x.m[k]||0)+f.q});
+  const pls=Object.values(pl).sort((a,b)=>b.q-a.q),mxP=Math.max(1,...pls.map(x=>x.q));
+  $('urbody').innerHTML=`
+   <div class="ralbar" style="margin:0 0 12px"><label>Mes<select id="ur-mes"><option value="__todos">Todos</option>${meses.map(k=>`<option value="${k}"${k===urF.mes?' selected':''}>${mL(k)}</option>`).join('')}</select></label>
+     <label>${esc(T.P||'Producto')}<select id="ur-prod"><option value="">Todos</option>${prods.map(p=>`<option${p===urF.prod?' selected':''}>${esc(p)}</option>`).join('')}</select></label>
+     <input type="search" id="ur-q" placeholder="Buscar placa…" value="${esc(urF.q)}" style="width:180px;margin:0"></div>
+   <div class="kpis">${[[fmt(sum(fs)),`Cantidad total (${esc(T.H||'H')})`],[fs.length,'Registros'],[new Set(fs.map(f=>f.pl)).size,'Placas'],[afs.length,'Afiliados'],[prods.length,'Productos']].map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+   <div class="dc" style="margin-top:14px"><h2>Consumo mes a mes</h2><small>Suma de ${esc(T.H||'la columna H')} por mes${urF.prod?' · '+esc(urF.prod):''}</small>
+     ${porM.length?`<div class="tscroll"><div style="min-width:${porM.length*76}px"><div class="vcols t" style="height:190px">${porM.map((x,i)=>`<div>${fmt(x.q)}<i style="height:${Math.max(2,x.q/mxM*100)}%;background:${colM(x.k)}${urF.mes!=='__todos'&&x.k!==urF.mes?';opacity:.35':''}"></i></div>`).join('')}</div><div class="vcl t">${porM.map(x=>`<span>${mL(x.k)}</span>`).join('')}</div></div></div>`:'<p class="empty" style="margin:0">Sin fechas.</p>'}</div>
+   <div class="dgrid" style="margin-top:14px">
+     <div class="dc"><h2>Afiliados que más distribuyen</h2><small>${esc(T.A||'Afiliado / nombre comercial')} · suma de ${esc(T.H||'H')}</small>
+       <div class="urleg">${prods.map(p=>`<span><i style="background:${colP(p)}"></i>${esc(p)}</span>`).join('')}</div>
+       ${afs.slice(0,15).map((x,i)=>`<div class="urbar"><span class="rk">${i+1}</span><span class="nm" title="${esc(x.a)}">${esc(x.a)}</span><span class="tr">${Object.entries(x.p).sort((a,b)=>b[1]-a[1]).map(([p,v])=>`<i style="width:${v/mxA*100}%;background:${colP(p)}" title="${esc(p)}: ${fmt(v)}"></i>`).join('')}</span><b>${fmt(x.q)}</b></div>`).join('')||'<p class="empty">Sin datos.</p>'}</div>
+     <div class="dc"><h2>Placas y su consumo por mes</h2><small>Cada color es un mes · de mayor a menor consumo</small>
+       <div class="urleg">${mesesV.map(k=>`<span><i style="background:${colM(k)}"></i>${mL(k)}</span>`).join('')}</div>
+       <div class="urpls">${pls.map((x,i)=>`<div class="urbar"><span class="rk">${i+1}</span><span class="nm"><b>${esc(x.pl)}</b></span><span class="tr">${mesesV.filter(k=>x.m[k]).map(k=>`<i style="width:${x.m[k]/mxP*100}%;background:${colM(k)}" title="${mL(k)}: ${fmt(x.m[k])}"></i>`).join('')}</span><b>${fmt(x.q)}</b></div>`).join('')||'<p class="empty">Sin datos.</p>'}</div></div>
+   </div>`;
+  $('ur-mes').onchange=e=>{urF.mes=e.target.value;renderUrea()};$('ur-prod').onchange=e=>{urF.prod=e.target.value;renderUrea()};
+  $('ur-q').oninput=e=>{urF.q=e.target.value;clearTimeout(window.__urt);window.__urt=setTimeout(()=>{renderUrea();const i=$('ur-q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},300)};
+}
+$('urup').onclick=()=>{if(canEdit())$('urfile').click()};
+$('urfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('urmsg').textContent='Leyendo el archivo…';
+  try{const L=await urLeer(f);const doc_={sede:'todas',nombre:f.name,fecha:ahoraDT(),hoja:L.hoja,tit:L.tit,filas:L.filas.map(r=>JSON.stringify(r)),por:cur.nombre,editado:serverTimestamp()};
+    if(JSON.stringify(doc_).length>950000){$('urmsg').textContent='El archivo es demasiado grande para guardarlo. Divídelo por periodos (por ejemplo, un archivo por trimestre).';return}
+    await setDoc(doc(db,'urea','todas'),doc_);ureaD={...doc_,filas:L.filas};$('urmsg').textContent='';renderUrea()}
+  catch(x){console.error(x);$('urmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
+
 $('vper').onchange=()=>renderVar();
 
 /* ---------- Sistema "Otro" y lista de conductores ---------- */
@@ -4228,7 +4314,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
+  renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
