@@ -80,7 +80,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .mi[data-m="km"]::after{animation-delay:3s}
 .mi[data-m="ral"]::after{animation-delay:4s}
 .mi[data-m="doc"]::after{animation-delay:5s}
-.mi[data-m="bar"]::after{animation-delay:6s}.mi[data-m="est"]::after{animation-delay:1.5s}.mi[data-m="res"]::after{animation-delay:2.5s}.mi[data-m="urea"]::after{animation-delay:.5s}
+.mi[data-m="bar"]::after{animation-delay:6s}.mi[data-m="est"]::after{animation-delay:1.5s}.mi[data-m="res"]::after{animation-delay:2.5s}.mi[data-m="disp"]::after{animation-delay:2s}.mi[data-m="urea"]::after{animation-delay:.5s}
 .urola{animation:urola 2.4s ease-in-out infinite}@keyframes urola{50%{transform:translateY(-1px)}}@media (prefers-reduced-motion:reduce){.urola{animation:none}}.mi[data-m="lav"]::after{animation-delay:7s}
 .bpolvo{animation:polvo 1.8s ease-out infinite}.bpolvo+.bpolvo{animation-delay:.6s}
 @keyframes polvo{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(3px,-4px)}}
@@ -614,6 +614,9 @@ textarea{font:inherit;color:inherit;width:100%;margin-top:4px;padding:9px 10px;b
 html.tema-cal{--bg:#eef4ef;--card:#fff;--ink:#16261c;--mut:#5b7062;--line:#d2e2d6;--acc:#1f6b3f;--acc2:#2f8a52;--soft:#e2f1e6;--band1:#2f8a52;--band2:#1f6b3f}
 html.tema-cal[data-theme="dark"]{--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}
 @media (prefers-color-scheme:dark){html.tema-cal:not([data-theme="light"]){--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}}
+html.tema-disp{--acc:#2563eb;--acc2:#3b82f6;--soft:#dbeafe;--band1:#3b82f6;--band2:#1e3a8a}
+html.tema-disp[data-theme="dark"]{--acc:#60a5fa;--acc2:#93c5fd;--soft:#172554}
+@media (prefers-color-scheme:dark){html.tema-disp:not([data-theme="light"]){--acc:#60a5fa;--acc2:#93c5fd;--soft:#172554}}
 html.tema-urea{--acc:#0891b2;--acc2:#22d3ee;--soft:#cffafe;--band1:#22d3ee;--band2:#155e75}
 html.tema-urea[data-theme="dark"]{--acc:#22d3ee;--acc2:#67e8f9;--soft:#0b3440}
 @media (prefers-color-scheme:dark){html.tema-urea:not([data-theme="light"]){--acc:#22d3ee;--acc2:#67e8f9;--soft:#0b3440}}
@@ -795,6 +798,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       </div>
     </div>
     <div class="grp">
+      <button type="button" class="mi" data-m="disp" aria-pressed="false" aria-expanded="false" title="Disponibilidad"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 28" width="24" height="24"><circle cx="14" cy="14" r="12" fill="#eef2ff" stroke="rgba(255,255,255,.85)"/><path d="M14 14V3a11 11 0 0 1 10.6 8z" fill="#16a34a"/><path d="M14 14l10.6-3A11 11 0 0 1 19 24z" fill="#f59e0b"/><circle cx="14" cy="14" r="4" fill="#fff"/><path d="M8 18l3 3 6-7" stroke="#2563eb" stroke-width="2" fill="none" stroke-linecap="round" class="brillo"/></svg></span><span class="lbl">Disponibilidad</span></button>
+    </div>
+    <div class="grp">
       <button type="button" class="mi" data-m="res" aria-pressed="false" aria-expanded="false" title="Residuos Llanos"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 30" width="24" height="28"><path d="M6 8h16l-1.6 19a2 2 0 0 1-2 1.8H9.6a2 2 0 0 1-2-1.8z" fill="#bbf7d0" stroke="rgba(255,255,255,.8)"/><rect x="4" y="5" width="20" height="3" rx="1" fill="#16a34a"/><rect x="11" y="2" width="6" height="3" rx="1" fill="#16a34a"/><path d="M14 12l3 5h-2v3h-2v-3h-2z" fill="#15803d" class="brillo"/><path d="M10 22h8" stroke="#15803d" stroke-width="1.6" stroke-linecap="round"/></svg></span><span class="lbl">Residuos Llanos</span></button>
     </div>
     <div class="grp">
@@ -862,6 +868,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </div>
 <div id="list"></div>
 </div>
+<section id="dispv" hidden aria-label="Disponibilidad">
+  <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Disponibilidad · ingresos a taller</h2><button type="button" class="btn" id="dsup" hidden>Cargar Excel</button></div>
+    <small id="dssub"></small><div class="pprog" id="dsmsg" role="status"></div><input type="file" id="dsfile" accept=".xlsx,.xls" hidden></div>
+  <div id="dsbody"></div>
+</section>
 <section id="ureav" hidden aria-label="UREA">
   <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">UREA · consumo y distribución</h2><button type="button" class="btn" id="urup" hidden>Subir Excel</button></div>
     <small id="ursub"></small><div class="pprog" id="urmsg" role="status"></div><input type="file" id="urfile" accept=".xlsx,.xls" hidden></div>
@@ -1309,7 +1320,7 @@ const DOM='@novedades-leon.app';
 const mail=u=>u.trim().toLowerCase()+DOM;
 const okUser=u=>/^[a-z0-9._-]{3,30}$/.test(u);
 const ROLES={admin:'Administrador',editor:'Editor',visual:'Visual',inactivo:'Sin acceso'};
-const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['res','Residuos Llanos'],['urea','UREA'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
+const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['disp','Disponibilidad'],['res','Residuos Llanos'],['urea','UREA'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
 const puedeSede=x=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.sedes)||!cur.sedes.length||cur.sedes.includes(x));
 const sedesHTML=(pre,sel)=>`<div class="mudchk">${SEDES.map(x=>`<label><input type="checkbox" data-${pre}="${x}"${!sel||!sel.length||sel.includes(x)?' checked':''}> ${x}</label>`).join('')}</div>`;
 function aplicarSedes(){const ok=SEDES.filter(puedeSede);$('sede').innerHTML=ok.map(x=>`<option${x===sede?' selected':''}>${x}</option>`).join('');$('sede').disabled=ok.length<2;$('sede').title=ok.length<2?'Tu usuario solo tiene acceso a esta sede':'';
@@ -1455,6 +1466,8 @@ function salir(){
   if(unsubB){unsubB();unsubB=null}
   if(unsubE){unsubE();unsubE=null}
   if(unsubUR){unsubUR();unsubUR=null}
+  if(unsubDS){unsubDS();unsubDS=null}
+  dispD=null;
   ureaD=null;
   if(unsubED){unsubED();unsubED=null}
   edDatos={};
@@ -1497,6 +1510,7 @@ async function entrar(user){
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
   if(puedeVer('est'))unsubED=onSnapshot(collection(db,'estdata'),snap=>{edDatos={};snap.docs.forEach(d=>edDatos[d.id]=d.data());renderED();if(!$('estv').hidden&&estVista==='plant')renderEst()},()=>{});
+  if(puedeVer('disp'))unsubDS=onSnapshot(doc(db,'disp','todas'),d=>{if(d.exists()){const x=d.data();dispD={...x,filas:(x.filas||[]).map(r=>typeof r==='string'?JSON.parse(r):r)}}else dispD=null;renderDisp()},()=>{});
   if(puedeVer('urea'))unsubUR=onSnapshot(doc(db,'urea','todas'),d=>{if(d.exists()){const x=d.data();ureaD={...x,filas:(x.filas||[]).map(r=>typeof r==='string'?JSON.parse(r):r)}}else ureaD=null;renderUrea()},()=>{});
   if(puedeVer('est'))unsubE=onSnapshot(collection(db,'estandar'),snap=>{estDocs=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$('estv').hidden){const keep=estF&&estF._id!=='nuevo'?null:estF;renderEst()}},()=>{});
   if(puedeVer('bar')||puedeVer('lav'))unsubB=onSnapshot(collection(db,'aseo'),snap=>{aseo=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderBL()},()=>{});
@@ -1661,7 +1675,8 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
   if(m!=='ini'&&!puedeVer(m))m='ini';
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est',rs=m==='res',ur=m==='urea';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est',rs=m==='res',ur=m==='urea',ds=m==='disp';
+  document.documentElement.classList.toggle('tema-disp',ds);$('dispv').hidden=!ds;if(ds)renderDisp();
   document.documentElement.classList.toggle('tema-urea',ur);$('ureav').hidden=!ur;if(ur)renderUrea();
   document.documentElement.classList.toggle('tema-res',rs);$('resv').hidden=!rs;if(rs){$('resman').hidden=cur.rol!=='admin';resCargar(false);renderRes()}
   document.documentElement.classList.toggle('tema-est',es);$('estv').hidden=!es;if(es){estF=null;estVistaSet(estVista)}
@@ -1672,9 +1687,9 @@ function modulo(m){
   document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur;
-  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds;
+  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||!canEdit();$('raladd').hidden=!ral||!canEdit();
   if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';$('kmllanos').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
@@ -1687,10 +1702,10 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden;
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':ur?'UREA':rs?'Residuos Llanos':es?(estVista==='data'?'Estándar de Flota · Datos del Excel':'Estándar de Flota'):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!cal&&$('dash').hidden);
+  $('vtit').textContent=ini?'':ds?'Disponibilidad':ur?'UREA':rs?'Residuos Llanos':es?(estVista==='data'?'Estándar de Flota · Datos del Excel':'Estándar de Flota'):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
@@ -1856,6 +1871,7 @@ function vistaPDF(){
   if(vis('ralv'))return{el:$('ralv'),titulo:'Ralentí'};
   if(vis('docv'))return{el:$('docv'),titulo:$('vtit').textContent};
   if(vis('blv'))return{el:$('blv'),titulo:BLN[blTipo].t};
+  if(vis('dispv'))return{el:$('dispv'),titulo:'Disponibilidad'};
   if(vis('ureav'))return{el:$('ureav'),titulo:'UREA'};
   if(vis('resv'))return{el:$('resv'),titulo:'Residuos Llanos'};
   if(vis('estv'))return estVista==='data'?{el:$('estdatav'),titulo:'Estándar de Flota · Datos del Excel'}:{el:$('estslide'),titulo:'Estándar de Flota'};
@@ -3943,6 +3959,86 @@ $('urfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f
     await setDoc(doc(db,'urea','todas'),doc_);ureaD={...doc_,filas:L.filas};$('urmsg').textContent='';renderUrea()}
   catch(x){console.error(x);$('urmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
 
+/* ---------- DISPONIBILIDAD: pestaña DATA_DISP, solo CD Yopal y Villavicencio ---------- */
+let dispD=null,unsubDS=null,dsF={cd:'',mes:'__todos'};
+const DSPAL=['#2563eb','#16a34a','#f59e0b','#dc2626','#7c3aed','#0891b2','#db2777','#65a30d','#ea580c','#475569'];
+async function dsLeer(f){
+  const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true,dateNF:'d/mm/yyyy'});
+  const n=wb.SheetNames.find(x=>sinTilde(x).replace(/\s+/g,'_').trim()==='data_disp')||wb.SheetNames.find(x=>sinTilde(x).replace(/[\s_]/g,'').includes('datadisp'));
+  if(!n)throw{msg:`El archivo no tiene la pestaña «DATA_DISP». Pestañas encontradas: ${wb.SheetNames.join(', ')}.`};
+  const ws=wb.Sheets[n],R=X.utils.decode_range(ws['!ref']||'A1');R.s.r=0;R.s.c=0;Object.keys(ws).forEach(k=>{if(k[0]==='!')return;const a=X.utils.decode_cell(k);if(a.r>R.e.r)R.e.r=a.r;if(a.c>R.e.c)R.e.c=a.c});ws['!ref']=X.utils.encode_range(R);
+  const t=X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:false}),tx=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:false,dateNF:'d/mm/yyyy'});
+  const hi=t.findIndex((r,i)=>i<20&&(r||[]).some(v=>/placa/.test(sinTilde(String(v??''))))&&(r||[]).some(v=>/taller|cd|sistema/.test(sinTilde(String(v??'')))));
+  if(hi<0)throw{msg:'No se encontró la fila de títulos en DATA_DISP (debe tener «Placa», «CD», «Taller» y «Sistema»).'};
+  const H=(tx[hi]||[]).map(v=>String(v??'').trim()),hn=H.map(h=>sinTilde(h)),b=(...re)=>{for(const r of re){const i=hn.findIndex(h=>r.test(h));if(i>=0)return i}return -1};
+  const iCD=b(/^cd$/,/\bcd\b/,/centro/,/sede/),iT=b(/taller/,/proveedor/),iP=b(/placa/),iS=b(/sistema/,/componente/,/falla/,/tipo de mant/),iI=b(/fecha.*ingreso|ingreso/,/entrada/,/fecha inicio/,/^fecha$/),iO=b(/fecha.*salida|salida/,/egreso/,/entrega/,/fecha fin/),iDi=b(/dias? (en )?taller|^dias$|dias/,/tiempo/,/duracion/,/horas/);
+  if(iCD<0)throw{msg:'No se encontró la columna «CD» en DATA_DISP.'};
+  const horas=iDi>=0&&/hora/.test(hn[iDi]);
+  const filas=[];for(let r=hi+1;r<t.length;r++){const raw=t[r]||[],x=tx[r]||[];const cd=String(x[iCD]??'').trim(),c=sinTilde(cd);
+    if(!/yopal|villav/.test(c))continue;const pl=normP(x[iP])||String(x[iP]??'').trim();if(!pl)continue;
+    const fi=iI>=0?fechaAny(raw[iI])||fechaAny(x[iI]):'',fo=iO>=0?fechaAny(raw[iO])||fechaAny(x[iO]):'';
+    let d=iDi>=0?resNum(raw[iDi]):null;if(d!==null&&horas)d=d/24;if((d===null||isNaN(d))&&fi&&fo)d=Math.max(0,(semMs(fo)-semMs(fi))/864e5);
+    filas.push(JSON.stringify([/yopal/.test(c)?'Yopal':'Villavicencio',iT>=0?String(x[iT]??'').trim():'',pl,iS>=0?String(x[iS]??'').trim():'',fi,d===null?null:Math.round(d*10)/10]))}
+  if(!filas.length)throw{msg:'DATA_DISP no tiene filas del CD Yopal o Villavicencio.'};
+  return{hoja:n,tit:{CD:H[iCD],T:iT>=0?H[iT]:'Taller',P:H[iP],S:iS>=0?H[iS]:'Sistema',I:iI>=0?H[iI]:'',D:iDi>=0?H[iDi]:(iI>=0&&iO>=0?`${H[iI]} → ${H[iO]}`:'')},filas};
+}
+function barras3D(grupos,series,colores){ // grupos:[{k,v:[...]}]
+  const W=Math.max(520,grupos.length*(series.length*30+40)+60),H=280,L=40,B=70,T=20,mx=Math.max(1,...grupos.flatMap(g=>g.v)),bw=24,dep=9,gw=series.length*(bw+6)+28;
+  const py=v=>T+(H-T-B)*(1-v/mx),dk=(c,f)=>{const n=parseInt(c.slice(1),16),cl=v=>Math.max(0,Math.min(255,Math.round(f>1?v+(255-v)*(f-1):v*f)));return `rgb(${cl(n>>16)},${cl(n>>8&255)},${cl(n&255)})`};
+  let o=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="max-width:none" role="img" aria-label="Talleres e ingresos">`;
+  [0,.5,1].forEach(f=>{const v=Math.round(mx*f),y=py(v);o+=`<line x1="${L}" x2="${W-10}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${L-6}" y="${y+4}" font-size="11" text-anchor="end" fill="var(--mut)">${v}</text>`});
+  grupos.forEach((g,gi)=>{const x0=L+16+gi*gw;g.v.forEach((v,si)=>{if(!v)return;const x=x0+si*(bw+6),y=py(v),h=H-B-y,c=colores[si%colores.length];
+    o+=`<polygon points="${x},${y} ${x+dep},${y-dep} ${x+bw+dep},${y-dep} ${x+bw},${y}" fill="${dk(c,1.35)}"/><polygon points="${x+bw},${y} ${x+bw+dep},${y-dep} ${x+bw+dep},${y+h-dep} ${x+bw},${y+h}" fill="${dk(c,.65)}"/><rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="${c}"><title>${esc(g.k)} · ${esc(series[si])}: ${v}</title></rect><text x="${x+bw/2}" y="${y-dep-3}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">${v}</text>`});
+    const lab=String(g.k).length>18?String(g.k).slice(0,17)+'…':g.k;o+=`<text x="${x0+(series.length*(bw+6))/2}" y="${H-B+16}" text-anchor="end" font-size="11" fill="var(--mut)" transform="rotate(-28 ${x0+(series.length*(bw+6))/2} ${H-B+16})">${esc(lab)}</text>`});
+  return o+`<line x1="${L}" x2="${W-10}" y1="${H-B}" y2="${H-B}" stroke="var(--mut)"/></svg>`;
+}
+function tortaDS(items){const tot=items.reduce((a,x)=>a+x.n,0);if(!tot)return '<p class="empty">Sin datos.</p>';let a0=-Math.PI/2;const R=90,c=100;
+  const sl=items.map((x,i)=>{const f=x.n/tot;if(f>=.9999)return `<circle cx="${c}" cy="${c}" r="${R}" fill="${DSPAL[i%10]}"/>`;const a1=a0+f*2*Math.PI,l=f>.5?1:0,p=`M${c},${c}L${(c+R*Math.cos(a0)).toFixed(2)},${(c+R*Math.sin(a0)).toFixed(2)}A${R},${R} 0 ${l} 1 ${(c+R*Math.cos(a1)).toFixed(2)},${(c+R*Math.sin(a1)).toFixed(2)}Z`;
+    const am=(a0+a1)/2,tx=c+R*.65*Math.cos(am),ty=c+R*.65*Math.sin(am);a0=a1;return `<path d="${p}" fill="${DSPAL[i%10]}" stroke="var(--card)" stroke-width="2"><title>${esc(x.l)}: ${x.n}</title></path>${f>.05?`<text x="${tx.toFixed(1)}" y="${(ty+4).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${x.n}</text>`:''}`}).join('');
+  return `<div class="pie"><svg viewBox="0 0 200 200" style="width:200px;height:200px">${sl}</svg><div class="pleg">${items.map((x,i)=>`<div><i style="background:${DSPAL[i%10]}"></i><span>${esc(x.l)}</span><b>${x.n} · ${Math.round(x.n/tot*100)}%</b></div>`).join('')}</div></div>`}
+function renderDisp(){
+  if(!cur||$('dispv').hidden)return;$('dsup').hidden=!canEdit();
+  if(!dispD){$('dssub').textContent='';$('dsbody').innerHTML=`<p class="empty" style="margin:0">Aún no hay un Excel de disponibilidad.${canEdit()?' Usa «Cargar Excel» (debe tener la pestaña DATA_DISP).':''}</p>`;return}
+  $('dssub').textContent=`Última carga: ${dispD.fecha?dtTxt(dispD.fecha):'—'} · ${dispD.nombre||'Excel'}`;
+  const T=dispD.tit||{},all=dispD.filas.map(r=>({cd:r[0],t:r[1]||'(Sin taller)',p:r[2],s:r[3]||'(Sin sistema)',f:r[4],d:r[5]}));
+  if(!dsF.cd)dsF.cd=sede;
+  const mk=f=>f.f?f.f.slice(0,7):'',mL=k=>{const[y,m]=k.split('-');return `${MESES[+m-1]} ${y}`},meses=[...new Set(all.map(mk).filter(Boolean))].sort();
+  const fs=all.filter(f=>(dsF.cd==='__ambos'||f.cd===dsF.cd)&&(dsF.mes==='__todos'||mk(f)===dsF.mes));
+  const cds=dsF.cd==='__ambos'?['Villavicencio','Yopal']:[dsF.cd];
+  // 1. talleres e ingresos (3D agrupada por CD)
+  const tl={};fs.forEach(f=>{const x=tl[f.t]=tl[f.t]||{k:f.t,n:0,c:{}};x.n++;x.c[f.cd]=(x.c[f.cd]||0)+1});
+  const tls=Object.values(tl).sort((a,b)=>b.n-a.n).slice(0,10);
+  // 2. top 10 placas por ingresos
+  const pc={};fs.forEach(f=>pc[f.p]=(pc[f.p]||0)+1);const topP=Object.entries(pc).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([l,n])=>({l,n}));
+  // 3. sistemas con más reincidencias (misma placa, mismo sistema, más de una vez)
+  const ps={};fs.forEach(f=>{const k=f.p+'|'+f.s;ps[k]=(ps[k]||0)+1});const re={};Object.entries(ps).forEach(([k,n])=>{if(n>1){const s=k.split('|')[1];const x=re[s]=re[s]||{s,n:0,pl:0};x.n+=n-1;x.pl++}});
+  const topS=Object.values(re).sort((a,b)=>b.n-a.n).slice(0,5);
+  // 4. placas con más tiempo en taller
+  const tp={};fs.forEach(f=>{if(typeof f.d==='number')tp[f.p]=(tp[f.p]||0)+f.d});const topT=Object.entries(tp).sort((a,b)=>b[1]-a[1]).slice(0,5),mxT=Math.max(1,...topT.map(x=>x[1]));
+  const fmt=n=>Number(n||0).toLocaleString('es-CO',{maximumFractionDigits:1});
+  $('dsbody').innerHTML=`
+   <div class="ralbar" style="margin:0 0 12px"><label>${esc(T.CD||'CD')}<select id="ds-cd"><option value="Villavicencio"${dsF.cd==='Villavicencio'?' selected':''}>Villavicencio</option><option value="Yopal"${dsF.cd==='Yopal'?' selected':''}>Yopal</option><option value="__ambos"${dsF.cd==='__ambos'?' selected':''}>Yopal y Villavicencio</option></select></label>
+     <label>Mes<select id="ds-mes"><option value="__todos">Todos</option>${meses.map(k=>`<option value="${k}"${k===dsF.mes?' selected':''}>${mL(k)}</option>`).join('')}</select></label></div>
+   <div class="kpis">${[[fs.length,'Ingresos a taller'],[new Set(fs.map(f=>f.p)).size,'Placas'],[new Set(fs.map(f=>f.t)).size,'Talleres'],[fmt(fs.reduce((a,f)=>a+(f.d||0),0)),'Días en taller (total)'],[Object.values(re).reduce((a,x)=>a+x.n,0),'Reincidencias']].map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+   <div class="dc" style="margin-top:14px"><h2>Talleres más usados · cantidad de ingresos</h2><small>${esc(T.T||'Taller')} · barras agrupadas por CD</small>
+     <div class="urleg">${cds.map((c,i)=>`<span><i style="background:${DSPAL[i]}"></i>${c}</span>`).join('')}</div>
+     ${tls.length?`<div class="tscroll">${barras3D(tls.map(x=>({k:x.k,v:cds.map(c=>x.c[c]||0)})),cds,DSPAL)}</div>`:'<p class="empty">Sin datos.</p>'}</div>
+   <div class="dgrid" style="margin-top:14px">
+     <div class="dc"><h2>10 placas con más ingresos a taller</h2><small>Cantidad de ingresos por placa</small>${tortaDS(topP)}</div>
+     <div class="dc"><h2>5 sistemas con más reincidencias</h2><small>Veces que el mismo sistema volvió a fallar en la misma placa</small>
+       ${topS.length?bars(topS.map(x=>({l:x.s,n:x.n,t:`${x.n} · ${x.pl} placa${x.pl===1?'':'s'}`}))):'<p class="empty">No hay reincidencias en este periodo.</p>'}</div>
+   </div>
+   <div class="dc" style="margin-top:14px"><h2>5 placas con más tiempo en taller</h2><small>${T.D?esc(T.D)+' · ':''}días acumulados en taller</small>
+     ${topT.length?`<div class="vcols t" style="height:200px">${topT.map(([p,d],i)=>`<div>${fmt(d)} d<i style="height:${Math.max(2,d/mxT*100)}%;background:${DSPAL[i]}"></i></div>`).join('')}</div><div class="vcl t">${topT.map(([p])=>`<span><b>${esc(p)}</b></span>`).join('')}</div>`:'<p class="empty">No hay tiempos en taller en el Excel.</p>'}</div>`;
+  $('ds-cd').onchange=e=>{dsF.cd=e.target.value;renderDisp()};$('ds-mes').onchange=e=>{dsF.mes=e.target.value;renderDisp()};
+}
+$('dsup').onclick=()=>{if(canEdit())$('dsfile').click()};
+$('dsfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('dsmsg').textContent='Leyendo el archivo…';
+  try{const L=await dsLeer(f),d={sede:'todas',nombre:f.name,fecha:ahoraDT(),hoja:L.hoja,tit:L.tit,filas:L.filas,por:cur.nombre,editado:serverTimestamp()};
+    if(JSON.stringify(d).length>950000){$('dsmsg').textContent='El archivo es demasiado grande para guardarlo. Divídelo por periodos.';return}
+    await setDoc(doc(db,'disp','todas'),d);dispD={...d,filas:L.filas.map(r=>JSON.parse(r))};$('dsmsg').textContent='';renderDisp()}
+  catch(x){console.error(x);$('dsmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. '+(x&&x.code?ERR(x.code):'')}};
+
 $('vper').onchange=()=>renderVar();
 
 /* ---------- Sistema "Otro" y lista de conductores ---------- */
@@ -4329,7 +4425,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
+  dsF.cd='';renderDisp();renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
