@@ -288,6 +288,16 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .urbar>b{font-variant-numeric:tabular-nums;white-space:nowrap}.co2st div{justify-content:flex-end}.kpi b.kacpm,.tacpm{color:#b8860b}.kpi b.kco2,.tco2{color:#6b7280!important}
 @media (prefers-color-scheme:dark){html:not([data-theme="light"]) .kpi b.kacpm,html:not([data-theme="light"]) .tacpm{color:#e1ad21}html:not([data-theme="light"]) .kpi b.kco2,html:not([data-theme="light"]) .tco2{color:#b8bec7!important}}.co2v{display:grid;text-align:right;line-height:1.15}.co2v small,.co2l small{font-size:.7rem;color:var(--mut);font-weight:600}.co2l{display:grid;text-align:center;line-height:1.15;font-size:.8rem}.co2st .stk{display:flex;flex-direction:column-reverse;width:100%;border-radius:6px 6px 0 0;overflow:hidden;margin-top:4px;min-height:3px}.co2st .stk i{display:block;width:100%;border-radius:0!important;margin:0!important;min-height:0}
 .adh{display:flex;align-items:center;gap:8px;min-width:180px}.adh span{flex:1;height:10px;background:var(--line);border-radius:5px;overflow:hidden}.adh i{display:block;height:100%}
+.camfila{display:flex;gap:6px;align-items:flex-end;min-width:max-content;padding:4px 2px}
+.camcol{margin:0;width:118px;display:flex;flex-direction:column;align-items:center}.camval{display:grid;text-align:center;line-height:1.15;font-weight:800;font-size:.85rem}.camval small{font-size:.7rem;font-weight:600}
+.camsvg{width:118px;height:148px;overflow:visible}.camcol figcaption{font-size:.78rem;color:var(--mut);margin-top:2px}
+.cnube circle{fill:#9ca3af;opacity:.55}.cnube{animation:cnubeR 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
+.cpuf{fill:#6b7280;opacity:0;transform-box:fill-box;transform-origin:center;animation:cpuf 2.7s ease-out infinite}
+@keyframes cpuf{0%{opacity:.85;transform:translate(0,0) scale(.35)}70%{opacity:.35}100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(1.5)}}
+@keyframes cnubeR{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.06) translateY(-3px)}}
+.ccuerpo{animation:cbote .9s ease-in-out infinite}@keyframes cbote{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
+.crueda{animation:crueda 1.2s linear infinite}@keyframes crueda{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.cnube,.cpuf,.ccuerpo,.crueda{animation:none}.cpuf{opacity:.3}}
 .urpls{max-height:420px;overflow:auto;padding-right:4px}
 .urdet{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;margin-top:10px;max-height:620px;overflow:auto;padding-right:4px}
 .urdc{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:10px;padding:8px 10px;background:var(--card)}
@@ -3912,6 +3922,30 @@ async function urLeer(f){
   if(!filas.length)throw{msg:'«Worksheet» no tiene filas CONFIRMADAS (columna G) de CONDUCTOR YOPAL o CONDUCTOR VILLAVICENCIO con diésel corriente o extra.'};
   return{hoja:n,tit:{G:H[iSit]||'Situación',D:H[iD],Q:H[iQ],A:iA>=0?H[iA]:'Afiliado / nombre comercial',C:iC>=0?H[iC]:'Combustible',Pl:iPl>=0?H[iPl]:'Placa'},filas};
 }
+
+// Camión con humo: el tamaño del humo depende de los galones del mes
+function camionCO2(x,i,mx,fmt,co2,serie,colA,mL){
+  const f=Math.sqrt(x.t/mx),R=8+f*26,n=3+Math.round(f*3),dl=(i*.37)%2;
+  const det=serie.filter(a=>x.m[a]).map(a=>`${a}: ${fmt(x.m[a])} gal`).join('\n');
+  let nube='';for(let k=0;k<n;k++){const a=(k/n)*Math.PI*1.3+.2,rx=Math.cos(a)*R*.55,ry=-Math.sin(a)*R*.45;nube+=`<circle cx="${(78+rx-R*.2).toFixed(1)}" cy="${(70-R*.55+ry).toFixed(1)}" r="${(R*(.45+.18*((k%3)/2))).toFixed(1)}"/>`}
+  const puffs=[0,1,2].map(k=>`<circle class="cpuf" cx="88" cy="74" r="${(5+f*9).toFixed(1)}" style="animation-delay:${(dl+k*.9).toFixed(2)}s;--sx:${(-14-f*10).toFixed(0)}px;--sy:${(-30-f*34).toFixed(0)}px"/>`).join('');
+  return `<figure class="camcol" title="${esc(mL(x.k))}\n${fmt(x.t)} gal de ACPM · ${co2(x.t)}${det?'\n'+esc(det):''}">
+    <div class="camval"><span class="tacpm">${fmt(x.t)} gal</span><small class="tco2">${co2(x.t)}</small></div>
+    <svg viewBox="0 0 120 150" class="camsvg" aria-hidden="true">
+      <g class="cnube">${nube}</g><g class="cpufs">${puffs}</g>
+      <g class="ccuerpo" style="animation-delay:${dl.toFixed(2)}s">
+        <rect x="84" y="78" width="5" height="34" rx="1.5" fill="#6b7280"/>
+        <rect x="8" y="92" width="64" height="34" rx="3" fill="#9ca3af" stroke="#4b5563" stroke-width="1.5"/>
+        <rect x="12" y="112" width="56" height="5" fill="#d4a017"/>
+        <path d="M74 100h22l12 14v12H74z" fill="#d1d5db" stroke="#4b5563" stroke-width="1.5"/>
+        <path d="M80 104h14l8 9H80z" fill="#93c5fd"/>
+        <rect x="6" y="125" width="104" height="4" rx="2" fill="#4b5563"/>
+      </g>
+      <g class="crueda" style="transform-origin:28px 132px"><circle cx="28" cy="132" r="10" fill="#1f2937"/><circle cx="28" cy="132" r="4" fill="#d1d5db"/><rect x="27" y="123" width="2" height="18" fill="#6b7280"/></g>
+      <g class="crueda" style="transform-origin:92px 132px"><circle cx="92" cy="132" r="10" fill="#1f2937"/><circle cx="92" cy="132" r="4" fill="#d1d5db"/><rect x="91" y="123" width="2" height="18" fill="#6b7280"/></g>
+    </svg>
+    <figcaption>${esc(mL(x.k))}</figcaption></figure>`;
+}
 function renderUrea(){
   if(!cur||$('ureav').hidden)return;$('urup').hidden=!canEdit();
   if(!ureaD){$('ursub').textContent='';$('urbody').innerHTML=`<p class="empty" style="margin:0">Aún no hay un Excel de consumo.${canEdit()?' Usa «Subir Excel» (pestaña «Worksheet»).':''}</p>`;return}
@@ -3946,8 +3980,7 @@ function renderUrea(){
      <div class="dc"><h2>Placas con menos consumo</h2><small>10 placas · galones de ACPM y CO₂ emitido</small>${menos.map((x,i)=>barraC(x,i,Math.max(1,...menos.map(y=>y.q)))).join('')||'<p class="empty">Sin datos.</p>'}</div>
    </div>
    <div class="dc" style="margin-top:14px"><div class="chead" style="margin:0"><div><h2>${esc(T.A||'Afiliado / nombre comercial')} que más combustible entregó</h2><small>Galones de ACPM por mes y CO₂ emitido · ${urF.anio}</small></div><label style="margin:0">Año<select id="ur-anio">${anios.map(a=>`<option${a===urF.anio?' selected':''}>${a}</option>`).join('')}</select></label></div>
-     <div class="urleg">${serie.map(a=>`<span><i style="background:${a==='Otros'?'#e5e7eb':colA(a)}"></i>${esc(a)}</span>`).join('')}</div>
-     ${porM.length?`<div class="tscroll"><div style="min-width:${porM.length*80}px"><div class="vcols t co2st" style="height:220px">${porM.map(x=>`<div><span class="co2l"><span class="tacpm">${fmt(x.t)} gal</span><small class="tco2">${co2(x.t)}</small></span><span class="stk" style="height:${x.t/mxM*100}%">${serie.filter(a=>x.m[a]).map(a=>`<i style="flex:${x.m[a]};background:${a==='Otros'?'#e5e7eb':colA(a)}" title="${esc(a)}: ${fmt(x.m[a])} gal · ${co2(x.m[a])}"></i>`).join('')}</span></div>`).join('')}</div><div class="vcl t">${porM.map(x=>`<span>${mL(x.k)}</span>`).join('')}</div></div></div>`:'<p class="empty">Sin datos en este año.</p>'}</div>
+     ${porM.length?`<div class="tscroll"><div class="camfila">${porM.map((x,i)=>camionCO2(x,i,mxM,fmt,co2,serie,colA,mL)).join('')}</div></div><small class="mnota">El tamaño del humo de cada camión depende de los galones de ACPM consumidos en el mes. Pasa el mouse sobre un camión para ver los galones por afiliado.</small>`:'<p class="empty">Sin datos en este año.</p>'}</div>
    <div class="dc" style="margin-top:14px"><h2>Adherencia por año · ${urF.anio}</h2><small>Participación de cada ${esc(T.A||'afiliado')} en los galones de ACPM entregados del año · total ${fmt(totA)} gal · ${co2(totA)}</small>
      ${topA.length?`<div class="tscroll"><table class="kmt edtt"><thead><tr><th>#</th><th>${esc(T.A||'Afiliado / nombre comercial')}</th><th class="num">Galones ACPM</th><th class="num">CO₂ emitido</th><th>Adherencia</th></tr></thead><tbody>${topA.map(([a,q],i)=>`<tr><td class="num">${i+1}</td><td><b>${esc(a)}</b></td><td class="num tacpm"><b>${fmt(q)}</b></td><td class="num tco2">${co2(q)}</td><td><div class="adh"><span><i style="width:${totA?q/totA*100:0}%;background:${colA(a)}"></i></span><b>${totA?(q/totA*100).toFixed(1):'0'}%</b></div></td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">Sin datos.</p>'}</div>`;
   $('ur-cd').onchange=e=>{urF.cd=e.target.value;renderUrea()};$('ur-comb').onchange=e=>{urF.comb=e.target.value;renderUrea()};$('ur-mes').onchange=e=>{urF.mes=e.target.value;renderUrea()};$('ur-anio').onchange=e=>{urF.anio=e.target.value;renderUrea()};
