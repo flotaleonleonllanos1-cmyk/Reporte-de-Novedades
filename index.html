@@ -303,6 +303,16 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .libgrid .del{font-size:.75rem;padding:0 4px}
 .libvacio{height:100%;min-height:280px;display:grid;place-items:center;text-align:center;color:#9ca3af;font-family:Georgia,serif;font-style:italic}
 @media (max-width:760px){.libpag{grid-template-columns:1fr}.libpag::before{display:none}.libizq{border-right:0;border-bottom:1px dashed #e5e7eb}}
+.msel{position:relative;display:flex;align-items:center;gap:6px}.mslab{font-weight:700;font-size:.9rem}.mslab small{color:var(--mut);font-weight:400}
+.msbtn{min-width:220px;max-width:320px;text-align:left;display:flex;justify-content:space-between;gap:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:8px 12px;font:inherit;font-weight:600;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.mspan{position:absolute;top:100%;left:0;z-index:40;margin-top:4px;width:320px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.3);padding:10px;display:grid;gap:8px}
+.mspan[hidden]{display:none}.mspan input[type=search]{margin:0;padding:6px 8px}
+.msacc{display:flex;justify-content:space-between}.msacc button{background:none;border:0;color:var(--acc);font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0}
+.mslist{max-height:240px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:4px 6px;scrollbar-width:thin}
+.mslist label{display:flex;align-items:center;gap:8px;margin:0;padding:4px 2px;font-weight:400;font-size:.86rem;cursor:pointer}.mslist label[hidden]{display:none}.mslist input{width:auto;margin:0;accent-color:#b8860b}
+.msfoot{display:flex;justify-content:space-between;align-items:center}.msfoot small{color:var(--mut)}.msfoot .btn{padding:6px 14px}
+#ureav .dc,#ureav .kpis{border:1px solid #fff;border-top:5px solid #fff}#ureav .kpis{border-radius:10px}
+#ureav .btn:not(.ghost){background:#6b7280;border-color:#6b7280;color:#fff}#ureav .libro .btn:not(.ghost){background:#4b5563}
 .camfila{display:flex;gap:6px;align-items:flex-end;min-width:max-content;padding:4px 2px}
 .camcol{margin:0;width:118px;display:flex;flex-direction:column;align-items:center}.camval{display:grid;text-align:center;line-height:1.15;font-weight:800;font-size:.85rem}.camval small{font-size:.7rem;font-weight:600}
 .camsvg{width:118px;height:148px;overflow:visible}.camcol figcaption{font-size:.78rem;color:var(--mut);margin-top:2px}
@@ -3918,7 +3928,7 @@ $('resman').onclick=()=>{if(cur&&cur.rol==='admin')$('resfile').click()};
 $('resfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{resD=await resLeer(await f.arrayBuffer(),f.name+' (cargado manualmente)');resErr=''}catch(x){resErr=x.message}renderRes()};
 
 /* ---------- CO₂ (dióxido de carbono): consumo de diésel por placa y afiliado · pestaña «Worksheet» ---------- */
-let ureaD=null,unsubUR=null,urF={af:'',cd:'',mes:'__todos',comb:'',anio:''};
+let ureaD=null,unsubUR=null,urF={afs:[],af:'',cd:'',mes:'__todos',comb:'',anio:''};
 const URPAL=['#374151','#4b5563','#6b7280','#8b939e','#a3aab4','#c2c7cf','#9ca3af','#d1d5db','#5b6470','#7b8490'];
 const CO2_KG_GAL=10.18; // kg de CO₂ emitidos por cada galón de ACPM
 const COMBS=['Diésel corriente','Diésel extra'];
@@ -3938,7 +3948,8 @@ async function urLeer(f){
 {const sv=sinTilde(String(x[iSit]??''));if(!/confirmad/.test(sv)||/negad/.test(sv))continue}const comb=urComb(iC>=0?x[iC]:'');if(!comb)continue;
     filas.push(JSON.stringify([String(x[iD]??'').trim(),iA>=0?String(x[iA]??'').trim():'',comb,resNum(raw[iQ])||0,iPl>=0?normP(x[iPl])||String(x[iPl]??'').trim():'',iF>=0?(fechaAny(raw[iF])||fechaAny(x[iF])):'']))}
   if(!filas.length)throw{msg:'«Worksheet» no tiene filas con «TRANSAÇÃO CONFIRMADA» (columna G) y diésel corriente o extra.'};
-  return{hoja:n,tit:{G:H[iSit]||'Situación',D:H[iD],Q:H[iQ],A:iA>=0?H[iA]:'Afiliado / nombre comercial',C:iC>=0?H[iC]:'Combustible',Pl:iPl>=0?H[iPl]:'Placa'},filas};
+  const afTodos=[...new Set(t.slice(hi+1).map((r,k)=>String((tx[hi+1+k]||[])[iA]??'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+  return{afTodos,hoja:n,tit:{G:H[iSit]||'Situación',D:H[iD],Q:H[iQ],A:iA>=0?H[iA]:'Afiliado / nombre comercial',C:iC>=0?H[iC]:'Combustible',Pl:iPl>=0?H[iPl]:'Placa'},filas};
 }
 
 // Camión con humo: el tamaño del humo depende de los galones del mes
@@ -3969,10 +3980,10 @@ function renderUrea(){
   if(!ureaD){$('ursub').textContent='';$('urbody').innerHTML=`<p class="empty" style="margin:0">Aún no hay un Excel de consumo.${canEdit()?' Usa «Subir Excel» (pestaña «Worksheet»).':''}</p><div class="dc" style="margin-top:14px"><h2>Libro de evidencias</h2><small>Imágenes por mes · elige el mes en las pestañas</small><div id="co2libro"></div></div>`;renderLibro();return}
   $('ursub').textContent=`Última carga: ${ureaD.fecha?dtTxt(ureaD.fecha):'—'} · ${ureaD.nombre||'Excel'}`;
   const T=ureaD.tit||{},all=ureaD.filas.map(r=>({cd:r[0],a:r[1]||'(Sin afiliado)',c:r[2],q:r[3],pl:r[4]||'(Sin placa)',f:r[5]}));
-  const afs=[...new Set(all.map(f=>f.a))].sort((a,b)=>a.localeCompare(b,'es'));if(urF.af&&!afs.includes(urF.af))urF.af='';
+  const afs=[...new Set([...(ureaD.afTodos||[]),...all.map(f=>f.a)])].sort((a,b)=>a.localeCompare(b,'es'));urF.afs=(urF.afs||[]).filter(a=>afs.includes(a));const selA=new Set(urF.afs);
   const mk=f=>f.f?f.f.slice(0,7):'',mL=k=>{const[y,m]=k.split('-');return `${MESES[+m-1].slice(0,3)} ${y}`};
   const anios=[...new Set(all.map(f=>f.f?f.f.slice(0,4):'').filter(Boolean))].sort();if(!urF.anio||!anios.includes(urF.anio))urF.anio=anios[anios.length-1]||'';
-  const base=all.filter(f=>(!urF.af||f.a===urF.af)&&(!urF.comb||f.c===urF.comb));
+  const base=all.filter(f=>(!selA.size||selA.has(f.a))&&(!urF.comb||f.c===urF.comb));
   const meses=[...new Set(base.map(mk).filter(Boolean))].sort();if(urF.mes!=='__todos'&&!meses.includes(urF.mes))urF.mes='__todos';
   const fs=base.filter(f=>urF.mes==='__todos'||mk(f)===urF.mes);
   const fmt=n=>Number(n||0).toLocaleString('es-CO',{maximumFractionDigits:1}),sum=a=>a.reduce((s,f)=>s+f.q,0),colC=c=>c===COMBS[1]?'#a17a0b':'#d4a017';
@@ -3987,7 +3998,11 @@ function renderUrea(){
   const mesesA=[...new Set(fa.map(mk))].sort(),porM=mesesA.map(k=>{const m={};fa.filter(f=>mk(f)===k).forEach(f=>{const a=top6.includes(f.a)?f.a:'Otros';m[a]=(m[a]||0)+f.q});return{k,m,t:Object.values(m).reduce((s,v)=>s+v,0)}}),mxM=Math.max(1,...porM.map(x=>x.t));
   const serie=[...top6,...(topA.length>6?['Otros']:[])];
   $('urbody').innerHTML=`
-   <div class="ralbar" style="margin:0 0 12px"><label>${esc(T.A||'Afiliado / nombre comercial')} <small style="color:var(--mut);font-weight:400">(F)</small><select id="ur-af"><option value="">Todos</option>${afs.map(a=>`<option${a===urF.af?' selected':''}>${esc(a)}</option>`).join('')}</select></label>
+   <div class="ralbar" style="margin:0 0 12px"><div class="msel" id="ur-afw"><span class="mslab">${esc(T.A||'Afiliado / nombre comercial')} <small>(F)</small></span>
+       <button type="button" class="msbtn" id="ur-afb" aria-haspopup="listbox" aria-expanded="false">${selA.size?(selA.size===1?esc([...selA][0]):`${selA.size} seleccionados`):'Todos'} <span aria-hidden="true">▾</span></button>
+       <div class="mspan" id="ur-afp" hidden><input type="search" placeholder="Buscar afiliado…" id="ur-afq"><div class="msacc"><button type="button" data-msall>Seleccionar todos</button><button type="button" data-msnone>Limpiar</button></div>
+         <div class="mslist" role="listbox" aria-multiselectable="true">${afs.map(a=>`<label><input type="checkbox" value="${esc(a)}"${selA.has(a)?' checked':''}> ${esc(a)}</label>`).join('')}</div>
+         <div class="msfoot"><small>${afs.length} afiliados</small><button type="button" class="btn" data-msok>Aplicar</button></div></div></div>
      <label>${esc(T.C||'Combustible')}<select id="ur-comb"><option value="">Diésel corriente y extra</option>${COMBS.map(c=>`<option${c===urF.comb?' selected':''}>${c}</option>`).join('')}</select></label>
      <label>Mes<select id="ur-mes"><option value="__todos">Todos</option>${meses.map(k=>`<option value="${k}"${k===urF.mes?' selected':''}>${mL(k)}</option>`).join('')}</select></label></div>
    <div class="kpis">${[[fmt(sum(fs))+' gal','Galones de ACPM (confirmados)'],[co2(sum(fs)),'CO₂ emitido'],[fmt(sum(fs.filter(f=>f.c===COMBS[0])))+' gal',`Diésel corriente · ${co2(sum(fs.filter(f=>f.c===COMBS[0])))}`],[fmt(sum(fs.filter(f=>f.c===COMBS[1])))+' gal',`Diésel extra · ${co2(sum(fs.filter(f=>f.c===COMBS[1])))}`],[pls.length,'Placas']].map(([v,l],i)=>`<div class="kpi"><b class="${i===1?'kco2':i<4?'kacpm':''}">${v}</b><span>${l}</span></div>`).join('')}</div>
@@ -4002,7 +4017,12 @@ function renderUrea(){
    <div class="dc" style="margin-top:14px"><h2>Adherencia por año · ${urF.anio}</h2><small>Participación de cada ${esc(T.A||'afiliado')} en los galones de ACPM entregados del año · total ${fmt(totA)} gal · ${co2(totA)}</small>
      ${topA.length?`<div class="tscroll"><table class="kmt edtt"><thead><tr><th>#</th><th>${esc(T.A||'Afiliado / nombre comercial')}</th><th class="num">Galones ACPM</th><th class="num">CO₂ emitido</th><th>Adherencia</th></tr></thead><tbody>${topA.map(([a,q],i)=>`<tr><td class="num">${i+1}</td><td><b>${esc(a)}</b></td><td class="num tacpm"><b>${fmt(q)}</b></td><td class="num tco2">${co2(q)}</td><td><div class="adh"><span><i style="width:${totA?q/totA*100:0}%;background:${colA(a)}"></i></span><b>${totA?(q/totA*100).toFixed(1):'0'}%</b></div></td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">Sin datos.</p>'}</div>`;
   $('urbody').insertAdjacentHTML('beforeend','<div class="dc" style="margin-top:14px"><h2>Libro de evidencias</h2><small>Imágenes por mes · elige el mes en las pestañas</small><div id="co2libro"></div></div>');renderLibro();
-  $('ur-af').onchange=e=>{urF.af=e.target.value;renderUrea()};$('ur-comb').onchange=e=>{urF.comb=e.target.value;renderUrea()};$('ur-mes').onchange=e=>{urF.mes=e.target.value;renderUrea()};$('ur-anio').onchange=e=>{urF.anio=e.target.value;renderUrea()};
+  const P=$('ur-afp'),B=$('ur-afb');B.onclick=e=>{e.stopPropagation();P.hidden=!P.hidden;B.setAttribute('aria-expanded',!P.hidden);if(!P.hidden)$('ur-afq').focus()};
+  P.onclick=e=>e.stopPropagation();
+  $('ur-afq').oninput=e=>{const q=sinTilde(e.target.value);P.querySelectorAll('.mslist label').forEach(l=>l.hidden=!sinTilde(l.textContent).includes(q))};
+  P.querySelector('[data-msall]').onclick=()=>P.querySelectorAll('.mslist label:not([hidden]) input').forEach(c=>c.checked=true);
+  P.querySelector('[data-msnone]').onclick=()=>P.querySelectorAll('.mslist input').forEach(c=>c.checked=false);
+  P.querySelector('[data-msok]').onclick=()=>{const ch=[...P.querySelectorAll('.mslist input:checked')].map(c=>c.value);urF.afs=ch.length===afs.length?[]:ch;renderUrea()};$('ur-comb').onchange=e=>{urF.comb=e.target.value;renderUrea()};$('ur-mes').onchange=e=>{urF.mes=e.target.value;renderUrea()};$('ur-anio').onchange=e=>{urF.anio=e.target.value;renderUrea()};
 }
 /* ---------- Libro de evidencias CO₂ (fotos por mes) ---------- */
 let co2Fotos=[],unsubCF=null,libMes=new Date().getMonth()+1,libSubiendo=false;
@@ -4033,11 +4053,12 @@ document.addEventListener('click',e=>{
   const d=e.target.closest('[data-libdel]');if(d&&cur&&cur.rol==='admin'&&confirm('¿Eliminar esta imagen del libro?'))deleteDoc(doc(db,'co2fotos',d.dataset.libdel)).catch(x=>alert(ERR(x.code)));
 });
 
+document.addEventListener('click',()=>{const P=$('ur-afp');if(P&&!P.hidden){P.hidden=true;const B=$('ur-afb');if(B)B.setAttribute('aria-expanded','false')}});
 $('urup').onclick=()=>{if(canEdit())$('urfile').click()};
 $('urfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('urmsg').textContent='Leyendo el archivo…';
   try{const L=await urLeer(f),d={sede:'todas',nombre:f.name,fecha:ahoraDT(),hoja:L.hoja,tit:L.tit,filas:L.filas,por:cur.nombre,editado:serverTimestamp()};
     if(JSON.stringify(d).length>950000){$('urmsg').textContent='El archivo es demasiado grande para guardarlo. Divídelo por periodos (por ejemplo, un archivo por trimestre).';return}
-    await setDoc(doc(db,'urea','co2'),d);ureaD={...d,filas:L.filas.map(r=>JSON.parse(r))};$('urmsg').textContent='';renderUrea()}
+    d.afTodos=L.afTodos;await setDoc(doc(db,'urea','co2'),d);ureaD={...d,filas:L.filas.map(r=>JSON.parse(r))};$('urmsg').textContent='';renderUrea()}
   catch(x){console.error(x);$('urmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
 
 /* ---------- DISPONIBILIDAD: pestaña DATA_DISP, solo CD Yopal y Villavicencio ---------- */
