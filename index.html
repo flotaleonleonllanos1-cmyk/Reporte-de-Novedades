@@ -282,10 +282,10 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .calley .c0 i{background:#dc2626}.calley .c1 i{background:#d97706}.calley .c2 i{background:#16a34a}
 .restab{min-width:900px}
 .urleg{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 8px;font-size:.78rem;color:var(--mut)}.urleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
-.urbar{display:grid;grid-template-columns:22px minmax(90px,170px) 1fr auto;gap:8px;align-items:center;padding:3px 0;font-size:.85rem}
+.urbar{display:grid;grid-template-columns:22px minmax(80px,120px) 1fr auto;gap:8px;align-items:center;padding:3px 0;font-size:.85rem}
 .urbar .rk{color:var(--mut);font-size:.72rem;text-align:right}.urbar .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .urbar .tr{display:flex;height:14px;background:var(--line);border-radius:7px;overflow:hidden}.urbar .tr i{display:block;height:100%}
-.urbar>b{font-variant-numeric:tabular-nums;white-space:nowrap}.co2st div{justify-content:flex-end}.co2st .stk{display:flex;flex-direction:column-reverse;width:100%;border-radius:6px 6px 0 0;overflow:hidden;margin-top:4px;min-height:3px}.co2st .stk i{display:block;width:100%;border-radius:0!important;margin:0!important;min-height:0}
+.urbar>b{font-variant-numeric:tabular-nums;white-space:nowrap}.co2st div{justify-content:flex-end}.co2v{display:grid;text-align:right;line-height:1.15}.co2v small,.co2l small{font-size:.7rem;color:var(--mut);font-weight:600}.co2l{display:grid;text-align:center;line-height:1.15;font-size:.8rem}.co2st .stk{display:flex;flex-direction:column-reverse;width:100%;border-radius:6px 6px 0 0;overflow:hidden;margin-top:4px;min-height:3px}.co2st .stk i{display:block;width:100%;border-radius:0!important;margin:0!important;min-height:0}
 .adh{display:flex;align-items:center;gap:8px;min-width:180px}.adh span{flex:1;height:10px;background:var(--line);border-radius:5px;overflow:hidden}.adh i{display:block;height:100%}
 .urpls{max-height:420px;overflow:auto;padding-right:4px}
 .urdet{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;margin-top:10px;max-height:620px;overflow:auto;padding-right:4px}
@@ -619,9 +619,9 @@ html.tema-cal[data-theme="dark"]{--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut
 html.tema-disp{--acc:#2563eb;--acc2:#3b82f6;--soft:#dbeafe;--band1:#3b82f6;--band2:#1e3a8a}
 html.tema-disp[data-theme="dark"]{--acc:#60a5fa;--acc2:#93c5fd;--soft:#172554}
 @media (prefers-color-scheme:dark){html.tema-disp:not([data-theme="light"]){--acc:#60a5fa;--acc2:#93c5fd;--soft:#172554}}
-html.tema-urea{--acc:#0891b2;--acc2:#22d3ee;--soft:#cffafe;--band1:#22d3ee;--band2:#155e75}
-html.tema-urea[data-theme="dark"]{--acc:#22d3ee;--acc2:#67e8f9;--soft:#0b3440}
-@media (prefers-color-scheme:dark){html.tema-urea:not([data-theme="light"]){--acc:#22d3ee;--acc2:#67e8f9;--soft:#0b3440}}
+html.tema-urea{--acc:#6b7280;--acc2:#9ca3af;--soft:#f3f4f6;--band1:#d1d5db;--band2:#8a94a3}
+html.tema-urea[data-theme="dark"]{--acc:#cbd5e1;--acc2:#e5e7eb;--soft:#2b3038}
+@media (prefers-color-scheme:dark){html.tema-urea:not([data-theme="light"]){--acc:#cbd5e1;--acc2:#e5e7eb;--soft:#2b3038}}
 html.tema-res{--acc:#4d7c0f;--acc2:#65a30d;--soft:#ecfccb;--band1:#65a30d;--band2:#365314}
 html.tema-res[data-theme="dark"]{--acc:#84cc16;--acc2:#a3e635;--soft:#1f2d0b}
 @media (prefers-color-scheme:dark){html.tema-res:not([data-theme="light"]){--acc:#84cc16;--acc2:#a3e635;--soft:#1f2d0b}}
@@ -3891,9 +3891,9 @@ $('resfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!
 /* ---------- CO₂ (dióxido de carbono): consumo de diésel por placa y afiliado · pestaña «Worksheet» ---------- */
 let ureaD=null,unsubUR=null,urF={cd:'',mes:'__todos',comb:'',anio:''};
 const URPAL=['#0891b2','#2563eb','#16a34a','#f59e0b','#7c3aed','#db2777','#64748b','#ea580c','#65a30d','#0f766e'];
-const CO2_KG_GAL=10.21; // kg de CO₂ por galón de diésel (factor de referencia)
+const CO2_KG_GAL=10.18; // kg de CO₂ emitidos por cada galón de ACPM
 const COMBS=['Diésel corriente','Diésel extra'];
-function urComb(p){const n=sinTilde(p||'');if(!/diesel|acpm|biodiesel/.test(n))return null;return /extra|premium/.test(n)?COMBS[1]:COMBS[0]}
+function urComb(p){const n=sinTilde(p||'');if(n&&!/diesel|acpm|biodiesel/.test(n))return null;return /extra|premium/.test(n)?COMBS[1]:COMBS[0]}
 async function urLeer(f){
   const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true,dateNF:'d/mm/yyyy'});
   const n=wb.SheetNames.find(x=>sinTilde(x).trim()==='worksheet')||wb.SheetNames.find(x=>sinTilde(x).includes('worksheet'));
@@ -3904,12 +3904,12 @@ async function urLeer(f){
   if(hi<0)throw{msg:'No se encontró la fila de títulos en «Worksheet» (debe tener «Cantidad», «Placa» y «Combustible»).'};
   const H=(tx[hi]||[]).map(v=>String(v??'').trim()),hn=H.map(h=>sinTilde(h)),b=(...re)=>{for(const r of re){const i=hn.findIndex(h=>r.test(h));if(i>=0)return i}return -1};
   let iD=hn.findIndex((h,c)=>t.slice(hi+1,hi+300).some(r=>/conductor (yopal|villavicencio)/.test(sinTilde(String((r||[])[c]??'')))));if(iD<0)iD=3;
-  const iQ=b(/^cantidad$/,/cantidad/),iPl=b(/placa/),iC=b(/combustible/,/producto/),iA=b(/afiliado/,/nombre comercial/,/comercial/),iF=b(/publicacion/,/fecha\/hora/,/fecha/);
+  let iQ=b(/^cantidad$/,/cantidad/);if(iQ<0||/cantidad/.test(hn[8]||''))iQ=8;let iSit=b(/situacion/);if(iSit<0)iSit=6;const iPl=b(/placa/),iC=b(/combustible/,/producto/),iA=b(/afiliado/,/nombre comercial/,/comercial/),iF=b(/publicacion/,/fecha\/hora/,/fecha/);
   const filas=[];for(let r=hi+1;r<t.length;r++){const raw=t[r]||[],x=tx[r]||[],cd=sinTilde(String(x[iD]??''));
-    if(!/conductor (yopal|villavicencio)/.test(cd))continue;const comb=urComb(iC>=0?x[iC]:'');if(!comb)continue;
+    if(!/conductor (yopal|villavicencio)/.test(cd))continue;if(!/confirmad/.test(sinTilde(String(x[iSit]??''))))continue;const comb=urComb(iC>=0?x[iC]:'');if(!comb)continue;
     filas.push(JSON.stringify([/yopal/.test(cd)?'Yopal':'Villavicencio',iA>=0?String(x[iA]??'').trim():'',comb,resNum(raw[iQ])||0,iPl>=0?normP(x[iPl])||String(x[iPl]??'').trim():'',iF>=0?(fechaAny(raw[iF])||fechaAny(x[iF])):'']))}
-  if(!filas.length)throw{msg:'«Worksheet» no tiene filas de CONDUCTOR YOPAL o CONDUCTOR VILLAVICENCIO con diésel corriente o diésel extra.'};
-  return{hoja:n,tit:{D:H[iD],Q:H[iQ],A:iA>=0?H[iA]:'Afiliado / nombre comercial',C:iC>=0?H[iC]:'Combustible',Pl:iPl>=0?H[iPl]:'Placa'},filas};
+  if(!filas.length)throw{msg:'«Worksheet» no tiene filas CONFIRMADAS (columna G) de CONDUCTOR YOPAL o CONDUCTOR VILLAVICENCIO con diésel corriente o extra.'};
+  return{hoja:n,tit:{G:H[iSit]||'Situación',D:H[iD],Q:H[iQ],A:iA>=0?H[iA]:'Afiliado / nombre comercial',C:iC>=0?H[iC]:'Combustible',Pl:iPl>=0?H[iPl]:'Placa'},filas};
 }
 function renderUrea(){
   if(!cur||$('ureav').hidden)return;$('urup').hidden=!canEdit();
@@ -3922,11 +3922,12 @@ function renderUrea(){
   const base=all.filter(f=>(urF.cd==='__ambos'||f.cd===urF.cd)&&(!urF.comb||f.c===urF.comb));
   const meses=[...new Set(base.map(mk).filter(Boolean))].sort();if(urF.mes!=='__todos'&&!meses.includes(urF.mes))urF.mes='__todos';
   const fs=base.filter(f=>urF.mes==='__todos'||mk(f)===urF.mes);
-  const fmt=n=>Number(n||0).toLocaleString('es-CO',{maximumFractionDigits:1}),sum=a=>a.reduce((s,f)=>s+f.q,0),colC=c=>c===COMBS[1]?'#f59e0b':'#0891b2';
+  const fmt=n=>Number(n||0).toLocaleString('es-CO',{maximumFractionDigits:1}),sum=a=>a.reduce((s,f)=>s+f.q,0),colC=c=>c===COMBS[1]?'#4b5563':'#9ca3af';
+  const co2=g=>{const kg=g*CO2_KG_GAL;return kg>=1000?fmt(kg/1000)+' t CO₂':fmt(kg)+' kg CO₂'};
   // placas: más y menos consumo (con desglose por combustible)
   const pl={};fs.forEach(f=>{const x=pl[f.pl]=pl[f.pl]||{k:f.pl,q:0,c:{}};x.q+=f.q;x.c[f.c]=(x.c[f.c]||0)+f.q});
   const pls=Object.values(pl).filter(x=>x.q>0).sort((a,b)=>b.q-a.q),mas=pls.slice(0,10),menos=pls.slice(-10).reverse(),mxP=Math.max(1,...pls.map(x=>x.q));
-  const barraC=(x,i,mx)=>`<div class="urbar"><span class="rk">${i+1}</span><span class="nm"><b>${esc(x.k)}</b></span><span class="tr">${COMBS.filter(c=>x.c[c]).map(c=>`<i style="width:${x.c[c]/mx*100}%;background:${colC(c)}" title="${c}: ${fmt(x.c[c])}"></i>`).join('')}</span><b>${fmt(x.q)}</b></div>`;
+  const barraC=(x,i,mx)=>`<div class="urbar"><span class="rk">${i+1}</span><span class="nm"><b>${esc(x.k)}</b></span><span class="tr">${COMBS.filter(c=>x.c[c]).map(c=>`<i style="width:${x.c[c]/mx*100}%;background:${colC(c)}" title="${c}: ${fmt(x.c[c])}"></i>`).join('')}</span><b class="co2v">${fmt(x.q)} gal<small>${co2(x.q)}</small></b></div>`;
   // afiliados por mes (año elegido) y adherencia anual
   const fa=base.filter(f=>f.f&&f.f.startsWith(urF.anio)),af={};fa.forEach(f=>af[f.a]=(af[f.a]||0)+f.q);
   const topA=Object.entries(af).sort((a,b)=>b[1]-a[1]),top6=topA.slice(0,6).map(x=>x[0]),totA=sum(fa),colA=a=>top6.includes(a)?URPAL[top6.indexOf(a)]:'#94a3b8';
@@ -3936,18 +3937,18 @@ function renderUrea(){
    <div class="ralbar" style="margin:0 0 12px"><label>CD<select id="ur-cd"><option value="Villavicencio"${urF.cd==='Villavicencio'?' selected':''}>Conductor Villavicencio</option><option value="Yopal"${urF.cd==='Yopal'?' selected':''}>Conductor Yopal</option><option value="__ambos"${urF.cd==='__ambos'?' selected':''}>Yopal y Villavicencio</option></select></label>
      <label>${esc(T.C||'Combustible')}<select id="ur-comb"><option value="">Diésel corriente y extra</option>${COMBS.map(c=>`<option${c===urF.comb?' selected':''}>${c}</option>`).join('')}</select></label>
      <label>Mes<select id="ur-mes"><option value="__todos">Todos</option>${meses.map(k=>`<option value="${k}"${k===urF.mes?' selected':''}>${mL(k)}</option>`).join('')}</select></label></div>
-   <div class="kpis">${[[fmt(sum(fs)),`${esc(T.Q||'Cantidad')} total`],[fmt(sum(fs.filter(f=>f.c===COMBS[0]))),'Diésel corriente'],[fmt(sum(fs.filter(f=>f.c===COMBS[1]))),'Diésel extra'],[fmt(sum(fs)*CO2_KG_GAL/1000)+' t','CO₂ estimado'],[pls.length,'Placas']].map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
-   <small class="mnota">CO₂ estimado con ${String(CO2_KG_GAL).replace('.',',')} kg de CO₂ por galón de diésel (si la cantidad está en galones).</small>
+   <div class="kpis">${[[fmt(sum(fs))+' gal','Galones de ACPM (confirmados)'],[co2(sum(fs)),'CO₂ emitido'],[fmt(sum(fs.filter(f=>f.c===COMBS[0])))+' gal',`Diésel corriente · ${co2(sum(fs.filter(f=>f.c===COMBS[0])))}`],[fmt(sum(fs.filter(f=>f.c===COMBS[1])))+' gal',`Diésel extra · ${co2(sum(fs.filter(f=>f.c===COMBS[1])))}`],[pls.length,'Placas']].map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+   <small class="mnota">Solo registros con ${esc(T.G||'Situación')} «CONFIRMADA» (columna G). ${esc(T.Q||'Cantidad')} (columna I) en galones de ACPM · cada galón emite ${String(CO2_KG_GAL).replace('.',',')} kg de CO₂.</small>
    <div class="urleg" style="margin-top:10px">${COMBS.map(c=>`<span><i style="background:${colC(c)}"></i>${c}</span>`).join('')}</div>
    <div class="dgrid">
-     <div class="dc"><h2>Placas con más consumo</h2><small>10 placas · suma de ${esc(T.Q||'Cantidad')}</small>${mas.map((x,i)=>barraC(x,i,mxP)).join('')||'<p class="empty">Sin datos.</p>'}</div>
-     <div class="dc"><h2>Placas con menos consumo</h2><small>10 placas · suma de ${esc(T.Q||'Cantidad')}</small>${menos.map((x,i)=>barraC(x,i,Math.max(1,...menos.map(y=>y.q)))).join('')||'<p class="empty">Sin datos.</p>'}</div>
+     <div class="dc"><h2>Placas con más consumo</h2><small>10 placas · galones de ACPM y CO₂ emitido</small>${mas.map((x,i)=>barraC(x,i,mxP)).join('')||'<p class="empty">Sin datos.</p>'}</div>
+     <div class="dc"><h2>Placas con menos consumo</h2><small>10 placas · galones de ACPM y CO₂ emitido</small>${menos.map((x,i)=>barraC(x,i,Math.max(1,...menos.map(y=>y.q)))).join('')||'<p class="empty">Sin datos.</p>'}</div>
    </div>
-   <div class="dc" style="margin-top:14px"><div class="chead" style="margin:0"><div><h2>${esc(T.A||'Afiliado / nombre comercial')} que más combustible entregó</h2><small>Por mes · ${urF.anio}</small></div><label style="margin:0">Año<select id="ur-anio">${anios.map(a=>`<option${a===urF.anio?' selected':''}>${a}</option>`).join('')}</select></label></div>
+   <div class="dc" style="margin-top:14px"><div class="chead" style="margin:0"><div><h2>${esc(T.A||'Afiliado / nombre comercial')} que más combustible entregó</h2><small>Galones de ACPM por mes y CO₂ emitido · ${urF.anio}</small></div><label style="margin:0">Año<select id="ur-anio">${anios.map(a=>`<option${a===urF.anio?' selected':''}>${a}</option>`).join('')}</select></label></div>
      <div class="urleg">${serie.map(a=>`<span><i style="background:${a==='Otros'?'#94a3b8':colA(a)}"></i>${esc(a)}</span>`).join('')}</div>
-     ${porM.length?`<div class="tscroll"><div style="min-width:${porM.length*80}px"><div class="vcols t co2st" style="height:220px">${porM.map(x=>`<div>${fmt(x.t)}<span class="stk" style="height:${x.t/mxM*100}%">${serie.filter(a=>x.m[a]).map(a=>`<i style="flex:${x.m[a]};background:${a==='Otros'?'#94a3b8':colA(a)}" title="${esc(a)}: ${fmt(x.m[a])}"></i>`).join('')}</span></div>`).join('')}</div><div class="vcl t">${porM.map(x=>`<span>${mL(x.k)}</span>`).join('')}</div></div></div>`:'<p class="empty">Sin datos en este año.</p>'}</div>
-   <div class="dc" style="margin-top:14px"><h2>Adherencia por año · ${urF.anio}</h2><small>Participación de cada ${esc(T.A||'afiliado')} en el combustible entregado del año</small>
-     ${topA.length?`<div class="tscroll"><table class="kmt edtt"><thead><tr><th>#</th><th>${esc(T.A||'Afiliado / nombre comercial')}</th><th class="num">${esc(T.Q||'Cantidad')}</th><th>Adherencia</th></tr></thead><tbody>${topA.map(([a,q],i)=>`<tr><td class="num">${i+1}</td><td><b>${esc(a)}</b></td><td class="num">${fmt(q)}</td><td><div class="adh"><span><i style="width:${totA?q/totA*100:0}%;background:${colA(a)}"></i></span><b>${totA?(q/totA*100).toFixed(1):'0'}%</b></div></td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">Sin datos.</p>'}</div>`;
+     ${porM.length?`<div class="tscroll"><div style="min-width:${porM.length*80}px"><div class="vcols t co2st" style="height:220px">${porM.map(x=>`<div><span class="co2l">${fmt(x.t)} gal<small>${co2(x.t)}</small></span><span class="stk" style="height:${x.t/mxM*100}%">${serie.filter(a=>x.m[a]).map(a=>`<i style="flex:${x.m[a]};background:${a==='Otros'?'#94a3b8':colA(a)}" title="${esc(a)}: ${fmt(x.m[a])} gal · ${co2(x.m[a])}"></i>`).join('')}</span></div>`).join('')}</div><div class="vcl t">${porM.map(x=>`<span>${mL(x.k)}</span>`).join('')}</div></div></div>`:'<p class="empty">Sin datos en este año.</p>'}</div>
+   <div class="dc" style="margin-top:14px"><h2>Adherencia por año · ${urF.anio}</h2><small>Participación de cada ${esc(T.A||'afiliado')} en los galones de ACPM entregados del año · total ${fmt(totA)} gal · ${co2(totA)}</small>
+     ${topA.length?`<div class="tscroll"><table class="kmt edtt"><thead><tr><th>#</th><th>${esc(T.A||'Afiliado / nombre comercial')}</th><th class="num">Galones ACPM</th><th class="num">CO₂ emitido</th><th>Adherencia</th></tr></thead><tbody>${topA.map(([a,q],i)=>`<tr><td class="num">${i+1}</td><td><b>${esc(a)}</b></td><td class="num">${fmt(q)}</td><td class="num">${co2(q)}</td><td><div class="adh"><span><i style="width:${totA?q/totA*100:0}%;background:${colA(a)}"></i></span><b>${totA?(q/totA*100).toFixed(1):'0'}%</b></div></td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">Sin datos.</p>'}</div>`;
   $('ur-cd').onchange=e=>{urF.cd=e.target.value;renderUrea()};$('ur-comb').onchange=e=>{urF.comb=e.target.value;renderUrea()};$('ur-mes').onchange=e=>{urF.mes=e.target.value;renderUrea()};$('ur-anio').onchange=e=>{urF.anio=e.target.value;renderUrea()};
 }
 $('urup').onclick=()=>{if(canEdit())$('urfile').click()};
