@@ -3943,7 +3943,7 @@ async function urLeer(f){
   if(hi<0)throw{msg:'No se encontró la fila de títulos en «Worksheet» (debe tener «Cantidad», «Placa» y «Combustible»).'};
   const H=(tx[hi]||[]).map(v=>String(v??'').trim()),hn=H.map(h=>sinTilde(h)),b=(...re)=>{for(const r of re){const i=hn.findIndex(h=>r.test(h));if(i>=0)return i}return -1};
   let iD=hn.findIndex((h,c)=>t.slice(hi+1,hi+300).some(r=>/conductor (yopal|villavicencio)/.test(sinTilde(String((r||[])[c]??'')))));if(iD<0)iD=3;
-  let iQ=b(/^cantidad$/,/cantidad/);if(iQ<0||/cantidad/.test(hn[8]||''))iQ=8;let iSit=b(/situacion/);if(iSit<0)iSit=6;const iPl=b(/placa/),iC=b(/combustible/,/producto/),iA=/afiliado|comercial/.test(hn[5]||'')||!(H[5]||'')?5:b(/afiliado/,/nombre comercial/,/comercial/),iF=b(/publicacion/,/fecha\/hora/,/fecha/);
+  let iQ=b(/^cantidad$/,/cantidad/);if(iQ<0||/cantidad/.test(hn[8]||''))iQ=8;let iSit=b(/situacion/);if(iSit<0)iSit=6;const iPl=b(/placa/),iC=b(/combustible/,/producto/),iA=(()=>{const x=b(/afiliado.*comercial|nombre comercial/,/afiliado/,/comercial/);return x>=0?x:5})(),iF=b(/publicacion/,/fecha\/hora/,/fecha/);
   let iE=hn.findIndex((h,c)=>c!==iA&&/estacion|\beds\b/.test(h));
   const filas=[];for(let r=hi+1;r<t.length;r++){const raw=t[r]||[],x=tx[r]||[],cd=sinTilde(String(x[iD]??''));
 {const sv=sinTilde(String(x[iSit]??''));if(!/confirmad/.test(sv)||/negad/.test(sv))continue}const comb=urComb(iC>=0?x[iC]:'');if(!comb)continue;
@@ -3951,7 +3951,7 @@ async function urLeer(f){
   if(!filas.length)throw{msg:'«Worksheet» no tiene filas con «TRANSAÇÃO CONFIRMADA» (columna G) y combustible ACPM (corriente o extra).'};
   const vals=c=>c<0?[]:[...new Set(t.slice(hi+1).map((r,k)=>String((tx[hi+1+k]||[])[c]??'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));const estTodos=vals(iE);
   const afTodos=[...new Set(t.slice(hi+1).map((r,k)=>String((tx[hi+1+k]||[])[iA]??'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
-  return{afTodos,estTodos,hoja:n,tit:{E:iE>=0?H[iE]:'',G:H[iSit]||'Situación',D:H[iD],Q:H[iQ],A:iA>=0?H[iA]:'Afiliado / nombre comercial',C:iC>=0?H[iC]:'Combustible',Pl:iPl>=0?H[iPl]:'Placa'},filas};
+  return{afTodos,estTodos,hoja:n,tit:{Acol:colL(iA),E:iE>=0?H[iE]:'',G:H[iSit]||'Situación',D:H[iD],Q:H[iQ],A:iA>=0?H[iA]:'Afiliado / nombre comercial',C:iC>=0?H[iC]:'Combustible',Pl:iPl>=0?H[iPl]:'Placa'},filas};
 }
 
 // Camión con humo: el tamaño del humo depende de los galones del mes
@@ -3995,7 +3995,7 @@ function renderUrea(){
   $('ursub').textContent=`Última carga: ${ureaD.fecha?dtTxt(ureaD.fecha):'—'} · ${ureaD.nombre||'Excel'}`;
   const T=ureaD.tit||{},all=ureaD.filas.map(r=>({cd:r[0],a:r[1]||'(Sin afiliado)',c:r[2],q:r[3],pl:r[4]||'(Sin placa)',f:r[5],e:r[6]||''}));
   const afs=[...new Set([...(ureaD.afTodos||[]),...all.map(f=>f.a)])].sort((a,b)=>a.localeCompare(b,'es'));urF.afs=(urF.afs||[]).filter(a=>afs.includes(a));const selA=new Set(urF.afs);
-  const ests=[...new Set([...(ureaD.estTodos||[]),...all.map(f=>f.e).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,'es'));urF.ests=(urF.ests||[]).filter(e=>ests.includes(e));const selE=new Set(urF.ests),hayE=ests.length>0;
+  const ests=[...new Set([...(ureaD.estTodos||[]),...all.map(f=>f.e).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,'es'));urF.ests=(urF.ests||[]).filter(e=>ests.includes(e));const selE=new Set(urF.ests),hayE=false;
   const mk=f=>f.f?f.f.slice(0,7):'',mL=k=>{const[y,m]=k.split('-');return `${MESES[+m-1].slice(0,3)} ${y}`};
   const anios=[...new Set(all.map(f=>f.f?f.f.slice(0,4):'').filter(Boolean))].sort();if(!urF.anio||!anios.includes(urF.anio))urF.anio=anios[anios.length-1]||'';
   const base=all.filter(f=>(!selA.size||selA.has(f.a))&&(!selE.size||selE.has(f.e))&&(!urF.comb||f.c===urF.comb));
@@ -4013,7 +4013,7 @@ function renderUrea(){
   const mesesA=[...new Set(fa.map(mk))].sort(),porM=mesesA.map(k=>{const m={};fa.filter(f=>mk(f)===k).forEach(f=>{const a=top6.includes(f.a)?f.a:'Otros';m[a]=(m[a]||0)+f.q});return{k,m,t:Object.values(m).reduce((s,v)=>s+v,0)}}),mxM=Math.max(1,...porM.map(x=>x.t));
   const serie=[...top6,...(topA.length>6?['Otros']:[])];
   $('urbody').innerHTML=`
-   <div class="ralbar" style="margin:0 0 12px">${msHTML('ur-af',(hayE?'':'Estaciones de servicio · ')+(T.A||'Afiliado / nombre comercial'),'F',afs,selA)}${hayE?msHTML('ur-es','Estaciones de servicio',ureaD.tit&&ureaD.tit.E?'':'',ests,selE):''}
+   <div class="ralbar" style="margin:0 0 12px">${msHTML('ur-af',T.A||'Afiliado / nombre comercial',T.Acol||'F',afs,selA)}${ureaD.afTodos?'':'<small class="mnota" style="align-self:center">Vuelve a subir el Excel para ver todas las opciones.</small>'}${hayE?msHTML('ur-es','Estaciones de servicio',ureaD.tit&&ureaD.tit.E?'':'',ests,selE):''}
      <label>${esc(T.C||'Combustible')}<select id="ur-comb"><option value="">ACPM corriente y extra</option>${COMBS.map(c=>`<option${c===urF.comb?' selected':''}>${c}</option>`).join('')}</select></label>
      <label>Mes<select id="ur-mes"><option value="__todos">Todos</option>${meses.map(k=>`<option value="${k}"${k===urF.mes?' selected':''}>${mL(k)}</option>`).join('')}</select></label></div>
    <div class="kpis">${[[fmt(sum(fs))+' gal','Galones de ACPM (confirmados)'],[co2(sum(fs)),'CO₂ emitido'],[fmt(sum(fs.filter(f=>f.c===COMBS[0])))+' gal',`ACPM corriente · ${co2(sum(fs.filter(f=>f.c===COMBS[0])))}`],[fmt(sum(fs.filter(f=>f.c===COMBS[1])))+' gal',`ACPM extra · ${co2(sum(fs.filter(f=>f.c===COMBS[1])))}`],[pls.length,'Placas']].map(([v,l],i)=>`<div class="kpi"><b class="${i===1?'kco2':i<4?'kacpm':''}">${v}</b><span>${l}</span></div>`).join('')}</div>
