@@ -303,6 +303,12 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .libgrid .del{font-size:.75rem;padding:0 4px}
 .libvacio{height:100%;min-height:280px;display:grid;place-items:center;text-align:center;color:#9ca3af;font-family:Georgia,serif;font-style:italic}
 @media (max-width:760px){.libpag{grid-template-columns:1fr}.libpag::before{display:none}.libizq{border-right:0;border-bottom:1px dashed #e5e7eb}}
+.co2n{display:block;font-size:.68rem;color:var(--mut);font-weight:600}.co2rec{font-size:.86rem;margin:6px 0 8px;color:var(--mut)}.co2rec b{color:var(--acc);font-size:1rem}
+.co2h3{margin:14px 0 4px;font-size:.92rem}.vcols.t.co2vc{gap:5px}.vcols.t.co2vc div{min-width:0;font-size:.72rem}.vcl.co2vl{gap:5px}.vcl.co2vl span{font-size:.7rem}
+.co2grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:10px}
+.co2grid figure{margin:0;border-radius:10px;overflow:hidden;background:var(--card);border:1px solid var(--line);box-shadow:0 6px 14px rgba(0,0,0,.35)}
+.co2grid img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:zoom-in}
+.co2grid figcaption{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 8px;font-size:.72rem;color:var(--mut)}.co2grid .del{font-size:.75rem;padding:0}
 .msel{position:relative;display:flex;align-items:center;gap:6px}.mslab{font-weight:700;font-size:.9rem}.mslab small{color:var(--mut);font-weight:400}
 .msbtn{min-width:220px;max-width:320px;text-align:left;display:flex;justify-content:space-between;gap:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:8px 12px;font:inherit;font-weight:600;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .mspan{position:absolute;top:100%;left:0;z-index:40;margin-top:4px;width:320px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.3);padding:10px;display:grid;gap:8px}
@@ -1579,6 +1585,8 @@ function salir(){
   if(unsubB){unsubB();unsubB=null}
   if(unsubE){unsubE();unsubE=null}
   if(unsubUR){unsubUR();unsubUR=null}
+  if(unsubCI){unsubCI();unsubCI=null}
+  co2Img=[];
 
   if(unsubDS){unsubDS();unsubDS=null}
   if(unsubRP){unsubRP();unsubRP=null}
@@ -1631,6 +1639,7 @@ async function entrar(user){
   if(puedeVer('rep'))unsubRE=onSnapshot(collection(db,'repevid'),snap=>{repEv=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderEvid()},()=>{});
   if(puedeVer('rep'))unsubRP=onSnapshot(collection(db,'repuestos'),snap=>{repD={};snap.docs.forEach(d=>{const x=d.data();try{repD[d.id]={...x,hojas:typeof x.hojas==='string'?JSON.parse(x.hojas):x.hojas,evid:typeof x.evid==='string'?JSON.parse(x.evid):(x.evid||[])}}catch(e){}});renderRep()},()=>{});
   if(puedeVer('disp'))unsubDS=onSnapshot(doc(db,'disp','todas'),d=>{if(d.exists()){const x=d.data();dispD={...x,filas:(x.filas||[]).map(r=>typeof r==='string'?JSON.parse(r):r)}}else dispD=null;renderDisp()},()=>{});
+  if(puedeVer('urea'))unsubCI=onSnapshot(collection(db,'co2img'),snap=>{co2Img=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderCo2Fotos()},()=>{});
   if(puedeVer('urea'))unsubUR=onSnapshot(doc(db,'urea','co2v2'),d=>{co2Cargar(d.exists()?d.data():null)},()=>{});
   if(puedeVer('est'))unsubE=onSnapshot(collection(db,'estandar'),snap=>{estDocs=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$('estv').hidden){const keep=estF&&estF._id!=='nuevo'?null:estF;renderEst()}},()=>{});
   if(puedeVer('bar')||puedeVer('lav'))unsubB=onSnapshot(collection(db,'aseo'),snap=>{aseo=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderBL()},()=>{});
@@ -4045,8 +4054,10 @@ async function co2Cargar(meta){if(!meta){ureaD=null;renderUrea();return}
   try{let js='';for(let i=0;i<(meta.n||0);i++){const d=await getDoc(doc(db,'urea','co2v2_p'+i));js+=d.exists()?d.data().t:''}ureaD={...meta,filas:js?JSON.parse(js):[]}}catch(x){console.error(x);ureaD={...meta,filas:[]}}renderUrea()}
 async function co2BorrarViejo(){ // borra toda la información anterior de CO₂ (una sola vez, administrador)
   if(co2Limpio||!cur||cur.rol!=='admin')return;co2Limpio=true;
+  try{const m=await getDoc(doc(db,'urea','limpieza'));if(m.exists()&&m.data().v2)return}catch(x){}
   try{const v=await getDoc(doc(db,'urea','co2'));if(v.exists())await deleteDoc(doc(db,'urea','co2'))}catch(x){}
   try{const f=await getDocs(collection(db,'co2fotos'));for(const d of f.docs)await deleteDoc(doc(db,'co2fotos',d.id))}catch(x){}
+  try{await setDoc(doc(db,'urea','limpieza'),{v2:true,por:cur.nombre,fecha:ahoraDT()})}catch(x){}
 }
 function msHTML(id,lab,col,ops,sel){return `<div class="msel" id="${id}w"><span class="mslab">${esc(lab)}${col?` <small>(${col})</small>`:''}</span>
   <button type="button" class="msbtn" id="${id}b" aria-haspopup="listbox" aria-expanded="false">${sel.size&&sel.size<ops.length?(sel.size===1?esc([...sel][0]):`${sel.size} seleccionados`):'Todos'} <span aria-hidden="true">▾</span></button>
@@ -4064,7 +4075,7 @@ document.addEventListener('click',()=>{document.querySelectorAll('#ureav .mspan'
 // Gráfica combinada: galones (corriente/extra) en barras + CO₂ emitido en línea (eje derecho)
 function co2Combo(items,fmt){ // items:[{l,cor,ext,co2}] · barras de galones (mostaza) junto a barras de CO₂ (gris)
   if(!items.length)return '<p class="empty">Sin datos.</p>';
-  const L=56,R=60,T=30,B=34,gw=Math.max(70,Math.min(100,820/items.length)),W=L+R+items.length*gw,Hh=270,mxG=Math.max(1,...items.map(x=>x.cor+x.ext)),mxC=Math.max(1,...items.map(x=>x.co2)),yG=v=>T+(Hh-T-B)*(1-v/mxG),yC=v=>T+(Hh-T-B)*(1-v/mxC),bw=Math.min(30,gw*.34);
+  const L=56,R=60,T=40,B=34,gw=Math.max(70,Math.min(100,820/items.length)),W=L+R+items.length*gw,Hh=270,mxG=Math.max(1,...items.map(x=>x.cor+x.ext)),mxC=Math.max(1,...items.map(x=>x.co2)),yG=v=>T+(Hh-T-B)*(1-v/mxG),yC=v=>T+(Hh-T-B)*(1-v/mxC),bw=Math.min(30,gw*.34);
   let o=`<svg viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" style="max-width:none" role="img" aria-label="Galones y CO₂ emitido">`;
   [0,.5,1].forEach(f=>{const y=yG(mxG*f);o+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${L-6}" y="${y+4}" text-anchor="end" font-size="10" fill="#b8860b">${fmt(mxG*f)}</text><text x="${W-R+6}" y="${y+4}" font-size="10" fill="${CO2C.co2}">${fmt(mxC*f/1000)} t</text>`});
   o+=`<text x="${L-6}" y="14" text-anchor="end" font-size="10" font-weight="700" fill="#b8860b">gal</text><text x="${W-R+6}" y="14" font-size="10" font-weight="700" fill="${CO2C.co2}">CO₂</text>`;
@@ -4072,11 +4083,31 @@ function co2Combo(items,fmt){ // items:[{l,cor,ext,co2}] · barras de galones (m
     o+=`<rect x="${xg}" y="${y1}" width="${bw}" height="${Hh-B-y1}" rx="2" fill="${CO2C.cor}"><title>${esc(x.l)} · Diésel corriente: ${fmt(x.cor)} gal</title></rect>`;
     if(x.ext)o+=`<rect x="${xg}" y="${y2}" width="${bw}" height="${y1-y2}" rx="2" fill="${CO2C.ext}"><title>${esc(x.l)} · Diésel extra: ${fmt(x.ext)} gal</title></rect>`;
     o+=`<rect x="${xc}" y="${yc}" width="${bw}" height="${Hh-B-yc}" rx="2" fill="${CO2C.co2}" opacity=".85"><title>${esc(x.l)} · CO₂ emitido: ${fmt(x.co2)} kg</title></rect>`;
-    o+=`<text x="${xg+bw/2}" y="${y2-5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b8860b">${fmt(x.cor+x.ext)}</text><text x="${xc+bw/2}" y="${yc-5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${CO2C.co2}">${fmt(x.co2/1000)}t</text>`;
+    o+=`<text x="${xg+bw/2}" y="${y2-11}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#b8860b">${fmt(x.cor+x.ext)}</text><text x="${xc+bw/2}" y="${yc-11}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${CO2C.co2}">${fmt(x.co2/1000)}t</text>`;
     o+=`<text x="${cx}" y="${Hh-12}" text-anchor="middle" font-size="10.5" fill="var(--mut)">${esc(x.l)}</text>`});
+  const pts=items.map((x,i)=>[L+i*gw+gw/2-bw/2-2,yG(x.cor+x.ext)]);
+  if(pts.length>1){const d=pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');o+=`<polyline points="${d}" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/><polyline points="${d}" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    pts.forEach(p=>o+=`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#ffffff" stroke="rgba(0,0,0,.55)" stroke-width="1.5"/>`)}
   return o+`<line x1="${L}" x2="${W-R}" y1="${Hh-B}" y2="${Hh-B}" stroke="var(--mut)"/></svg>`;
 }
-function co2Ley(){return `<div class="urleg"><span><i style="background:${CO2C.cor}"></i>Diésel corriente (gal)</span><span><i style="background:${CO2C.ext}"></i>Diésel extra (gal)</span><span><i style="background:${CO2C.co2}"></i>CO₂ emitido (${String(CO2_KG_GAL).replace('.',',')} kg por galón)</span><span><i style="background:${CO2C.otro}"></i>Otros combustibles</span></div>`}
+function co2Ley(){return `<div class="urleg"><span><i style="background:${CO2C.cor}"></i>Diésel corriente (gal)</span><span><i style="background:${CO2C.ext}"></i>Diésel extra (gal)</span><span><i style="background:${CO2C.co2}"></i>CO₂ emitido (${String(CO2_KG_GAL).replace('.',',')} kg por galón)</span><span><i style="background:#fff;height:3px;vertical-align:3px;outline:1px solid rgba(0,0,0,.4)"></i>Comportamiento mes a mes</span><span><i style="background:${CO2C.otro}"></i>Otros combustibles</span></div>`}
+/* Fotos de CO₂ (debajo de Adherencia): subir, tomar, ver y eliminar */
+let co2Img=[],unsubCI=null,co2Sub=false;
+function renderCo2Fotos(){
+  const w=$('co2fot');if(!w||!cur)return;const ed=canEdit(),ls=co2Img.slice().sort((a,b)=>(b.creado?.seconds||0)-(a.creado?.seconds||0));
+  w.innerHTML=`<div class="chead" style="margin:0"><div><h2>Registro fotográfico</h2><small>${ls.length} ${ls.length===1?'imagen guardada':'imágenes guardadas'}</small></div>
+    ${ed?`<div class="hb"><button type="button" class="btn" id="co2cam">📷 Tomar foto</button><button type="button" class="btn ghost" id="co2gal">Subir imágenes</button></div>`:''}</div>
+    <div class="pprog" id="co2fmsg" role="status"></div>
+    <div class="co2grid">${ls.map(f=>`<figure><img src="${f.foto}" alt="Foto CO₂" data-co2img><figcaption><span>${esc(f.por||'')} · ${f.creado&&f.creado.toDate?f.creado.toDate().toLocaleDateString('es-CO'):''}</span>${cur.rol==='admin'||f.uid===cur.uid?`<button type="button" class="del" data-co2del="${f.id}" aria-label="Eliminar imagen">Eliminar</button>`:''}</figcaption></figure>`).join('')||`<p class="empty" style="margin:0">Aún no hay imágenes.${ed?' Toma una foto o sube imágenes.':''}</p>`}</div>
+    <input type="file" id="co2fcam" accept="image/*" capture="environment" hidden><input type="file" id="co2fgal" accept="image/*" multiple hidden>`;
+  if(!ed)return;$('co2cam').onclick=()=>$('co2fcam').click();$('co2gal').onclick=()=>$('co2fgal').click();
+  const subir=async files=>{if(co2Sub||!files.length)return;co2Sub=true;let ok=0;
+    for(const f of files){const m=$('co2fmsg');if(m)m.textContent=`Guardando ${ok+1} de ${files.length}…`;try{const foto=await imgJpeg(f,1400,.72);await addDoc(collection(db,'co2img'),{foto,anio:new Date().getFullYear(),mes:new Date().getMonth()+1,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});ok++}catch(x){console.error(x)}}
+    co2Sub=false;const m=$('co2fmsg');if(m)m.textContent=ok?`${ok} ${ok===1?'imagen guardada':'imágenes guardadas'}.`:'No se pudo guardar.'};
+  $('co2fcam').onchange=e=>{const f=[...e.target.files];e.target.value='';subir(f)};$('co2fgal').onchange=e=>{const f=[...e.target.files];e.target.value='';subir(f)};
+}
+document.addEventListener('click',e=>{const im=e.target.closest('[data-co2img]');if(im){$('bigimg').src=im.src;$('big').showModal();return}
+  const d=e.target.closest('[data-co2del]');if(d&&confirm('¿Eliminar esta imagen?'))deleteDoc(doc(db,'co2img',d.dataset.co2del)).catch(x=>alert(ERR(x.code)))});
 function renderUrea(){
   if(!cur||$('ureav').hidden)return;co2BorrarViejo();
   $('urup').hidden=$('urdrive').hidden=!canEdit();$('urdel').hidden=!(cur.rol==='admin'&&ureaD);
@@ -4097,10 +4128,11 @@ function renderUrea(){
   // por mes (año elegido)
   const porMes=meses.filter(k=>k.startsWith(urF.anio)).map(k=>{const l=base.filter(f=>mk(f)===k);return{k,l:mL(k),cor:sum(l,'cor'),ext:sum(l,'ext'),otro:sum(l,'otro'),co2:kg(l)}});
   // placas del mes
-  const pm={};base.filter(f=>mk(f)===urF.mes).forEach(f=>{const x=pm[f.p]=pm[f.p]||{l:f.p,cor:0,ext:0,otro:0,co2:0};x[f.t]+=f.q;x.co2+=co2Kg(f)});const topP=Object.values(pm).sort((a,b)=>(b.cor+b.ext+b.otro)-(a.cor+a.ext+a.otro)).slice(0,10);
+  const pm={};base.filter(f=>mk(f)===urF.mes).forEach(f=>{const x=pm[f.p]=pm[f.p]||{l:f.p,cor:0,ext:0,otro:0,co2:0,n:0};x[f.t]+=f.q;x.co2+=co2Kg(f);x.n++});
+  const recM=meses.filter(k=>k.startsWith(urF.anio)).map(k=>{const l=base.filter(f=>mk(f)===k);return{k,pl:new Set(l.map(f=>f.p)).size,n:l.length}}),mxR=Math.max(1,...recM.map(x=>x.pl));const topP=Object.values(pm).sort((a,b)=>(b.cor+b.ext+b.otro)-(a.cor+a.ext+a.otro)).slice(0,10);
   // afiliados (año)
   const am={};ytd.forEach(f=>{const x=am[f.a]=am[f.a]||{l:f.a,cor:0,ext:0,otro:0,co2:0};x[f.t]+=f.q;x.co2+=co2Kg(f)});const afl=Object.values(am).sort((a,b)=>(b.cor+b.ext+b.otro)-(a.cor+a.ext+a.otro)),totY=sum(ytd);
-  const barra=(x,i,mx)=>{const tot=x.cor+x.ext+x.otro;return `<div class="urbar"><span class="rk">${i+1}</span><span class="nm" title="${esc(x.l)}"><b>${esc(x.l)}</b></span><span class="tr">${x.cor?`<i style="width:${x.cor/mx*100}%;background:${CO2C.cor}" title="Diésel corriente: ${fmt(x.cor)} gal"></i>`:''}${x.ext?`<i style="width:${x.ext/mx*100}%;background:${CO2C.ext}" title="Diésel extra: ${fmt(x.ext)} gal"></i>`:''}${x.otro?`<i style="width:${x.otro/mx*100}%;background:${CO2C.otro}" title="Otros: ${fmt(x.otro)} gal"></i>`:''}</span><b class="co2v"><span class="tacpm">${fmt(tot)} gal</span><small class="tco2">${co2t(x.co2)} CO₂</small></b></div>`};
+  const barra=(x,i,mx)=>{const tot=x.cor+x.ext+x.otro;return `<div class="urbar"><span class="rk">${i+1}</span><span class="nm" title="${esc(x.l)}"><b>${esc(x.l)}</b>${x.n?`<small class="co2n">${x.n} carga${x.n===1?'':'s'}</small>`:''}</span><span class="tr">${x.cor?`<i style="width:${x.cor/mx*100}%;background:${CO2C.cor}" title="Diésel corriente: ${fmt(x.cor)} gal"></i>`:''}${x.ext?`<i style="width:${x.ext/mx*100}%;background:${CO2C.ext}" title="Diésel extra: ${fmt(x.ext)} gal"></i>`:''}${x.otro?`<i style="width:${x.otro/mx*100}%;background:${CO2C.otro}" title="Otros: ${fmt(x.otro)} gal"></i>`:''}</span><b class="co2v"><span class="tacpm">${fmt(tot)} gal</span><small class="tco2">${co2t(x.co2)} CO₂</small></b></div>`};
   const mxP=Math.max(1,...topP.map(x=>x.cor+x.ext+x.otro)),mxA=Math.max(1,...afl.map(x=>x.cor+x.ext+x.otro));
   $('urbody').innerHTML=`
    <div class="ralbar co2fil" style="margin:0 0 12px">${msHTML('ur-af',T.F||'Afiliado / nombre comercial','F',afs,sA)}${msHTML('ur-si',T.G||'Situación','G',sits,sS)}${msHTML('ur-co',T.H||'Combustible','H',combs,sC)}
@@ -4111,12 +4143,18 @@ function renderUrea(){
    <div class="dc" style="margin-top:10px"><h2>Cantidad por mes · ${urF.anio}</h2><small>Galones de diésel corriente y extra (mostaza) comparados con el CO₂ emitido (gris) en cada mes</small><div class="tscroll">${co2Combo(porMes,fmt)}</div></div>
    <div class="dgrid" style="margin-top:14px">
      <div class="dc"><div class="chead" style="margin:0"><div><h2>Placas que más consumen</h2><small>Combustible del mes y CO₂ emitido</small></div><label style="margin:0">Mes<select id="ur-mes">${meses.map(k=>`<option value="${k}"${k===urF.mes?' selected':''}>${MESES[+k.slice(5)-1]} ${k.slice(0,4)}</option>`).join('')}</select></label></div>
-       ${topP.map((x,i)=>barra(x,i,mxP)).join('')||'<p class="empty">Sin datos en el mes.</p>'}</div>
+       <div class="co2rec"><b>${Object.keys(pm).length}</b> placas cargaron combustible en ${MESES[+(urF.mes||'0-1').slice(5)-1]||''} · <b>${Object.values(pm).reduce((a,x)=>a+x.n,0)}</b> cargas</div>
+       ${topP.map((x,i)=>barra(x,i,mxP)).join('')||'<p class="empty">Sin datos en el mes.</p>'}
+       <h3 class="co2h3">Recuento de placas por mes · ${urF.anio}</h3>
+       ${(()=>{const n=recM.length;if(!n)return '';const W=Math.max(300,n*44),Hh=140,B=22,T=18,cw=W/n,bw=Math.min(30,cw*.7);let o=`<div class="tscroll"><svg viewBox="0 0 ${W} ${Hh}" width="100%" style="min-width:${Math.min(W,300)}px;max-width:${W}px" role="img" aria-label="Recuento de placas por mes">`;
+         recM.forEach((x,i)=>{const h=(Hh-T-B)*x.pl/mxR,cx=i*cw+cw/2,y=Hh-B-h,sel=x.k===urF.mes;o+=`<rect x="${cx-bw/2}" y="${y}" width="${bw}" height="${h}" rx="4" fill="${sel?'#d4a017':'#6b6b6b'}"><title>${MESES[+x.k.slice(5)-1]}: ${x.pl} placas · ${x.n} cargas</title></rect><text x="${cx}" y="${y-4}" text-anchor="middle" font-size="11" font-weight="700" fill="${sel?'#d4a017':'var(--ink)'}">${x.pl}</text><text x="${cx}" y="${Hh-6}" text-anchor="middle" font-size="10" fill="var(--mut)">${MESES[+x.k.slice(5)-1].slice(0,3)}</text>`});
+         return o+`<line x1="0" x2="${W}" y1="${Hh-B}" y2="${Hh-B}" stroke="var(--line)"/></svg></div>`})()}</div>
      <div class="dc"><h2>${esc(T.F||'Afiliado / nombre comercial')} que más expendió</h2><small>Galones en lo que va de ${urF.anio} y CO₂ emitido</small>${afl.slice(0,10).map((x,i)=>barra(x,i,mxA)).join('')||'<p class="empty">Sin datos.</p>'}</div>
    </div>
    <div class="dc" style="margin-top:14px"><h2>Adherencia en lo que va del año · ${urF.anio}</h2><small>Participación de cada ${esc(T.F||'afiliado')} en el combustible del año · total ${fmt(totY)} gal · ${co2t(kg(ytd))} CO₂</small>
      <div class="tscroll" style="max-height:480px;overflow:auto"><table class="kmt edtt"><thead><tr><th>#</th><th>${esc(T.F||'Afiliado / nombre comercial')}</th><th class="num">Diésel corriente</th><th class="num">Diésel extra</th><th class="num">Total gal</th><th class="num">CO₂ emitido</th><th>Adherencia</th></tr></thead><tbody>
      ${afl.map((x,i)=>{const tot=x.cor+x.ext+x.otro,p=totY?tot/totY*100:0;return `<tr><td class="num">${i+1}</td><td><b>${esc(x.l)}</b></td><td class="num tacpm">${fmt(x.cor)}</td><td class="num tacpm">${fmt(x.ext)}</td><td class="num"><b>${fmt(tot)}</b></td><td class="num tco2">${co2t(x.co2)}</td><td><div class="adh"><span><i style="width:${p}%;background:linear-gradient(90deg,#f2c94c,#b8860b)"></i></span><b>${p.toFixed(1)}%</b></div></td></tr>`}).join('')}</tbody></table></div></div>`;
+  $('urbody').insertAdjacentHTML('beforeend','<div class="dc" style="margin-top:14px" id="co2fot"></div>');renderCo2Fotos();
   msBind('ur-af',afs,ch=>{urF.af=ch;renderUrea()});msBind('ur-si',sits,ch=>{urF.sit=ch;renderUrea()});msBind('ur-co',combs,ch=>{urF.comb=ch;renderUrea()});
   $('ur-anio').onchange=e=>{urF.anio=e.target.value;renderUrea()};const m=$('ur-mes');if(m)m.onchange=e=>{urF.mes=e.target.value;renderUrea()};
 }
