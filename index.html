@@ -313,6 +313,11 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .msfoot{display:flex;justify-content:space-between;align-items:center}.msfoot small{color:var(--mut)}.msfoot .btn{padding:6px 14px}
 #ureav .dc,#ureav .kpis{border:1px solid #fff;border-top:5px solid #fff}#ureav .kpis{border-radius:10px}
 #ureav .btn:not(.ghost){background:#6b7280;border-color:#6b7280;color:#fff}#ureav .libro .btn:not(.ghost){background:#4b5563}
+.rpdrive{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-top:10px;padding:10px;border:1px dashed var(--line);border-radius:10px}.rpdrive label{margin:0}.rpdrive input{margin-top:4px}
+.rpdonas{display:flex;gap:14px;flex-wrap:wrap;justify-content:flex-start;margin-top:10px}.rpdonas>div{border-radius:12px;padding:4px}.rpdonas>div.sel{background:var(--soft)}.rpdonas .edring svg{width:110px;height:110px}.rpdonas .edring text,.rpitem .edring text{font-size:17px}.rpdonas .edring b{font-size:.85rem}
+.rpcols div{font-size:.7rem}.rpvcl span{writing-mode:vertical-rl;transform:rotate(180deg);height:120px;font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;margin:0 auto}
+.rpitem{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;margin-top:10px}@media (max-width:700px){.rpitem{grid-template-columns:1fr}}
+.rpmin{position:absolute;left:0;right:0;border-top:2px dashed var(--ink);font-size:.68rem;font-weight:700;text-align:right;padding-right:4px;color:var(--ink);pointer-events:none;z-index:1;transform:translateY(0)}
 .rplist{display:grid;gap:4px;max-height:420px;overflow:auto;margin-top:8px;padding-right:4px}
 .rpit{display:grid;grid-template-columns:1fr auto auto 36px;gap:10px;align-items:center;padding:5px 8px;border-radius:6px;font-size:.84rem;border-left:4px solid}
 .rpit.ok{background:var(--okbg);border-color:var(--ok)}.rpit.no{background:var(--badbg);border-color:var(--bad)}.rpit .mn{color:var(--mut);font-size:.75rem}.rpit .ct{font-weight:700;font-variant-numeric:tabular-nums}
@@ -921,6 +926,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 <section id="repv" hidden aria-label="Repuestos">
   <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Repuestos · cumplimiento del mínimo</h2>
     <div class="hb"><button type="button" class="btn" id="rpupV" hidden>Subir Excel Villavicencio</button><button type="button" class="btn" id="rpupY" hidden>Subir Excel Yopal</button></div></div>
+    <div class="rpdrive" id="rpdrive" hidden><label>Enlace de Google Drive · <span id="rpdsede"></span><input id="rpdurl" inputmode="url" placeholder="Pega el enlace del Excel o de la carpeta de Drive"></label><div class="hb"><button type="button" class="btn ghost" id="rpdcar">Cargar desde Drive</button><button type="button" class="btn ghost" id="rpdact" hidden>Actualizar desde Drive</button></div></div>
     <small id="rpsub"></small><div class="pprog" id="rpmsg" role="status"></div>
     <input type="file" id="rpfileV" accept=".xlsx,.xls" hidden><input type="file" id="rpfileY" accept=".xlsx,.xls" hidden></div>
   <div id="rpbody"></div>
@@ -3856,6 +3862,14 @@ document.querySelectorAll('.si[data-estv]').forEach(b=>b.onclick=()=>{if(!cur)re
 const RES_ARCHIVO='10JNb_gZeTG13PSSS4tn_49fUuxF2dkit',RES_CARPETA='1DLUOW0TtjuuFtS-B7YVdNYe_IOWoOqco';
 let resD=null,resCargando=false,resErr='',resF={cd:'',mes:'__todos',tipo:'',prov:'',q:''};
 const resNum=v=>{if(typeof v==='number')return v;let t=String(v??'').replace(/[^\d,.\-]/g,'');if(!t)return null;if(/,\d{1,3}$/.test(t)&&!/\.\d{1,3}$/.test(t))t=t.replace(/\./g,'').replace(',','.');else t=t.replace(/,/g,'');const n=parseFloat(t);return isNaN(n)?null:n};
+async function driveXlsx(id){
+  const k=firebaseConfig.apiKey,base=`https://www.googleapis.com/drive/v3/files/${id}`;
+  let r=await fetch(`${base}?alt=media&supportsAllDrives=true&key=${k}`);
+  if(!r.ok){const j=await r.json().catch(()=>({}));const rz=j.error&&j.error.errors&&j.error.errors[0]&&j.error.errors[0].reason;
+    if(rz==='fileNotDownloadable'||r.status===403)r=await fetch(`${base}/export?mimeType=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&key=${k}`);
+    if(!r.ok){const e=new Error((j.error&&j.error.message)||'Drive '+r.status);e.razon=rz;throw e}}
+  return await r.arrayBuffer();
+}
 async function resDescargar(){
   const k=firebaseConfig.apiKey,base=`https://www.googleapis.com/drive/v3/files/${RES_ARCHIVO}`;
   let r=await fetch(`${base}?alt=media&supportsAllDrives=true&key=${k}`);
@@ -4172,7 +4186,8 @@ $('dsfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f
   catch(x){console.error(x);$('dsmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. '+(x&&x.code?ERR(x.code):'')}};
 
 /* ---------- REPUESTOS: cumplimiento por mes (columna O = repuesto, P = MIN, pares «Cant. Mes» / «Mes») ---------- */
-let repD={},unsubRP=null,rpF={hoja:'',mes:'',q:''};
+let repD={},unsubRP=null,rpF={hoja:'',mes:'',q:'',item:''};
+function rpItem(H){let i=H.filas.findIndex(f=>f[0]===rpF.item);if(i<0){const peor=H.filas.map((f,k)=>{const v=f[2].filter(x=>x[1]!==null);return{k,p:v.length?v.filter(x=>x[1]===1).length/v.length:1}}).sort((a,b)=>a.p-b.p)[0];i=peor?peor.k:0}return i}
 async function rpLeer(f,sedeArch){
   const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true});
   const quiero=sedeArch==='Villavicencio'?[/villavo.*canada|canada/,/^mk\b|\bmk\b/]:null;
@@ -4190,8 +4205,19 @@ async function rpLeer(f,sedeArch){
   if(!hojas.length)throw{msg:'No se encontró la tabla de repuestos (columna O «Repuesto…» y columna P «MIN»).'};
   return hojas;
 }
+async function rpDesdeDrive(sd,url){
+  const m=String(url||'').match(/\/folders\/([\w-]{10,})/),f=String(url||'').match(/\/d\/([\w-]{10,})/)||String(url||'').match(/[?&]id=([\w-]{10,})/);
+  let id=f?f[1]:'',nombre='Excel de Drive';
+  if(m){const it=await driveLista(m[1]),xs=it.filter(x=>/spreadsheet|excel|sheet/.test(x.mimeType)||/\.xlsx?$/i.test(x.name)),tok=sd==='Yopal'?'yopal':'villa';
+    const x=xs.find(z=>sinTilde(z.name).includes(tok))||xs[0];if(!x)throw{msg:'En esa carpeta de Drive no hay archivos de Excel.'};id=x.id;nombre=x.name}
+  if(!id){if(/^[\w-]{20,}$/.test(String(url).trim()))id=String(url).trim();else throw{msg:'Ese enlace no parece de un archivo o carpeta de Google Drive.'}}
+  const buf=await driveXlsx(id),hojas=await rpLeer({arrayBuffer:async()=>buf},sd);
+  const d={sede:sd,nombre:nombre+' (Drive)',fecha:ahoraDT(),hojas:JSON.stringify(hojas),driveUrl:url,por:cur.nombre,editado:serverTimestamp()};
+  await setDoc(doc(db,'repuestos',sd),d);repD[sd]={...d,hojas};return hojas;
+}
 function renderRep(){
-  if(!cur||$('repv').hidden)return;['Villavicencio','Yopal'].forEach(sd=>{const b=$('rpup'+sd[0]);if(b)b.hidden=!canEdit()});
+  if(!cur||$('repv').hidden)return;
+  $('rpdrive').hidden=!canEdit();$('rpdsede').textContent=sede;if(document.activeElement!==$('rpdurl'))$('rpdurl').value=(repD[sede]&&repD[sede].driveUrl)||'';$('rpdact').hidden=!(repD[sede]&&repD[sede].driveUrl);['Villavicencio','Yopal'].forEach(sd=>{const b=$('rpup'+sd[0]);if(b)b.hidden=!canEdit()});
   const D=repD[sede];
   $('rpsub').textContent=SEDES.map(sd=>repD[sd]?`${sd}: ${repD[sd].nombre} (${dtTxt(repD[sd].fecha)})`:`${sd}: sin archivo`).join(' · ');
   if(!D){$('rpbody').innerHTML=`<p class="empty" style="margin:0">Aún no hay Excel de repuestos para ${esc(sede)}.${canEdit()?` Usa «Subir Excel ${esc(sede)}».`:''}</p>`;return}
@@ -4207,6 +4233,20 @@ function renderRep(){
    <div class="kpis">${[[H.filas.length,'Repuestos',''],[si.length,`Cumplimos en ${MESES[+rpF.mes-1]||''}`,'okc'],[no.length,'No cumplimos','badc'],[pct.toFixed(0)+'%','Cumplimiento',pct>=90?'okc':pct>=70?'warc':'badc']].map(([v,l,k])=>`<div class="kpi"><b class="${k}">${v}</b><span>${l}</span></div>`).join('')}</div>
    <div class="dc" style="margin-top:14px"><h2>Cumplimiento por mes · ${esc(H.n)}</h2><small>Porcentaje de repuestos que cumplen el mínimo (${esc(H.tit.P)})</small>
      ${porMes.length?`<div class="vcols t" style="height:170px">${porMes.map(x=>`<div>${x.p.toFixed(0)}%<i style="height:${Math.max(2,x.p)}%;background:${x.p>=90?'#16a34a':x.p>=70?'#d97706':'#dc2626'}${x.m===+rpF.mes?';outline:3px solid var(--ink)':''}"></i></div>`).join('')}</div><div class="vcl t">${porMes.map(x=>`<span>${MESES[x.m-1].slice(0,3)}<br><small>${x.s}/${x.s+x.n}</small></span>`).join('')}</div>`:'<p class="empty">Sin datos.</p>'}</div>
+   <div class="dc" style="margin-top:14px"><h2>Adherencia mes a mes</h2><small>Repuestos que cumplen / total · ${esc(H.n)}</small>
+     <div class="rpdonas">${porMes.map(x=>`<div class="${x.m===+rpF.mes?'sel':''}">${anilloED(x.p,x.p>=90?'#16a34a':x.p>=70?'#d97706':'#dc2626',MESES[x.m-1],`${x.s} de ${x.s+x.n}`)}</div>`).join('')||'<p class="empty">Sin datos.</p>'}</div></div>
+   <div class="dc" style="margin-top:14px"><h2>Adherencia por repuesto</h2><small>Porcentaje de meses en que cada repuesto cumplió el mínimo · de menor a mayor</small>
+     ${(()=>{const ad=H.filas.map(f=>{const v=f[2].filter(x=>x[1]!==null),s2=v.filter(x=>x[1]===1).length;return{n:f[0],p:v.length?s2/v.length*100:null,s:s2,t:v.length}}).filter(x=>x.p!==null).sort((a,b)=>a.p-b.p||a.n.localeCompare(b.n,'es'));
+       return ad.length?`<div class="tscroll"><div style="min-width:${ad.length*46}px"><div class="vcols t rpcols" style="height:200px">${ad.map(x=>`<div title="${esc(x.n)}: ${x.s} de ${x.t} meses">${x.p.toFixed(0)}%<i style="height:${Math.max(2,x.p)}%;background:${x.p>=90?'#16a34a':x.p>=70?'#d97706':'#dc2626'}"></i></div>`).join('')}</div><div class="vcl t rpvcl">${ad.map(x=>`<span title="${esc(x.n)}">${esc(x.n)}</span>`).join('')}</div></div></div>`:'<p class="empty">Sin datos.</p>'})()}</div>
+   <div class="dc" style="margin-top:14px"><div class="chead" style="margin:0"><div><h2>Comportamiento por repuesto</h2><small>Cantidad de cada mes frente al mínimo y adherencia del repuesto</small></div>
+     <label style="margin:0">Repuesto<select id="rp-item">${H.filas.map((f,i)=>`<option value="${i}"${i===rpItem(H)?' selected':''}>${esc(f[0])}</option>`).join('')}</select></label></div>
+     ${(()=>{const f=H.filas[rpItem(H)];if(!f)return '';const v=f[2].map((x,i)=>({m:H.meses[i],c:x[0],ok:x[1]})).filter(x=>x.ok!==null||x.c!==null),s2=v.filter(x=>x.ok===1).length,n2=v.filter(x=>x.ok===0).length,mx=Math.max(1,f[1]||0,...v.map(x=>x.c||0));
+       return `<div class="rpitem">${anilloED(s2+n2?s2/(s2+n2)*100:0,'#16a34a','Adherencia',`${s2} de ${s2+n2} meses · MIN ${f[1]??'—'}`)}
+         <div class="rpqty tscroll">${(()=>{const W=Math.max(320,v.length*74+70),Hh=200,B=26,T=22,L=54,sc=y=>T+(Hh-T-B)*(1-y/mx),bw=46;
+           let o=`<svg viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}" style="max-width:none" role="img" aria-label="Cantidad por mes frente al mínimo">`;
+           v.forEach((x,k)=>{const xx=L+10+k*74,y=sc(x.c||0),col=x.ok===1?'#16a34a':x.ok===0?'#dc2626':'#9ca3af';o+=`<rect x="${xx}" y="${y}" width="${bw}" height="${Hh-B-y}" rx="5" fill="${col}"><title>${MESES[x.m-1]}: ${x.c??'—'}</title></rect><text x="${xx+bw/2}" y="${y-5}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">${x.c??'—'}</text><text x="${xx+bw/2}" y="${Hh-8}" text-anchor="middle" font-size="11" fill="var(--mut)">${MESES[x.m-1].slice(0,3)}</text>`});
+           if(f[1]!=null){const y=sc(f[1]);o+=`<line x1="${L}" x2="${W-6}" y1="${y}" y2="${y}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="6 4"/><text x="${L-4}" y="${y+4}" text-anchor="end" font-size="11" font-weight="800" fill="var(--ink)">MIN ${f[1]}</text>`}
+           return o+`<line x1="${L}" x2="${W-6}" y1="${Hh-B}" y2="${Hh-B}" stroke="var(--mut)"/></svg>`})()}</div></div>`})()}</div>
    <div class="dgrid" style="margin-top:14px">
      <div class="dc"><h2>✅ Cumplimos · ${MESES[+rpF.mes-1]||''}</h2><small>${si.length} repuestos · cantidad ≥ ${esc(H.tit.P)}</small><div class="rplist">${si.map(f=>card(f,1)).join('')||'<p class="empty">Ninguno.</p>'}</div></div>
      <div class="dc"><h2>❌ No cumplimos · ${MESES[+rpF.mes-1]||''}</h2><small>${no.length} repuestos por debajo del mínimo</small><div class="rplist">${no.map(f=>card(f,0)).join('')||'<p class="empty">Ninguno.</p>'}</div></div>
@@ -4214,10 +4254,15 @@ function renderRep(){
    <div class="dc" style="margin-top:14px"><h2>Detalle por repuesto y mes</h2><small>${esc(H.tit.O)} (columna O) · ${esc(H.tit.P)} (columna P) · cantidad y cumplimiento por mes</small>
      <div class="tscroll" style="max-height:560px;overflow:auto"><table class="kmt rptab"><thead><tr><th>${esc(H.tit.O)}</th><th class="num">${esc(H.tit.P)}</th>${H.meses.map(m=>`<th class="num${m===+rpF.mes?' sel':''}">${MESES[m-1].slice(0,3)}</th>`).join('')}</tr></thead>
      <tbody>${fs.map(f=>`<tr><td>${esc(f[0])}</td><td class="num"><b>${f[1]??'—'}</b></td>${f[2].map(([c,ok],i)=>`<td class="num ${ok===1?'rsi':ok===0?'rno':''}${H.meses[i]===+rpF.mes?' sel':''}">${c??'—'}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
-  $('rp-mes').onchange=e=>{rpF.mes=e.target.value;renderRep()};
+  $('rp-mes').onchange=e=>{rpF.mes=e.target.value;renderRep()};$('rp-item').onchange=e=>{rpF.item=H.filas[+e.target.value][0];renderRep()};
   $('rp-q').oninput=e=>{rpF.q=e.target.value;clearTimeout(window.__rpt);window.__rpt=setTimeout(()=>{renderRep();const i=$('rp-q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},300)};
 }
 $('rpbody').addEventListener('click',e=>{const b=e.target.closest('[data-rph]');if(b){rpF.hoja=b.dataset.rph;renderRep()}});
+const rpDrv=async url=>{if(!canEdit())return;$('rpmsg').textContent=`Leyendo el Excel de ${sede} desde Google Drive…`;
+  try{const h=await rpDesdeDrive(sede,url);$('rpmsg').textContent=`Excel de ${sede} cargado desde Drive: ${h.map(x=>x.n).join(' y ')}.`;renderRep()}
+  catch(x){console.error(x);$('rpmsg').textContent=x&&x.msg?x.msg:x&&x.razon==='accessNotConfigured'?'La Google Drive API no está activada en el proyecto.':'No se pudo leer el archivo de Drive. Revisa que esté compartido como «Cualquier persona con el vínculo». '+(x&&x.message?x.message:'')}};
+$('rpdcar').onclick=()=>{const u=$('rpdurl').value.trim();if(!u){$('rpmsg').textContent='Pega primero el enlace de Drive.';return}rpDrv(u)};
+$('rpdact').onclick=()=>{const u=repD[sede]&&repD[sede].driveUrl;if(u)rpDrv(u)};
 ['Villavicencio','Yopal'].forEach(sd=>{const L=sd[0];$('rpup'+L).onclick=()=>{if(canEdit())$('rpfile'+L).click()};
   $('rpfile'+L).onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('rpmsg').textContent=`Leyendo el Excel de ${sd}…`;
     try{const hojas=await rpLeer(f,sd),d={sede:sd,nombre:f.name,fecha:ahoraDT(),hojas:JSON.stringify(hojas),por:cur.nombre,editado:serverTimestamp()};
