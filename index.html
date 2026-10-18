@@ -823,6 +823,24 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .tab[aria-pressed="true"],.tab[aria-selected="true"]{background:linear-gradient(180deg,#d4a017,#b8860b)!important;border-color:#a67c00!important;color:#111!important}
 .kpi b{color:var(--acc)}
 #ureav .btn:not(.ghost){background:linear-gradient(180deg,#d4a017,#b8860b)!important}
+
+/* ===== Menú lateral: botones en degradado mostaza intercalado, con sombras y transparencias ===== */
+.menu .grp>.mi{color:#151515;text-shadow:0 1px 0 rgba(255,255,255,.35);border:1px solid rgba(255,236,170,.45);
+  backdrop-filter:blur(6px) saturate(1.2);-webkit-backdrop-filter:blur(6px) saturate(1.2);
+  box-shadow:0 6px 14px rgba(0,0,0,.45),0 2px 0 rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 6px rgba(0,0,0,.18);transition:transform .15s,box-shadow .15s,filter .15s}
+.menu .grp:nth-child(odd)>.mi{background:linear-gradient(135deg,rgba(247,214,110,.96) 0%,rgba(212,160,23,.92) 45%,rgba(160,116,8,.88) 100%)}
+.menu .grp:nth-child(even)>.mi{background:linear-gradient(135deg,rgba(212,160,23,.72) 0%,rgba(166,124,0,.62) 50%,rgba(98,73,6,.55) 100%);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.55);border-color:rgba(242,201,76,.35)}
+.menu .grp>.mi:hover{filter:brightness(1.08) saturate(1.1);transform:translateY(-1px);box-shadow:0 10px 20px rgba(0,0,0,.5),0 2px 0 rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.65),0 0 0 2px rgba(242,201,76,.25)}
+.menu .grp>.mi:active{transform:translateY(2px);box-shadow:0 2px 6px rgba(0,0,0,.45),inset 0 2px 8px rgba(0,0,0,.35)}
+.menu .grp>.mi[aria-pressed="true"]{background:linear-gradient(135deg,rgba(20,20,20,.88),rgba(45,45,45,.78))!important;color:#f2c94c;text-shadow:0 0 10px rgba(242,201,76,.45);border:1px solid rgba(242,201,76,.85);
+  box-shadow:0 0 0 2px rgba(242,201,76,.25),0 8px 18px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.12)}
+.menu .grp>.mi .chev{opacity:.75}
+.menu .grp>.mi::after{background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%)}
+.menu .sub{border-left:2px solid rgba(212,160,23,.45);margin-left:14px;padding-left:6px}
+.menu .sub .si{color:rgba(242,214,130,.9);background:rgba(255,255,255,.03)}
+.menu .sub .si:hover{background:rgba(212,160,23,.18);color:#fff}
+.menu .sub .si[aria-current="true"]{background:linear-gradient(90deg,rgba(242,201,76,.95),rgba(184,134,11,.85))!important;color:#111!important;box-shadow:0 3px 8px rgba(0,0,0,.4)}
+.sidefoot .si{color:rgba(242,214,130,.85)}.sidefoot .si:hover{color:#fff;background:rgba(212,160,23,.15)}
 </style>
 </head>
 <body>
