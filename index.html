@@ -80,7 +80,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .mi[data-m="km"]::after{animation-delay:3s}
 .mi[data-m="ral"]::after{animation-delay:4s}
 .mi[data-m="doc"]::after{animation-delay:5s}
-.mi[data-m="bar"]::after{animation-delay:6s}.mi[data-m="est"]::after{animation-delay:1.5s}.mi[data-m="res"]::after{animation-delay:2.5s}.mi[data-m="disp"]::after{animation-delay:2s}.mi[data-m="urea"]::after{animation-delay:.5s}
+.mi[data-m="bar"]::after{animation-delay:6s}.mi[data-m="est"]::after{animation-delay:1.5s}.mi[data-m="res"]::after{animation-delay:2.5s}.mi[data-m="rep"]::after{animation-delay:3.5s}.mi[data-m="disp"]::after{animation-delay:2s}.mi[data-m="urea"]::after{animation-delay:.5s}
 .urola{animation:urola 2.4s ease-in-out infinite}@keyframes urola{50%{transform:translateY(-1px)}}@media (prefers-reduced-motion:reduce){.urola{animation:none}}.mi[data-m="lav"]::after{animation-delay:7s}
 .bpolvo{animation:polvo 1.8s ease-out infinite}.bpolvo+.bpolvo{animation-delay:.6s}
 @keyframes polvo{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(3px,-4px)}}
@@ -313,6 +313,12 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .msfoot{display:flex;justify-content:space-between;align-items:center}.msfoot small{color:var(--mut)}.msfoot .btn{padding:6px 14px}
 #ureav .dc,#ureav .kpis{border:1px solid #fff;border-top:5px solid #fff}#ureav .kpis{border-radius:10px}
 #ureav .btn:not(.ghost){background:#6b7280;border-color:#6b7280;color:#fff}#ureav .libro .btn:not(.ghost){background:#4b5563}
+.rplist{display:grid;gap:4px;max-height:420px;overflow:auto;margin-top:8px;padding-right:4px}
+.rpit{display:grid;grid-template-columns:1fr auto auto 36px;gap:10px;align-items:center;padding:5px 8px;border-radius:6px;font-size:.84rem;border-left:4px solid}
+.rpit.ok{background:var(--okbg);border-color:var(--ok)}.rpit.no{background:var(--badbg);border-color:var(--bad)}.rpit .mn{color:var(--mut);font-size:.75rem}.rpit .ct{font-weight:700;font-variant-numeric:tabular-nums}
+.rpit.ok b{color:var(--ok)}.rpit.no b{color:var(--bad)}
+.rptab{min-width:700px;font-size:.84rem}.rptab td.rsi{background:var(--okbg);color:var(--ok);font-weight:700}.rptab td.rno{background:var(--badbg);color:var(--bad);font-weight:700}.rptab .sel{outline:2px solid var(--acc);outline-offset:-2px}
+.rptab td:first-child{position:sticky;left:0;background:var(--card);white-space:nowrap}
 .camfila{display:flex;gap:6px;align-items:flex-end;min-width:max-content;padding:4px 2px}
 .camcol{margin:0;width:118px;display:flex;flex-direction:column;align-items:center}.camval{display:grid;text-align:center;line-height:1.15;font-weight:800;font-size:.85rem}.camval small{font-size:.7rem;font-weight:600}
 .camsvg{width:118px;height:148px;overflow:visible}.camcol figcaption{font-size:.78rem;color:var(--mut);margin-top:2px}
@@ -652,6 +658,9 @@ textarea{font:inherit;color:inherit;width:100%;margin-top:4px;padding:9px 10px;b
 html.tema-cal{--bg:#eef4ef;--card:#fff;--ink:#16261c;--mut:#5b7062;--line:#d2e2d6;--acc:#1f6b3f;--acc2:#2f8a52;--soft:#e2f1e6;--band1:#2f8a52;--band2:#1f6b3f}
 html.tema-cal[data-theme="dark"]{--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}
 @media (prefers-color-scheme:dark){html.tema-cal:not([data-theme="light"]){--bg:#101a13;--card:#17241b;--ink:#e5f0e8;--mut:#98ad9e;--line:#2b3e31;--acc:#2f8a52;--acc2:#4fb574;--soft:#1e3526}}
+html.tema-rep{--acc:#be185d;--acc2:#db2777;--soft:#fce7f3;--band1:#db2777;--band2:#831843}
+html.tema-rep[data-theme="dark"]{--acc:#f472b6;--acc2:#f9a8d4;--soft:#3b1028}
+@media (prefers-color-scheme:dark){html.tema-rep:not([data-theme="light"]){--acc:#f472b6;--acc2:#f9a8d4;--soft:#3b1028}}
 html.tema-disp{--acc:#2563eb;--acc2:#3b82f6;--soft:#dbeafe;--band1:#3b82f6;--band2:#1e3a8a}
 html.tema-disp[data-theme="dark"]{--acc:#60a5fa;--acc2:#93c5fd;--soft:#172554}
 @media (prefers-color-scheme:dark){html.tema-disp:not([data-theme="light"]){--acc:#60a5fa;--acc2:#93c5fd;--soft:#172554}}
@@ -845,6 +854,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       <button type="button" class="mi" data-m="urea" aria-pressed="false" aria-expanded="false" title="CO₂ (dióxido de carbono)"><span class="docico" aria-hidden="true"><svg viewBox="0 0 32 26" width="28" height="24"><path d="M9 20a6 6 0 0 1-.6-12 8 8 0 0 1 15.2 2.2A5 5 0 0 1 24 20z" fill="#e0f2fe" stroke="rgba(255,255,255,.85)" class="urola"/><text x="16" y="17.5" text-anchor="middle" font-size="7.5" font-weight="800" fill="#0e7490" font-family="Arial">CO₂</text><circle cx="5" cy="22" r="1.6" fill="#94a3b8" class="brillo"/><circle cx="27" cy="23" r="1.3" fill="#94a3b8" class="brillo"/></svg></span><span class="lbl">CO₂</span></button>
     </div>
     <div class="grp">
+      <button type="button" class="mi" data-m="rep" aria-pressed="false" aria-expanded="false" title="Repuestos"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 28" width="24" height="24"><circle cx="11" cy="11" r="7" fill="none" stroke="#fbcfe8" stroke-width="3.2" stroke-dasharray="3 2.2" class="crueda" style="transform-origin:11px 11px"/><circle cx="11" cy="11" r="2.6" fill="#fff"/><path d="M15 17l7 7" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="19" y="3" width="6" height="8" rx="1.5" fill="#f9a8d4"/></svg></span><span class="lbl">Repuestos</span></button>
+    </div>
+    <div class="grp">
       <button type="button" class="mi" data-m="var" aria-pressed="false" aria-expanded="false" title="Varadas"><svg class="ic icv" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3zM12 10v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Varadas</span><span class="humo" aria-hidden="true"><svg viewBox="0 0 48 36" width="44" height="33">
 <g class="nube"><circle cx="38" cy="14" r="3.4"/><circle cx="36" cy="14" r="3"/><circle cx="40" cy="14" r="3.2"/></g>
 <path d="M4 25v-6.5c0-1.2.7-2.2 1.8-2.6l5.2-2 4.4-4.6c.7-.7 1.6-1.1 2.6-1.1H33c1 0 1.9.5 2.5 1.3l4.3 6.2 3.6 1.4c1 .4 1.6 1.4 1.6 2.4V25c0 .8-.7 1.5-1.5 1.5H5.5C4.7 26.5 4 25.8 4 25z" fill="#f2f2f2" stroke="#2b2b2b" stroke-width="1.2"/>
@@ -906,6 +918,13 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </div>
 <div id="list"></div>
 </div>
+<section id="repv" hidden aria-label="Repuestos">
+  <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Repuestos · cumplimiento del mínimo</h2>
+    <div class="hb"><button type="button" class="btn" id="rpupV" hidden>Subir Excel Villavicencio</button><button type="button" class="btn" id="rpupY" hidden>Subir Excel Yopal</button></div></div>
+    <small id="rpsub"></small><div class="pprog" id="rpmsg" role="status"></div>
+    <input type="file" id="rpfileV" accept=".xlsx,.xls" hidden><input type="file" id="rpfileY" accept=".xlsx,.xls" hidden></div>
+  <div id="rpbody"></div>
+</section>
 <section id="dispv" hidden aria-label="Disponibilidad">
   <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Disponibilidad · ingresos a taller</h2><button type="button" class="btn" id="dsup" hidden>Cargar Excel</button></div>
     <small id="dssub"></small><div class="pprog" id="dsmsg" role="status"></div><input type="file" id="dsfile" accept=".xlsx,.xls" hidden></div>
@@ -1358,7 +1377,7 @@ const DOM='@novedades-leon.app';
 const mail=u=>u.trim().toLowerCase()+DOM;
 const okUser=u=>/^[a-z0-9._-]{3,30}$/.test(u);
 const ROLES={admin:'Administrador',editor:'Editor',visual:'Visual',inactivo:'Sin acceso'};
-const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['disp','Disponibilidad'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
+const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['disp','Disponibilidad'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
 const puedeSede=x=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.sedes)||!cur.sedes.length||cur.sedes.includes(x));
 const sedesHTML=(pre,sel)=>`<div class="mudchk">${SEDES.map(x=>`<label><input type="checkbox" data-${pre}="${x}"${!sel||!sel.length||sel.includes(x)?' checked':''}> ${x}</label>`).join('')}</div>`;
 function aplicarSedes(){const ok=SEDES.filter(puedeSede);$('sede').innerHTML=ok.map(x=>`<option${x===sede?' selected':''}>${x}</option>`).join('');$('sede').disabled=ok.length<2;$('sede').title=ok.length<2?'Tu usuario solo tiene acceso a esta sede':'';
@@ -1507,6 +1526,8 @@ function salir(){
   if(unsubCF){unsubCF();unsubCF=null}
   co2Fotos=[];
   if(unsubDS){unsubDS();unsubDS=null}
+  if(unsubRP){unsubRP();unsubRP=null}
+  repD={};
   dispD=null;
   ureaD=null;
   if(unsubED){unsubED();unsubED=null}
@@ -1550,6 +1571,7 @@ async function entrar(user){
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
   if(puedeVer('est'))unsubED=onSnapshot(collection(db,'estdata'),snap=>{edDatos={};snap.docs.forEach(d=>edDatos[d.id]=d.data());renderED();if(!$('estv').hidden&&estVista==='plant')renderEst()},()=>{});
+  if(puedeVer('rep'))unsubRP=onSnapshot(collection(db,'repuestos'),snap=>{repD={};snap.docs.forEach(d=>{const x=d.data();try{repD[d.id]={...x,hojas:typeof x.hojas==='string'?JSON.parse(x.hojas):x.hojas}}catch(e){}});renderRep()},()=>{});
   if(puedeVer('disp'))unsubDS=onSnapshot(doc(db,'disp','todas'),d=>{if(d.exists()){const x=d.data();dispD={...x,filas:(x.filas||[]).map(r=>typeof r==='string'?JSON.parse(r):r)}}else dispD=null;renderDisp()},()=>{});
   if(puedeVer('urea'))unsubCF=onSnapshot(collection(db,'co2fotos'),snap=>{co2Fotos=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));if(!$('ureav').hidden)renderLibro()},()=>{});
   if(puedeVer('urea'))unsubUR=onSnapshot(doc(db,'urea','co2'),d=>{if(d.exists()){const x=d.data();ureaD={...x,filas:(x.filas||[]).map(r=>typeof r==='string'?JSON.parse(r):r)}}else ureaD=null;renderUrea()},()=>{});
@@ -1716,7 +1738,8 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
   if(m!=='ini'&&!puedeVer(m))m='ini';
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est',rs=m==='res',ur=m==='urea',ds=m==='disp';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep';
+  document.documentElement.classList.toggle('tema-rep',rp);$('repv').hidden=!rp;if(rp)renderRep();
   document.documentElement.classList.toggle('tema-disp',ds);$('dispv').hidden=!ds;if(ds)renderDisp();
   document.documentElement.classList.toggle('tema-urea',ur);$('ureav').hidden=!ur;if(ur)renderUrea();
   document.documentElement.classList.toggle('tema-res',rs);$('resv').hidden=!rs;if(rs){$('resman').hidden=cur.rol!=='admin';resCargar(false);renderRes()}
@@ -1728,9 +1751,9 @@ function modulo(m){
   document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds;
-  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp;
+  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||!canEdit();$('raladd').hidden=!ral||!canEdit();
   if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';$('kmllanos').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
@@ -1743,10 +1766,10 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden;
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':ds?'Disponibilidad':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?'Estándar de Flota · Datos del Excel':'Estándar de Flota'):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!cal&&$('dash').hidden);
+  $('vtit').textContent=ini?'':rp?'Repuestos':ds?'Disponibilidad':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?'Estándar de Flota · Datos del Excel':'Estándar de Flota'):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
@@ -1912,6 +1935,7 @@ function vistaPDF(){
   if(vis('ralv'))return{el:$('ralv'),titulo:'Ralentí'};
   if(vis('docv'))return{el:$('docv'),titulo:$('vtit').textContent};
   if(vis('blv'))return{el:$('blv'),titulo:BLN[blTipo].t};
+  if(vis('repv'))return{el:$('repv'),titulo:'Repuestos'};
   if(vis('dispv'))return{el:$('dispv'),titulo:'Disponibilidad'};
   if(vis('ureav'))return{el:$('ureav'),titulo:'CO2 - dioxido de carbono'};
   if(vis('resv'))return{el:$('resv'),titulo:'Residuos Llanos'};
@@ -4147,6 +4171,60 @@ $('dsfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f
     await setDoc(doc(db,'disp','todas'),d);dispD={...d,filas:L.filas.map(r=>JSON.parse(r))};$('dsmsg').textContent='';renderDisp()}
   catch(x){console.error(x);$('dsmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. '+(x&&x.code?ERR(x.code):'')}};
 
+/* ---------- REPUESTOS: cumplimiento por mes (columna O = repuesto, P = MIN, pares «Cant. Mes» / «Mes») ---------- */
+let repD={},unsubRP=null,rpF={hoja:'',mes:'',q:''};
+async function rpLeer(f,sedeArch){
+  const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true});
+  const quiero=sedeArch==='Villavicencio'?[/villavo.*canada|canada/,/^mk\b|\bmk\b/]:null;
+  const nombres=quiero?quiero.map(r=>wb.SheetNames.find(n=>r.test(sinTilde(n).trim()))).filter(Boolean):wb.SheetNames;
+  if(quiero&&!nombres.length)throw{msg:`No se encontraron las pestañas «VILLAVO CANADA» y «MK». Pestañas del archivo: ${wb.SheetNames.join(', ')}.`};
+  const hojas=[];
+  for(const n of nombres){const ws=wb.Sheets[n];if(!ws||!ws['!ref'])continue;const R=X.utils.decode_range(ws['!ref']);R.s.r=0;R.s.c=0;ws['!ref']=X.utils.encode_range(R);
+    const t=X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:true}),tx=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:true});
+    const iO=14,iP=15,hi=t.findIndex((r,i)=>i<30&&/repuesto/.test(sinTilde(String((r||[])[iO]??''))));if(hi<0)continue;
+    const H=(tx[hi]||[]).map(v=>sinTilde(String(v??'').trim()));const meses=[];
+    MESES.forEach((m,k)=>{const mm=sinTilde(m);const ic=H.findIndex((h,c)=>c>iP&&/cant/.test(h)&&h.includes(mm)),ie=H.findIndex((h,c)=>c>iP&&h===mm);if(ic>=0||ie>=0)meses.push({k:k+1,ic,ie})});
+    const filas=[];for(let r=hi+1;r<t.length;r++){const rep=String((tx[r]||[])[iO]??'').trim();if(!rep)continue;const min=resNum((t[r]||[])[iP]);
+      filas.push([rep,min,meses.map(m=>{const c=m.ic>=0?resNum((t[r]||[])[m.ic]):null,e=m.ie>=0?sinTilde(String((tx[r]||[])[m.ie]??'').trim()):'';const ok=e?/^si/.test(e)?1:/^no/.test(e)?0:null:(c!==null&&min!==null?(c>=min?1:0):null);return[c,ok]})])}
+    if(filas.length)hojas.push({n,meses:meses.map(m=>m.k),filas,tit:{O:String((tx[hi]||[])[iO]??'Repuesto'),P:String((tx[hi]||[])[iP]??'MIN')}})}
+  if(!hojas.length)throw{msg:'No se encontró la tabla de repuestos (columna O «Repuesto…» y columna P «MIN»).'};
+  return hojas;
+}
+function renderRep(){
+  if(!cur||$('repv').hidden)return;['Villavicencio','Yopal'].forEach(sd=>{const b=$('rpup'+sd[0]);if(b)b.hidden=!canEdit()});
+  const D=repD[sede];
+  $('rpsub').textContent=SEDES.map(sd=>repD[sd]?`${sd}: ${repD[sd].nombre} (${dtTxt(repD[sd].fecha)})`:`${sd}: sin archivo`).join(' · ');
+  if(!D){$('rpbody').innerHTML=`<p class="empty" style="margin:0">Aún no hay Excel de repuestos para ${esc(sede)}.${canEdit()?` Usa «Subir Excel ${esc(sede)}».`:''}</p>`;return}
+  const hojas=D.hojas;if(!hojas.some(h=>h.n===rpF.hoja))rpF.hoja=hojas[0].n;const H=hojas.find(h=>h.n===rpF.hoja);
+  if(!H.meses.includes(+rpF.mes)){const con=H.meses.filter((m,i)=>H.filas.some(f=>f[2][i][1]!==null));rpF.mes=String(con[con.length-1]||H.meses[0]||'')}
+  const mi=H.meses.indexOf(+rpF.mes),q=sinTilde(rpF.q.trim()),fs=H.filas.filter(f=>!q||sinTilde(f[0]).includes(q));
+  const si=fs.filter(f=>mi>=0&&f[2][mi][1]===1),no=fs.filter(f=>mi>=0&&f[2][mi][1]===0),pct=si.length+no.length?si.length/(si.length+no.length)*100:0;
+  const porMes=H.meses.map((m,i)=>{const s=H.filas.filter(f=>f[2][i][1]===1).length,n=H.filas.filter(f=>f[2][i][1]===0).length;return{m,s,n,p:s+n?s/(s+n)*100:null}}).filter(x=>x.p!==null);
+  const card=(f,ok)=>`<div class="rpit ${ok?'ok':'no'}"><span class="nm">${esc(f[0])}</span><span class="mn">MIN ${f[1]??'—'}</span><span class="ct">${f[2][mi][0]??'—'}</span><b>${ok?'SÍ':'NO'}</b></div>`;
+  $('rpbody').innerHTML=`
+   <div class="tabs" role="group" aria-label="Pestaña" style="margin:0 0 10px">${hojas.map(h=>`<button type="button" class="tab" data-rph="${esc(h.n)}" aria-pressed="${h.n===rpF.hoja}">${esc(h.n)}</button>`).join('')}</div>
+   <div class="ralbar" style="margin:0 0 12px"><label>Mes<select id="rp-mes">${H.meses.map(m=>`<option value="${m}"${m===+rpF.mes?' selected':''}>${MESES[m-1]}</option>`).join('')}</select></label><input type="search" id="rp-q" placeholder="Buscar repuesto…" value="${esc(rpF.q)}" style="width:220px;margin:0"></div>
+   <div class="kpis">${[[H.filas.length,'Repuestos',''],[si.length,`Cumplimos en ${MESES[+rpF.mes-1]||''}`,'okc'],[no.length,'No cumplimos','badc'],[pct.toFixed(0)+'%','Cumplimiento',pct>=90?'okc':pct>=70?'warc':'badc']].map(([v,l,k])=>`<div class="kpi"><b class="${k}">${v}</b><span>${l}</span></div>`).join('')}</div>
+   <div class="dc" style="margin-top:14px"><h2>Cumplimiento por mes · ${esc(H.n)}</h2><small>Porcentaje de repuestos que cumplen el mínimo (${esc(H.tit.P)})</small>
+     ${porMes.length?`<div class="vcols t" style="height:170px">${porMes.map(x=>`<div>${x.p.toFixed(0)}%<i style="height:${Math.max(2,x.p)}%;background:${x.p>=90?'#16a34a':x.p>=70?'#d97706':'#dc2626'}${x.m===+rpF.mes?';outline:3px solid var(--ink)':''}"></i></div>`).join('')}</div><div class="vcl t">${porMes.map(x=>`<span>${MESES[x.m-1].slice(0,3)}<br><small>${x.s}/${x.s+x.n}</small></span>`).join('')}</div>`:'<p class="empty">Sin datos.</p>'}</div>
+   <div class="dgrid" style="margin-top:14px">
+     <div class="dc"><h2>✅ Cumplimos · ${MESES[+rpF.mes-1]||''}</h2><small>${si.length} repuestos · cantidad ≥ ${esc(H.tit.P)}</small><div class="rplist">${si.map(f=>card(f,1)).join('')||'<p class="empty">Ninguno.</p>'}</div></div>
+     <div class="dc"><h2>❌ No cumplimos · ${MESES[+rpF.mes-1]||''}</h2><small>${no.length} repuestos por debajo del mínimo</small><div class="rplist">${no.map(f=>card(f,0)).join('')||'<p class="empty">Ninguno.</p>'}</div></div>
+   </div>
+   <div class="dc" style="margin-top:14px"><h2>Detalle por repuesto y mes</h2><small>${esc(H.tit.O)} (columna O) · ${esc(H.tit.P)} (columna P) · cantidad y cumplimiento por mes</small>
+     <div class="tscroll" style="max-height:560px;overflow:auto"><table class="kmt rptab"><thead><tr><th>${esc(H.tit.O)}</th><th class="num">${esc(H.tit.P)}</th>${H.meses.map(m=>`<th class="num${m===+rpF.mes?' sel':''}">${MESES[m-1].slice(0,3)}</th>`).join('')}</tr></thead>
+     <tbody>${fs.map(f=>`<tr><td>${esc(f[0])}</td><td class="num"><b>${f[1]??'—'}</b></td>${f[2].map(([c,ok],i)=>`<td class="num ${ok===1?'rsi':ok===0?'rno':''}${H.meses[i]===+rpF.mes?' sel':''}">${c??'—'}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+  $('rp-mes').onchange=e=>{rpF.mes=e.target.value;renderRep()};
+  $('rp-q').oninput=e=>{rpF.q=e.target.value;clearTimeout(window.__rpt);window.__rpt=setTimeout(()=>{renderRep();const i=$('rp-q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},300)};
+}
+$('rpbody').addEventListener('click',e=>{const b=e.target.closest('[data-rph]');if(b){rpF.hoja=b.dataset.rph;renderRep()}});
+['Villavicencio','Yopal'].forEach(sd=>{const L=sd[0];$('rpup'+L).onclick=()=>{if(canEdit())$('rpfile'+L).click()};
+  $('rpfile'+L).onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('rpmsg').textContent=`Leyendo el Excel de ${sd}…`;
+    try{const hojas=await rpLeer(f,sd),d={sede:sd,nombre:f.name,fecha:ahoraDT(),hojas:JSON.stringify(hojas),por:cur.nombre,editado:serverTimestamp()};
+      if(d.hojas.length>950000){$('rpmsg').textContent='El archivo es demasiado grande para guardarlo.';return}
+      await setDoc(doc(db,'repuestos',sd),d);repD[sd]={...d,hojas};$('rpmsg').textContent=`Excel de ${sd} guardado: ${hojas.map(h=>h.n).join(' y ')}.`;renderRep()}
+    catch(x){console.error(x);$('rpmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. '+(x&&x.code?ERR(x.code):'')}}});
+
 $('vper').onchange=()=>renderVar();
 
 /* ---------- Sistema "Otro" y lista de conductores ---------- */
@@ -4533,7 +4611,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  dsF.cd='';urF.cd='';renderDisp();renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
+  dsF.cd='';urF.cd='';rpF.hoja='';renderRep();renderDisp();renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
