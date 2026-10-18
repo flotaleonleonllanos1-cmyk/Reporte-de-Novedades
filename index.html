@@ -4192,8 +4192,8 @@ function rpItem(H){let i=H.filas.findIndex(f=>f[0]===rpF.item);if(i<0){const peo
 async function rpLeer(f,sedeArch){
   const X=await loadXLSX(),wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true});
   const quiero=sedeArch==='Villavicencio'?[/canad|villavo|villav/,/^mk\b|\bmk\b/]:null;const fallo=[];
-  const busca=r=>wb.SheetNames.find(n=>r.test(sinTilde(n).trim()));const nombres=quiero?[busca(/canad/)||busca(/villav/),busca(/^mk\b|\bmk\b/)].filter(Boolean):wb.SheetNames;
-  if(quiero&&!nombres.length)throw{msg:`No se encontraron las pestañas «VILLAVO CANADA» y «MK». Pestañas del archivo: ${wb.SheetNames.join(', ')}.`};
+  const busca=r=>wb.SheetNames.find(n=>r.test(sinTilde(n).trim()));const nombres=quiero?[busca(/canad/)||busca(/villav/),busca(/^mk\b|\bmk\b/)].filter(Boolean):[busca(/jarautoz/)||busca(/yopal/)].filter(Boolean);
+  if(!nombres.length)throw{msg:sedeArch==='Villavicencio'?`No se encontraron las pestañas «VILLAVO CANADA» y «MK». Pestañas del archivo: ${wb.SheetNames.join(', ')}.`:`No se encontró la pestaña «YOPAL JARAUTOZ». Pestañas del archivo: ${wb.SheetNames.join(', ')}.`};
   const hojas=[];
   for(const n of nombres){const ws=wb.Sheets[n];if(!ws||!ws['!ref'])continue;const R=X.utils.decode_range(ws['!ref']);R.s.r=0;R.s.c=0;ws['!ref']=X.utils.encode_range(R);
     const t=X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:true}),tx=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:true});
@@ -4220,7 +4220,7 @@ async function rpDesdeDrive(sd,url){
   const d={sede:sd,nombre:nombre+' (Drive)',fecha:ahoraDT(),hojas:JSON.stringify(hojas),driveUrl:url,por:cur.nombre,editado:serverTimestamp()};
   await setDoc(doc(db,'repuestos',sd),d);repD[sd]={...d,hojas};return hojas;
 }
-const rpTabs=hojas=>`<div class="tabs" role="group" aria-label="Pestaña" style="margin:0 0 10px">${hojas.map(h=>`<button type="button" class="tab" data-rph="${esc(h.n)}" aria-pressed="${h.n===rpF.hoja}">${esc(h.n.trim())}</button>`).join('')}${hojas.length>1?`<button type="button" class="tab rpadh" data-rph="__adh" aria-pressed="${rpF.hoja==='__adh'}">ADHERENCIA</button>`:''}</div>`;
+const rpTabs=hojas=>`<div class="tabs" role="group" aria-label="Pestaña" style="margin:0 0 10px">${hojas.map(h=>`<button type="button" class="tab" data-rph="${esc(h.n)}" aria-pressed="${h.n===rpF.hoja}">${esc(h.n.trim())}</button>`).join('')}${hojas.length?`<button type="button" class="tab rpadh" data-rph="__adh" aria-pressed="${rpF.hoja==='__adh'}">ADHERENCIA</button>`:''}</div>`;
 const rpPct=(H,i)=>{const s=H.filas.filter(f=>f[2][i]&&f[2][i][1]===1).length,n=H.filas.filter(f=>f[2][i]&&f[2][i][1]===0).length;return s+n?s/(s+n)*100:null};
 const rpCol=p=>p===null?'#9ca3af':p>=90?'#16a34a':p>=70?'#d97706':'#dc2626';
 function renderRepAdh(D){
@@ -4238,7 +4238,7 @@ function renderRepAdh(D){
   g+=`<line x1="${L}" x2="${W-6}" y1="${Hh-B}" y2="${Hh-B}" stroke="var(--mut)"/></svg>`;
   $('rpbody').innerHTML=`${rpTabs(hojas)}
    <div class="kpis">${[[gen.toFixed(1)+'%','Adherencia promedio (todas las pestañas)',gen>=90?'okc':gen>=70?'warc':'badc'],...hojas.map((h,k)=>[hp[k]===null?'—':hp[k].toFixed(1)+'%',`Promedio ${h.n}`,'']),[porMes.length,'Meses con datos','']].map(([v,l,k])=>`<div class="kpi"><b class="${k}">${v}</b><span>${esc(l)}</span></div>`).join('')}</div>
-   <div class="dc" style="margin-top:14px"><h2>Adherencia por mes · ${hojas.map(h=>esc(h.n)).join(' vs ')} y promedio</h2><small>Porcentaje de repuestos que cumplen el mínimo en cada pestaña; la última columna de cada mes es el promedio</small>
+   <div class="dc" style="margin-top:14px"><h2>Adherencia por mes · ${hojas.map(h=>esc(h.n.trim())).join(' vs ')}${hojas.length>1?' y promedio':''}</h2><small>Porcentaje de repuestos que cumplen el mínimo en cada pestaña; la última columna de cada mes es el promedio</small>
      <div class="urleg">${hojas.map((h,k)=>`<span><i style="background:${PC[k%PC.length]}"></i>${esc(h.n)}</span>`).join('')}<span><i style="background:#a855f7"></i>Promedio</span></div>
      <div class="tscroll">${g}</div></div>
    <div class="dc" style="margin-top:14px"><h2>Promedio mes a mes</h2><small>Adherencia promedio de ${hojas.map(h=>esc(h.n)).join(' y ')}</small>
@@ -4253,7 +4253,7 @@ function renderRep(){
   const D=repD[sede];
   $('rpsub').textContent=SEDES.map(sd=>repD[sd]?`${sd}: ${repD[sd].nombre} (${dtTxt(repD[sd].fecha)})`:`${sd}: sin archivo`).join(' · ');
   if(!D){$('rpbody').innerHTML=`<p class="empty" style="margin:0">Aún no hay Excel de repuestos para ${esc(sede)}.${canEdit()?` Usa «Subir Excel ${esc(sede)}».`:''}</p>`;return}
-  const hojas=D.hojas;if(rpF.hoja==='__adh'&&hojas.length>1){renderRepAdh(D);return}if(!hojas.some(h=>h.n===rpF.hoja))rpF.hoja=hojas[0].n;const H=hojas.find(h=>h.n===rpF.hoja);
+  const hojas=D.hojas;if(rpF.hoja==='__adh'&&hojas.length){renderRepAdh(D);return}if(!hojas.some(h=>h.n===rpF.hoja))rpF.hoja=hojas[0].n;const H=hojas.find(h=>h.n===rpF.hoja);
   if(!H.meses.includes(+rpF.mes)){const con=H.meses.filter((m,i)=>H.filas.some(f=>f[2][i][1]!==null));rpF.mes=String(con[con.length-1]||H.meses[0]||'')}
   const mi=H.meses.indexOf(+rpF.mes),q=sinTilde(rpF.q.trim()),fs=H.filas.filter(f=>!q||sinTilde(f[0]).includes(q));
   const si=fs.filter(f=>mi>=0&&f[2][mi][1]===1),no=fs.filter(f=>mi>=0&&f[2][mi][1]===0),pct=si.length+no.length?si.length/(si.length+no.length)*100:0;
