@@ -318,6 +318,7 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .rpcols div{font-size:.7rem}.rpvcl span{writing-mode:vertical-rl;transform:rotate(180deg);height:120px;font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;margin:0 auto}
 .rpitem{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;margin-top:10px}@media (max-width:700px){.rpitem{grid-template-columns:1fr}}
 .rpmin{position:absolute;left:0;right:0;border-top:2px dashed var(--ink);font-size:.68rem;font-weight:700;text-align:right;padding-right:4px;color:var(--ink);pointer-events:none;z-index:1;transform:translateY(0)}
+.resfila.actafila.conver{grid-template-columns:minmax(280px,380px) minmax(0,1fr)}.resfila.actafila:not(.conver){grid-template-columns:1fr}@media (max-width:900px){.resfila.actafila.conver{grid-template-columns:1fr}}.actacl{max-height:520px}.actaruta{display:block;color:var(--mut);font-size:.68rem}.tab.rpacta{font-weight:800}
 .tab.rpadh{font-weight:800;letter-spacing:.04em}
 .rplist{display:grid;gap:4px;max-height:420px;overflow:auto;margin-top:8px;padding-right:4px}
 .rpit{display:grid;grid-template-columns:1fr auto auto 36px;gap:10px;align-items:center;padding:5px 8px;border-radius:6px;font-size:.84rem;border-left:4px solid}
@@ -4220,7 +4221,7 @@ async function rpDesdeDrive(sd,url){
   const d={sede:sd,nombre:nombre+' (Drive)',fecha:ahoraDT(),hojas:JSON.stringify(hojas),driveUrl:url,por:cur.nombre,editado:serverTimestamp()};
   await setDoc(doc(db,'repuestos',sd),d);repD[sd]={...d,hojas};return hojas;
 }
-const rpTabs=hojas=>`<div class="tabs" role="group" aria-label="Pestaña" style="margin:0 0 10px">${hojas.map(h=>`<button type="button" class="tab" data-rph="${esc(h.n)}" aria-pressed="${h.n===rpF.hoja}">${esc(h.n.trim())}</button>`).join('')}${hojas.length?`<button type="button" class="tab rpadh" data-rph="__adh" aria-pressed="${rpF.hoja==='__adh'}">ADHERENCIA</button>`:''}</div>`;
+const rpTabs=hojas=>`<div class="tabs" role="group" aria-label="Pestaña" style="margin:0 0 10px"><button type="button" class="tab rpacta" data-rph="__acta" aria-pressed="${rpF.hoja==='__acta'}">📄 ACTA</button>${hojas.map(h=>`<button type="button" class="tab" data-rph="${esc(h.n)}" aria-pressed="${h.n===rpF.hoja}">${esc(h.n.trim())}</button>`).join('')}${hojas.length?`<button type="button" class="tab rpadh" data-rph="__adh" aria-pressed="${rpF.hoja==='__adh'}">ADHERENCIA</button>`:''}</div>`;
 const rpPct=(H,i)=>{const s=H.filas.filter(f=>f[2][i]&&f[2][i][1]===1).length,n=H.filas.filter(f=>f[2][i]&&f[2][i][1]===0).length;return s+n?s/(s+n)*100:null};
 const rpCol=p=>p===null?'#9ca3af':p>=90?'#16a34a':p>=70?'#d97706':'#dc2626';
 function renderRepAdh(D){
@@ -4247,12 +4248,43 @@ function renderRepAdh(D){
      <div class="tscroll" style="max-height:560px;overflow:auto"><table class="kmt rptab"><thead><tr><th>Repuesto</th>${hojas.map(h=>`<th class="num">${esc(h.n)}</th>`).join('')}<th class="num">Promedio</th><th style="min-width:160px"></th></tr></thead><tbody>
      ${rl.map(x=>`<tr><td>${esc(x.n)}</td>${hojas.map((h,k)=>`<td class="num ${x.p[k]===undefined?'':x.p[k]>=90?'rsi':x.p[k]<70?'rno':''}">${x.p[k]===undefined?'—':x.p[k].toFixed(0)+'%'}</td>`).join('')}<td class="num"><b>${x.prom.toFixed(0)}%</b></td><td><div class="adh"><span><i style="width:${x.prom}%;background:${rpCol(x.prom)}"></i></span></div></td></tr>`).join('')}</tbody></table></div></div>`;
 }
+/* Actas en PDF por sede (carpetas de Google Drive) */
+const ACTA_CARPETA={Villavicencio:'1SEzhaMVDDwCA4sO2waiF3np4VauIcHy3',Yopal:'1yyZNQbPhu_lAwvrsUhYi7wlo5HVwwbcn'};
+let actaPdf={},actaErr={},actaVer=null,actaZoom=1,actaQ='';
+async function actaListar(sd,forzar){
+  const id=ACTA_CARPETA[sd];if(!id)return;if(actaPdf[sd]&&!forzar)return;if(forzar)Object.keys(docCache).forEach(k=>delete docCache[k]);
+  actaPdf[sd]=null;actaErr[sd]='';const out=[];
+  const vis=async(fid,n,ruta)=>{const it=await driveLista(fid);for(const f of it){if(f.mimeType===MIME_FOLDER){if(n<3)await vis(f.id,n+1,ruta?ruta+' › '+f.name:f.name)}else if(/pdf$/i.test(f.mimeType)||/\.pdf$/i.test(f.name))out.push({...f,ruta})}};
+  try{await vis(id,0,'');out.sort((a,b)=>String(b.modifiedTime||'').localeCompare(String(a.modifiedTime||''))||a.name.localeCompare(b.name,'es'));actaPdf[sd]=out}
+  catch(x){actaErr[sd]=x&&x.code==='accessNotConfigured'||/accessNotConfigured|not been used|disabled/i.test(String(x&&x.message))?'La Google Drive API no está activada en el proyecto.':'No se pudo leer la carpeta de actas. Revisa que esté compartida como «Cualquier persona con el vínculo».';actaPdf[sd]=[]}
+  renderRep();
+}
+function renderActa(){
+  const sd=sede,lst=actaPdf[sd],tabs=rpTabs((repD[sd]&&repD[sd].hojas)||[]);
+  if(lst===undefined){$('rpbody').innerHTML=tabs+'<p class="empty" style="margin:0">Buscando las actas en Google Drive…</p>';actaListar(sd);return}
+  if(lst===null){$('rpbody').innerHTML=tabs+'<p class="empty" style="margin:0">Buscando las actas en Google Drive…</p>';return}
+  const q=sinTilde(actaQ.trim()),vis=lst.filter(f=>!q||sinTilde(f.name+' '+(f.ruta||'')).includes(q));
+  if(actaVer&&!lst.some(f=>f.id===actaVer.id))actaVer=null;
+  $('rpbody').innerHTML=`${tabs}
+   <div class="resfila${actaVer?' conver':''} actafila">
+    <div class="dc"><div class="chead" style="margin:0"><div><h2>Actas · ${esc(sd)}</h2><small>${lst.length} PDF en la carpeta de Drive</small></div>
+      <div class="hb"><a class="btn ghost" href="https://drive.google.com/drive/folders/${ACTA_CARPETA[sd]}" target="_blank" rel="noopener">Abrir carpeta</a><button type="button" class="btn ghost" id="actaref">Actualizar</button></div></div>
+      ${actaErr[sd]?`<div class="ctalw" role="alert" style="margin-top:10px">${esc(actaErr[sd])}</div>`:''}
+      <input type="search" id="actaq" placeholder="Buscar acta…" value="${esc(actaQ)}" style="margin:10px 0 6px">
+      <div class="rescl actacl">${vis.map(f=>`<div class="rescf${actaVer&&actaVer.id===f.id?' on':''}" role="button" tabindex="0" data-aver="${f.id}" data-anom="${esc(f.name)}" title="Ver ${esc(f.name)}"><span class="dic p">PDF</span><span>${esc(f.name.replace(/\.pdf$/i,''))}${f.ruta?`<small class="actaruta">${esc(f.ruta)}</small>`:''}</span><a href="https://drive.google.com/uc?export=download&id=${f.id}" target="_blank" rel="noopener" title="Descargar" aria-label="Descargar ${esc(f.name)}">⬇</a></div>`).join('')||'<p class="empty" style="margin:0">No hay actas en PDF.</p>'}</div></div>
+    ${actaVer?`<div class="dc resvisor"><div class="resvh"><b title="${esc(actaVer.name)}">${esc(actaVer.name)}</b><div class="hb"><button type="button" class="btn ghost" data-az="-1" aria-label="Reducir">−</button><span class="rzv" id="actazv">${Math.round(actaZoom*100)}%</span><button type="button" class="btn ghost" data-az="1" aria-label="Ampliar">+</button><button type="button" class="btn ghost" data-az="0" title="Tamaño original">↺</button><button type="button" class="btn ghost" data-agr title="Pantalla completa">⛶</button><button type="button" class="btn ghost" data-acer aria-label="Cerrar">✕</button></div></div>
+      <div class="resvb"><iframe id="actafr" src="https://drive.google.com/file/d/${actaVer.id}/preview" style="width:${actaZoom*100}%;height:${Math.round(520*actaZoom)}px" title="Acta ${esc(actaVer.name)}" allow="autoplay"></iframe></div></div>`:''}
+   </div>`;
+  $('actaref').onclick=()=>{actaPdf[sd]=undefined;actaListar(sd,true)};
+  $('actaq').oninput=e=>{actaQ=e.target.value;clearTimeout(window.__aqt);window.__aqt=setTimeout(()=>{renderActa();const i=$('actaq');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)};
+}
 function renderRep(){
   if(!cur||$('repv').hidden)return;
   $('rpdrive').hidden=!canEdit();$('rpdsede').textContent=sede;if(document.activeElement!==$('rpdurl'))$('rpdurl').value=(repD[sede]&&repD[sede].driveUrl)||'';$('rpdact').hidden=!(repD[sede]&&repD[sede].driveUrl);['Villavicencio','Yopal'].forEach(sd=>{const b=$('rpup'+sd[0]);if(b)b.hidden=!canEdit()});
+  if(rpF.hoja==='__acta'){renderActa();return}
   const D=repD[sede];
   $('rpsub').textContent=SEDES.map(sd=>repD[sd]?`${sd}: ${repD[sd].nombre} (${dtTxt(repD[sd].fecha)})`:`${sd}: sin archivo`).join(' · ');
-  if(!D){$('rpbody').innerHTML=`<p class="empty" style="margin:0">Aún no hay Excel de repuestos para ${esc(sede)}.${canEdit()?` Usa «Subir Excel ${esc(sede)}».`:''}</p>`;return}
+  if(!D){$('rpbody').innerHTML=rpTabs([])+`<p class="empty" style="margin:0">Aún no hay Excel de repuestos para ${esc(sede)}.${canEdit()?` Usa «Subir Excel ${esc(sede)}».`:''}</p>`;return}
   const hojas=D.hojas;if(rpF.hoja==='__adh'&&hojas.length){renderRepAdh(D);return}if(!hojas.some(h=>h.n===rpF.hoja))rpF.hoja=hojas[0].n;const H=hojas.find(h=>h.n===rpF.hoja);
   if(!H.meses.includes(+rpF.mes)){const con=H.meses.filter((m,i)=>H.filas.some(f=>f[2][i][1]!==null));rpF.mes=String(con[con.length-1]||H.meses[0]||'')}
   const mi=H.meses.indexOf(+rpF.mes),q=sinTilde(rpF.q.trim()),fs=H.filas.filter(f=>!q||sinTilde(f[0]).includes(q));
@@ -4289,7 +4321,13 @@ function renderRep(){
   $('rp-mes').onchange=e=>{rpF.mes=e.target.value;renderRep()};$('rp-item').onchange=e=>{rpF.item=H.filas[+e.target.value][0];renderRep()};
   $('rp-q').oninput=e=>{rpF.q=e.target.value;clearTimeout(window.__rpt);window.__rpt=setTimeout(()=>{renderRep();const i=$('rp-q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},300)};
 }
-$('rpbody').addEventListener('click',e=>{const b=e.target.closest('[data-rph]');if(b){rpF.hoja=b.dataset.rph;renderRep()}});
+$('rpbody').addEventListener('click',e=>{const b=e.target.closest('[data-rph]');if(b){rpF.hoja=b.dataset.rph;renderRep();return}
+  if(e.target.closest('.rescf a'))return;
+  const c=e.target.closest('[data-aver]');if(c){actaVer={id:c.dataset.aver,name:c.dataset.anom};actaZoom=1;renderActa();return}
+  const z=e.target.closest('[data-az]');if(z){const d=+z.dataset.az;actaZoom=d===0?1:Math.min(3,Math.max(.5,Math.round((actaZoom+d*.25)*100)/100));const fr=$('actafr');if(fr){fr.style.width=actaZoom*100+'%';fr.style.height=Math.round(520*actaZoom)+'px'}$('actazv').textContent=Math.round(actaZoom*100)+'%';return}
+  if(e.target.closest('[data-agr]')&&actaVer){$('ddtit').textContent=actaVer.name;$('ddsub').textContent=`Acta · ${sede}`;$('ddpdf').href=`https://drive.google.com/uc?export=download&id=${actaVer.id}`;$('dddrive').href=`https://drive.google.com/file/d/${actaVer.id}/view`;$('ddfr').src=`https://drive.google.com/file/d/${actaVer.id}/preview`;$('ddprev').disabled=$('ddnext').disabled=true;$('docdlg').showModal();return}
+  if(e.target.closest('[data-acer]')){actaVer=null;renderActa()}});
+$('rpbody').addEventListener('keydown',e=>{const c=e.target.closest('[data-aver]');if(c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();c.click()}});
 const rpDrv=async url=>{if(!canEdit())return;$('rpmsg').textContent=`Leyendo el Excel de ${sede} desde Google Drive…`;
   try{const h=await rpDesdeDrive(sede,url);$('rpmsg').textContent=`Excel de ${sede} cargado desde Drive: ${h.map(x=>x.n).join(' y ')}.${h.aviso?' '+h.aviso:''}`;renderRep()}
   catch(x){console.error(x);$('rpmsg').textContent=x&&x.msg?x.msg:x&&x.razon==='accessNotConfigured'?'La Google Drive API no está activada en el proyecto.':'No se pudo leer el archivo de Drive. Revisa que esté compartido como «Cualquier persona con el vínculo». '+(x&&x.message?x.message:'')}};
@@ -4688,7 +4726,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  dsF.cd='';urF.cd='';rpF.hoja='';renderRep();renderDisp();renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
+  dsF.cd='';urF.cd='';rpF.hoja=rpF.hoja==='__acta'?'__acta':'';actaVer=null;renderRep();renderDisp();renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
