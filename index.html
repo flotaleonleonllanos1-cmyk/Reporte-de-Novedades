@@ -319,6 +319,15 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .rpitem{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;margin-top:10px}@media (max-width:700px){.rpitem{grid-template-columns:1fr}}
 .rpmin{position:absolute;left:0;right:0;border-top:2px dashed var(--ink);font-size:.68rem;font-weight:700;text-align:right;padding-right:4px;color:var(--ink);pointer-events:none;z-index:1;transform:translateY(0)}
 .resfila.actafila.conver{grid-template-columns:minmax(280px,380px) minmax(0,1fr)}.resfila.actafila:not(.conver){grid-template-columns:1fr}@media (max-width:900px){.resfila.actafila.conver{grid-template-columns:1fr}}.actacl{max-height:520px}.actaruta{display:block;color:var(--mut);font-size:.68rem}.tab.rpacta{font-weight:800}
+.evtl{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin-top:12px;row-gap:16px}
+.evmes{width:250px;display:flex;flex-direction:column;gap:8px;padding:6px}
+.evlab{align-self:center;background:linear-gradient(#5b8fd6,#2f6db8);color:#fff;font-weight:700;font-size:.82rem;padding:8px 16px;border-radius:4px;box-shadow:0 2px 4px rgba(0,0,0,.3);text-align:center}
+.evfotos{display:grid;grid-template-columns:1fr 1fr;gap:6px}.evfotos figure{margin:0;position:relative}.evfotos figure:first-child:nth-last-child(odd){grid-column:1/-1}
+.evfotos img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:4px;cursor:zoom-in;box-shadow:0 2px 6px rgba(0,0,0,.3)}.evfotos .evpdf{aspect-ratio:4/3}
+.evfotos .evx{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border-radius:4px;padding:0 5px;font-size:.75rem}
+.evvac{grid-column:1/-1;color:var(--mut);font-size:.8rem;text-align:center;margin:12px 0;border:1px dashed var(--line);border-radius:6px;padding:20px 6px}
+.evbtns{display:flex;gap:6px}.evbtns .btn{flex:1;padding:6px 8px;font-size:.85rem}
+.evflecha{align-self:center;width:34px;height:22px;background:#4a86d0;clip-path:polygon(0 30%,60% 30%,60% 0,100% 50%,60% 100%,60% 70%,0 70%);flex:none}
 .evtab{font-size:.84rem;min-width:600px}.evtab td,.evtab th{white-space:nowrap}
 .evlk{background:none;border:0;padding:0;font:inherit;color:var(--acc);text-decoration:underline;cursor:pointer;font-weight:600}
 .evgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -4235,7 +4244,7 @@ async function rpDesdeDrive(sd,url){
   if(!id){if(/^[\w-]{20,}$/.test(String(url).trim()))id=String(url).trim();else throw{msg:'Ese enlace no parece de un archivo o carpeta de Google Drive.'}}
   const buf=await driveXlsx(id),hojas=await rpLeer({arrayBuffer:async()=>buf},sd);
   const d={sede:sd,nombre:nombre+' (Drive)',fecha:ahoraDT(),hojas:JSON.stringify(hojas),evid:JSON.stringify(hojas.evid||[]),driveUrl:url,por:cur.nombre,editado:serverTimestamp()};
-  await setDoc(doc(db,'repuestos',sd),d);repD[sd]={...d,hojas,evid:hojas.evid||[]};return hojas;
+  await setDoc(doc(db,'repuestos',sd),d);repD[sd]={...d,hojas,evid:hojas.evid||[]};hojas.evMsg=await evGuardarExcel(sd,buf);return hojas;
 }
 const rpTabs=hojas=>`<div class="tabs" role="group" aria-label="Pestaña" style="margin:0 0 10px"><button type="button" class="tab rpacta" data-rph="__acta" aria-pressed="${rpF.hoja==='__acta'}">📄 ACTA</button>${hojas.map(h=>`<button type="button" class="tab" data-rph="${esc(h.n)}" aria-pressed="${h.n===rpF.hoja}">${esc(h.n.trim())}</button>`).join('')}${hojas.length?`<button type="button" class="tab rpadh" data-rph="__adh" aria-pressed="${rpF.hoja==='__adh'}">ADHERENCIA</button>`:''}</div>`;
 const rpPct=(H,i)=>{const s=H.filas.filter(f=>f[2][i]&&f[2][i][1]===1).length,n=H.filas.filter(f=>f[2][i]&&f[2][i][1]===0).length;return s+n?s/(s+n)*100:null};
@@ -4299,26 +4308,60 @@ let repEv=[],unsubRE=null,evTab='excel',evMes=11,evHoja='';
 const evAnio=()=>new Date().getFullYear();
 function evLink(c){if(!c||typeof c==='string')return esc(c||'');const m=String(c.u).match(/\/d\/([\w-]{10,})/)||String(c.u).match(/[?&]id=([\w-]{10,})/);
   return m?`<button type="button" class="evlk" data-evdrive="${m[1]}" data-evnom="${esc(c.t)}">🔗 ${esc(c.t)}</button>`:`<a class="evlk" href="${esc(c.u)}" target="_blank" rel="noopener">🔗 ${esc(c.t)}</a>`}
+/* Imágenes de la pestaña EVIDENCIAS del Excel (dibujos incrustados), agrupadas por «INSPECCIÓN <MES>» */
+async function evExtraer(buf){
+  const JZ=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js'],'JSZip');
+  const z=await JZ.loadAsync(buf),P=new DOMParser(),xml=async p=>{const f=z.file(p.replace(/^\//,''));return f?P.parseFromString(await f.async('text'),'application/xml'):null};
+  const rels=async p=>{const d=await xml(p),m={};if(d)[...d.getElementsByTagNameNS('*','Relationship')].forEach(r=>m[r.getAttribute('Id')]={t:r.getAttribute('Target'),ty:r.getAttribute('Type')||''});return m};
+  const unir=(base,t)=>{if(t.startsWith('/'))return t.slice(1);const p=base.split('/');p.pop();t.split('/').forEach(s=>{if(s==='..')p.pop();else if(s!=='.')p.push(s)});return p.join('/')};
+  const wb=await xml('xl/workbook.xml');if(!wb)return null;const sh=[...wb.getElementsByTagNameNS('*','sheet')].find(s=>/evidenc/.test(sinTilde(s.getAttribute('name')||'')));if(!sh)return null;
+  const rid=sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id')||sh.getAttribute('r:id');
+  const wr=await rels('xl/_rels/workbook.xml.rels');if(!wr[rid])return null;const sp=unir('xl/workbook.xml',wr[rid].t);
+  const sr=await rels(sp.replace(/([^/]+)$/,'_rels/$1.rels')),dr=Object.values(sr).find(r=>/drawing$/.test(r.ty));if(!dr)return{n:sh.getAttribute('name'),meses:{}};
+  const dp=unir(sp,dr.t),dx=await xml(dp),drl=await rels(dp.replace(/([^/]+)$/,'_rels/$1.rels'));
+  const anc=[...dx.documentElement.children].filter(e=>/Anchor$/.test(e.localName));
+  const pos=a=>{const f=a.getElementsByTagNameNS('*','from')[0],t=a.getElementsByTagNameNS('*','to')[0],g=(e,n)=>e?+(e.getElementsByTagNameNS('*',n)[0]||{}).textContent||0:0;return{c:g(f,'col'),r:g(f,'row'),c2:t?g(t,'col'):g(f,'col')+3,r2:t?g(t,'row'):g(f,'row')+6}};
+  const labels=[],pics=[],uso={};
+  for(const a of anc){const p=pos(a);
+    const txt=[...a.getElementsByTagNameNS('*','t')].map(x=>x.textContent).join(' ');const mi=MESES.findIndex(m=>sinTilde(txt).includes(sinTilde(m)));
+    if(mi>=0&&/inspecc|evidenc|mes/i.test(sinTilde(txt)+' inspecc'))labels.push({...p,m:mi+1});
+    [...a.getElementsByTagNameNS('*','blip')].forEach(b=>{const id=b.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','embed')||b.getAttribute('r:embed');const r=drl[id];if(!r)return;const mp=unir(dp,r.t);uso[mp]=(uso[mp]||0)+1;pics.push({...p,mp})})}
+  // también rótulos escritos en celdas («INSPECCIÓN MARZO»)
+  try{const sx=await xml(sp),ss=await xml('xl/sharedStrings.xml'),str=ss?[...ss.getElementsByTagNameNS('*','si')].map(si=>[...si.getElementsByTagNameNS('*','t')].map(t=>t.textContent).join('')):[];
+    [...sx.getElementsByTagNameNS('*','c')].forEach(c=>{const v=c.getElementsByTagNameNS('*','v')[0],is=c.getElementsByTagNameNS('*','t')[0];let t=c.getAttribute('t')==='s'&&v?str[+v.textContent]||'':is?is.textContent:'';if(!t)return;const mi=MESES.findIndex(m=>sinTilde(t).includes(sinTilde(m)));if(mi<0||!/inspecc|evidenc/.test(sinTilde(t)))return;
+      const ref=c.getAttribute('r'),mm=ref.match(/^([A-Z]+)(\d+)$/);const col=mm[1].split('').reduce((n,ch)=>n*26+ch.charCodeAt(0)-64,0)-1,row=+mm[2]-1;labels.push({c:col,r:row,c2:col+1,r2:row+1,m:mi+1})})}catch(x){}
+  const meses={};
+  for(const pc of pics){if(!/\.(png|jpe?g|gif|webp)$/i.test(pc.mp))continue;if(uso[pc.mp]>2)continue;if((pc.r2-pc.r)<=3&&(pc.c2-pc.c)<=1)continue;// íconos (PDF) y repetidos
+    let best=null,bs=1e9;for(const L of labels){if(L.r>pc.r+2)continue;const sc=(pc.r-L.r)+Math.abs(pc.c-L.c)*.8;if(sc<bs){bs=sc;best=L}}if(!best)continue;
+    const blob=await z.file(pc.mp).async('blob');try{const bm=await createImageBitmap(blob);const mx=Math.max(bm.width,bm.height);bm.close&&bm.close();if(mx<120)continue}catch(x){if(blob.size<3000)continue}(meses[best.m]=meses[best.m]||[]).push({blob,mp:pc.mp,o:pc.r*100+pc.c})}
+  labels.forEach(L=>{meses[L.m]=meses[L.m]||[]});
+  return{n:sh.getAttribute('name'),meses};
+}
+async function evGuardarExcel(sd,buf){
+  let E;try{E=await evExtraer(buf)}catch(x){console.error(x);return ''}if(!E)return '';
+  const viejos=repEv.filter(x=>x.sede===sd&&x.origen==='excel');for(const v of viejos){try{await deleteDoc(doc(db,'repevid',v.id))}catch(x){}}
+  let n=0;const anio=new Date().getFullYear();
+  for(const[m,l]of Object.entries(E.meses)){l.sort((a,b)=>a.o-b.o);for(let i=0;i<l.length;i++){try{const data=await imgJpeg(l[i].blob,1000,.68);await addDoc(collection(db,'repevid'),{sede:sd,anio,mes:+m,origen:'excel',orden:i,nombre:`Inspección ${MESES[m-1].toLowerCase()} ${i+1}`,data,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});n++}catch(x){console.error(x)}}}
+  await setDoc(doc(db,'repuestos',sd),{evMeses:Object.keys(E.meses).map(Number).sort((a,b)=>a-b)},{merge:true});
+  return ` Evidencias: ${n} ${n===1?'imagen':'imágenes'} de la pestaña «${E.n}».`;
+}
 function renderEvid(){
-  const w=$('rpevw');if(!w)return;const D=repD[sede]||{},ev=D.evid||[],sub=repEv.filter(x=>x.sede===sede&&x.anio===evAnio()&&x.mes===evMes);
-  if(!ev.some(h=>h.n===evHoja))evHoja=ev[0]?ev[0].n:'';const H=ev.find(h=>h.n===evHoja);
-  w.innerHTML=`<div class="chead" style="margin:0"><div><h2>Evidencias</h2><small>${esc(sede)} · enlaces de la pestaña «Evidencias» del Excel y evidencias de noviembre y diciembre</small></div>
-    <div class="tabs" role="group" aria-label="Evidencias" style="margin:0"><button type="button" class="tab" data-evt="excel" aria-pressed="${evTab==='excel'}">Del Excel</button><button type="button" class="tab" data-evt="sub" aria-pressed="${evTab==='sub'}">Noviembre y diciembre</button></div></div>
-    ${evTab==='excel'?(ev.length?`${ev.length>1?`<div class="tabs" style="margin:10px 0 0">${ev.map(h=>`<button type="button" class="tab" data-evh="${esc(h.n)}" aria-pressed="${h.n===evHoja}">${esc(h.n)}</button>`).join('')}</div>`:''}
-      <div class="tscroll" style="max-height:460px;overflow:auto;margin-top:10px"><table class="kmt evtab"><thead><tr>${(H.filas[0]||[]).map(c=>`<th>${typeof c==='string'?esc(c):evLink(c)}</th>`).join('')}</tr></thead><tbody>${H.filas.slice(1).map(f=>`<tr>${f.map(c=>`<td>${evLink(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
-      <small class="mnota">Toca un enlace para abrir la evidencia. Los archivos de Drive se abren en el visor.</small>`
-      :`<p class="empty" style="margin:10px 0 0">El Excel de ${esc(sede)} no tiene una pestaña «Evidencias», o se cargó antes de esta versión. Vuelve a cargarlo para verla.</p>`)
-    :`<div class="ralbar" style="margin:10px 0"><div class="tabs" role="group" style="margin:0">${[11,12].map(m=>`<button type="button" class="tab" data-evm="${m}" aria-pressed="${m===evMes}">${MESES[m-1]} ${evAnio()}</button>`).join('')}</div>
-      ${canEdit()?`<button type="button" class="btn" id="evcam">📷 Tomar foto</button><button type="button" class="btn ghost" id="evsub">Subir evidencias</button>`:''}<span class="pprog" id="evmsg" role="status"></span></div>
-      <div class="evgrid">${sub.map(x=>`<figure class="evit">${/^data:image/.test(x.data)?`<img src="${x.data}" alt="${esc(x.nombre)}" data-evimg>`:`<button type="button" class="evpdf" data-evpdf="${x.id}"><span class="dic p">PDF</span></button>`}<figcaption title="${esc(x.nombre)}">${esc(x.nombre)}<small>${esc(x.por||'')} · ${x.creado&&x.creado.toDate?x.creado.toDate().toLocaleDateString('es-CO'):''}</small>${cur.rol==='admin'?`<button type="button" class="del" data-evdel="${x.id}" aria-label="Eliminar">✕</button>`:''}</figcaption></figure>`).join('')||`<p class="empty" style="margin:0">Sin evidencias en ${MESES[evMes-1].toLowerCase()}.</p>`}</div>
-      <small class="mnota">Las evidencias se guardan en la página (fotos y PDF de hasta 700 KB). La página no puede escribir dentro del Excel de Drive: para tenerlas también allá, súbelas a la carpeta de Drive o pega su enlace en la pestaña «Evidencias» del Excel.</small>
-      <input type="file" id="evfcam" accept="image/*" capture="environment" hidden><input type="file" id="evfsub" accept="image/*,application/pdf" multiple hidden>`}`;
-  if(evTab==='sub'&&canEdit()){$('evcam').onclick=()=>$('evfcam').click();$('evsub').onclick=()=>$('evfsub').click();
-    const subir=async files=>{let ok=0,mal=[];for(const f of files){$('evmsg').textContent=`Guardando ${ok+1} de ${files.length}…`;
-      try{let data;if(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)){if(f.size>700000){mal.push(f.name);continue}data=await new Promise((r,j)=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.onerror=j;fr.readAsDataURL(f)})}else data=await imgJpeg(f,1400,.72);
-        await addDoc(collection(db,'repevid'),{sede,anio:evAnio(),mes:evMes,nombre:f.name,data,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});ok++}catch(x){console.error(x);mal.push(f.name)}}
-      const m=$('evmsg');if(m)m.textContent=`${ok} evidencia${ok===1?'':'s'} guardada${ok===1?'':'s'}.${mal.length?` No se pudieron guardar (PDF de más de 700 KB o error): ${mal.join(', ')}.`:''}`};
-    $('evfcam').onchange=e=>{const f=[...e.target.files];e.target.value='';subir(f)};$('evfsub').onchange=e=>{const f=[...e.target.files];e.target.value='';subir(f)}}
+  const w=$('rpevw');if(!w)return;const D=repD[sede]||{},ev=repEv.filter(x=>x.sede===sede);
+  const meses=[...new Set([...(D.evMeses||[]),...ev.map(x=>x.mes),11,12])].sort((a,b)=>a-b),ed=canEdit();
+  w.innerHTML=`<h2>Evidencias</h2><small>${esc(sede)} · inspecciones de la pestaña «EVIDENCIAS» del Excel${ed?' · en noviembre y diciembre puedes subir o tomar las fotos':''}</small>
+   <div class="evtl">${meses.map((m,k)=>{const fs=ev.filter(x=>x.mes===m).sort((a,b)=>(a.origen==='excel'?0:1)-(b.origen==='excel'?0:1)||(a.orden||0)-(b.orden||0)||(a.creado?.seconds||0)-(b.creado?.seconds||0)),sube=ed&&(m===11||m===12);
+     return `${k?'<span class="evflecha" aria-hidden="true"></span>':''}<div class="evmes"><div class="evlab">INSPECCIÓN ${MESES[m-1].toUpperCase()}</div>
+       <div class="evfotos">${fs.map(x=>`<figure>${/^data:image/.test(x.data)?`<img src="${x.data}" alt="${esc(x.nombre)}" data-evimg>`:`<button type="button" class="evpdf" data-evpdf="${x.id}"><span class="dic p">PDF</span></button>`}${cur.rol==='admin'&&x.origen!=='excel'?`<button type="button" class="del evx" data-evdel="${x.id}" aria-label="Eliminar">✕</button>`:''}</figure>`).join('')||'<p class="evvac">Sin imágenes</p>'}</div>
+       ${sube?`<div class="evbtns"><button type="button" class="btn" data-evcam="${m}">📷 Tomar</button><button type="button" class="btn ghost" data-evup="${m}">Subir</button></div><span class="pprog" id="evmsg${m}" role="status"></span>`:''}</div>`}).join('')}</div>
+   <input type="file" id="evfcam" accept="image/*" capture="environment" hidden><input type="file" id="evfsub" accept="image/*,application/pdf" multiple hidden>`;
+  if(!ed)return;
+  const subir=async(files,m)=>{let ok=0,mal=[];const msg=t=>{const e=$('evmsg'+m);if(e)e.textContent=t};
+    for(const f of files){msg(`Guardando ${ok+1} de ${files.length}…`);try{let data;if(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)){if(f.size>700000){mal.push(f.name);continue}data=await new Promise((r,j)=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.onerror=j;fr.readAsDataURL(f)})}else data=await imgJpeg(f,1400,.72);
+      await addDoc(collection(db,'repevid'),{sede,anio:new Date().getFullYear(),mes:m,origen:'app',nombre:f.name,data,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});ok++}catch(x){console.error(x);mal.push(f.name)}}
+    msg(`${ok} guardada${ok===1?'':'s'}.${mal.length?' No se pudieron guardar: '+mal.join(', '):''}`)};
+  w.querySelectorAll('[data-evcam]').forEach(b=>b.onclick=()=>{$('evfcam').dataset.m=b.dataset.evcam;$('evfcam').click()});
+  w.querySelectorAll('[data-evup]').forEach(b=>b.onclick=()=>{$('evfsub').dataset.m=b.dataset.evup;$('evfsub').click()});
+  $('evfcam').onchange=e=>{const f=[...e.target.files];e.target.value='';subir(f,+e.target.dataset.m)};$('evfsub').onchange=e=>{const f=[...e.target.files];e.target.value='';subir(f,+e.target.dataset.m)};
 }
 function renderRep(){
   if(!cur||$('repv').hidden)return;
@@ -4381,7 +4424,7 @@ $('rpbody').addEventListener('click',e=>{
 });
 $('rpbody').addEventListener('keydown',e=>{const c=e.target.closest('[data-aver]');if(c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();c.click()}});
 const rpDrv=async url=>{if(!canEdit())return;$('rpmsg').textContent=`Leyendo el Excel de ${sede} desde Google Drive…`;
-  try{const h=await rpDesdeDrive(sede,url);$('rpmsg').textContent=`Excel de ${sede} cargado desde Drive: ${h.map(x=>x.n).join(' y ')}.${h.aviso?' '+h.aviso:''}`;renderRep()}
+  try{const h=await rpDesdeDrive(sede,url);$('rpmsg').textContent=`Excel de ${sede} cargado desde Drive: ${h.map(x=>x.n).join(' y ')}.${h.aviso?' '+h.aviso:''}${h.evMsg||''}`;renderRep()}
   catch(x){console.error(x);$('rpmsg').textContent=x&&x.msg?x.msg:x&&x.razon==='accessNotConfigured'?'La Google Drive API no está activada en el proyecto.':'No se pudo leer el archivo de Drive. Revisa que esté compartido como «Cualquier persona con el vínculo». '+(x&&x.message?x.message:'')}};
 $('rpdcar').onclick=()=>{const u=$('rpdurl').value.trim();if(!u){$('rpmsg').textContent='Pega primero el enlace de Drive.';return}rpDrv(u)};
 $('rpdact').onclick=()=>{const u=repD[sede]&&repD[sede].driveUrl;if(u)rpDrv(u)};
@@ -4389,7 +4432,7 @@ $('rpdact').onclick=()=>{const u=repD[sede]&&repD[sede].driveUrl;if(u)rpDrv(u)};
   $('rpfile'+L).onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('rpmsg').textContent=`Leyendo el Excel de ${sd}…`;
     try{const hojas=await rpLeer(f,sd),d={sede:sd,nombre:f.name,fecha:ahoraDT(),hojas:JSON.stringify(hojas),evid:JSON.stringify(hojas.evid||[]),por:cur.nombre,editado:serverTimestamp()};
       if(d.hojas.length>950000){$('rpmsg').textContent='El archivo es demasiado grande para guardarlo.';return}
-      await setDoc(doc(db,'repuestos',sd),d);repD[sd]={...d,hojas,evid:hojas.evid||[]};$('rpmsg').textContent=`Excel de ${sd} guardado: ${hojas.map(h=>h.n).join(' y ')}.${hojas.aviso?' '+hojas.aviso:''}`;renderRep()}
+      await setDoc(doc(db,'repuestos',sd),d);repD[sd]={...d,hojas,evid:hojas.evid||[]};$('rpmsg').textContent=`Excel de ${sd} guardado. Leyendo las evidencias…`;const em=await evGuardarExcel(sd,await f.arrayBuffer());$('rpmsg').textContent=`Excel de ${sd} guardado: ${hojas.map(h=>h.n).join(' y ')}.${hojas.aviso?' '+hojas.aviso:''}${em}`;renderRep()}
     catch(x){console.error(x);$('rpmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. '+(x&&x.code?ERR(x.code):'')}}});
 
 $('vper').onchange=()=>renderVar();
