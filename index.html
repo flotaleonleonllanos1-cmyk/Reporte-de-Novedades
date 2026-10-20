@@ -341,6 +341,7 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .evpdf{width:100%;aspect-ratio:4/3;display:grid;place-items:center;background:var(--soft);border:0;cursor:pointer}.evpdf .dic{width:44px;height:52px;font-size:.8rem}
 .evit figcaption{padding:6px 8px;font-size:.75rem;display:grid;gap:2px;position:relative;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.evit figcaption small{color:var(--mut)}.evit .del{position:absolute;right:4px;top:4px;padding:0 4px;font-size:.75rem}
 .tab.rpadh{font-weight:800;letter-spacing:.04em}
+.lictab{min-width:820px;font-size:.88rem}.lictab td{vertical-align:middle}.lictab .dic.licic{display:inline-grid!important;width:22px!important;height:24px!important;font-size:.5rem!important;vertical-align:middle;border-radius:4px;margin-right:4px}.licacc{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.licacc .btn{padding:5px 10px;font-size:.82rem}
 .rplist{display:grid;gap:4px;max-height:420px;overflow:auto;margin-top:8px;padding-right:4px}
 .rpit{display:grid;grid-template-columns:1fr auto auto 36px;gap:10px;align-items:center;padding:5px 8px;border-radius:6px;font-size:.84rem;border-left:4px solid}
 .rpit.ok{background:var(--okbg);border-color:var(--ok)}.rpit.no{background:var(--badbg);border-color:var(--bad)}.rpit .mn{color:var(--mut);font-size:.75rem}.rpit .ct{font-weight:700;font-variant-numeric:tabular-nums}
@@ -917,6 +918,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
       <button type="button" class="mi" data-m="rep" aria-pressed="false" aria-expanded="false" title="Repuestos"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 28" width="24" height="24"><circle cx="11" cy="11" r="7" fill="none" stroke="#f2d27a" stroke-width="3.2" stroke-dasharray="3 2.2" class="crueda" style="transform-origin:11px 11px"/><circle cx="11" cy="11" r="2.6" fill="#fff"/><path d="M15 17l7 7" stroke="#fff" stroke-width="3" stroke-linecap="round"/><rect x="19" y="3" width="6" height="8" rx="1.5" fill="#d6d6d6"/></svg></span><span class="lbl">Repuestos</span></button>
     </div>
     <div class="grp">
+      <button type="button" class="mi" data-m="lic" aria-pressed="false" aria-expanded="false" title="Notificación Licencia"><span class="docico" aria-hidden="true"><svg viewBox="0 0 30 26" width="26" height="24"><rect x="1.5" y="3" width="27" height="19" rx="3" fill="#f7efd6" stroke="rgba(255,255,255,.85)"/><circle cx="9" cy="11" r="3.4" fill="#8a6508"/><path d="M3.8 19c.8-3.4 3-5 5.2-5s4.4 1.6 5.2 5" fill="#8a6508"/><rect x="16" y="8" width="10" height="2" rx="1" fill="#b8860b"/><rect x="16" y="12" width="8" height="2" rx="1" fill="#b8860b"/><rect x="16" y="16" width="6" height="2" rx="1" fill="#b8860b"/><circle cx="25" cy="4" r="3.6" fill="#dc2626" class="brillo"/><rect x="24.4" y="2" width="1.2" height="2.6" fill="#fff"/><rect x="24.4" y="5.2" width="1.2" height="1" fill="#fff"/></svg></span><span class="lbl">Notificación Licencia</span></button>
+    </div>
+    <div class="grp">
       <button type="button" class="mi" data-m="var" aria-pressed="false" aria-expanded="false" title="Varadas"><svg class="ic icv" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3zM12 10v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Varadas</span><span class="humo" aria-hidden="true"><svg viewBox="0 0 48 36" width="44" height="33">
 <g class="nube"><circle cx="38" cy="14" r="3.4"/><circle cx="36" cy="14" r="3"/><circle cx="40" cy="14" r="3.2"/></g>
 <path d="M4 25v-6.5c0-1.2.7-2.2 1.8-2.6l5.2-2 4.4-4.6c.7-.7 1.6-1.1 2.6-1.1H33c1 0 1.9.5 2.5 1.3l4.3 6.2 3.6 1.4c1 .4 1.6 1.4 1.6 2.4V25c0 .8-.7 1.5-1.5 1.5H5.5C4.7 26.5 4 25.8 4 25z" fill="#f2f2f2" stroke="#2b2b2b" stroke-width="1.2"/>
@@ -978,6 +982,11 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </div>
 <div id="list"></div>
 </div>
+<section id="licv" hidden aria-label="Notificación Licencia">
+  <div class="dc"><div class="chead" style="margin:0"><div><h2 style="font-size:1.1rem">Notificación de licencia</h2><small id="licsub"></small></div><button type="button" class="btn" id="licnew" hidden>+ Nueva notificación</button></div>
+    <input type="search" id="licbusca" placeholder="Buscar conductor o archivo…" aria-label="Buscar" style="margin:12px 0 10px;max-width:320px">
+    <div id="liclist"></div></div>
+</section>
 <section id="repv" hidden aria-label="Repuestos">
   <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Repuestos · cumplimiento del mínimo</h2>
     <div class="hb"><button type="button" class="btn" id="rpupV" hidden>Subir Excel Villavicencio</button><button type="button" class="btn" id="rpupY" hidden>Subir Excel Yopal</button></div></div>
@@ -1399,6 +1408,17 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <div class="pvtop"><div><b id="maptit">Ubicación</b><small id="mapsub"></small></div><div class="hb"><a class="btn ghost" id="mapab" target="_blank" rel="noopener">Abrir en Google Maps</a><button type="button" class="btn" onclick="this.closest('dialog').close()">Cerrar</button></div></div>
   <iframe id="mapfr" class="pvframe" title="Mapa de la ubicación" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
 </dialog>
+<dialog id="licdlg" aria-labelledby="lictit">
+  <form id="licfrm">
+    <h2 id="lictit">Nueva notificación de licencia</h2>
+    <label>Nombre del conductor<input id="liccond" list="liccl" required maxlength="120" placeholder="Nombre completo del conductor" autocomplete="off"></label><datalist id="liccl"></datalist>
+    <label>Fecha de notificación<input id="licfec" type="date"></label>
+    <label>Observación (opcional)<input id="licobs" maxlength="300" placeholder="Ej: licencia vence el 15/12/2026"></label>
+    <label>Archivo PDF<input id="licarch" type="file" accept="application/pdf,.pdf"></label><small class="mnota" id="licactual"></small>
+    <div class="err" id="licerr" role="alert"></div>
+    <div class="foot"><button type="button" class="btn ghost" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn" id="licsave">Guardar</button></div>
+  </form>
+</dialog>
 <dialog id="drdlg">
   <form id="drfrm">
     <h2 id="drtit">Agregar enlace de Google Drive</h2>
@@ -1439,7 +1459,7 @@ const DOM='@novedades-leon.app';
 const mail=u=>u.trim().toLowerCase()+DOM;
 const okUser=u=>/^[a-z0-9._-]{3,30}$/.test(u);
 const ROLES={admin:'Administrador',editor:'Editor',visual:'Visual',inactivo:'Sin acceso'};
-const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['disp','Disponibilidad'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
+const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['disp','Disponibilidad'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['lic','Notificación Licencia'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
 const puedeSede=x=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.sedes)||!cur.sedes.length||cur.sedes.includes(x));
 const sedesHTML=(pre,sel)=>`<div class="mudchk">${SEDES.map(x=>`<label><input type="checkbox" data-${pre}="${x}"${!sel||!sel.length||sel.includes(x)?' checked':''}> ${x}</label>`).join('')}</div>`;
 function aplicarSedes(){const ok=SEDES.filter(puedeSede);$('sede').innerHTML=ok.map(x=>`<option${x===sede?' selected':''}>${x}</option>`).join('');$('sede').disabled=ok.length<2;$('sede').title=ok.length<2?'Tu usuario solo tiene acceso a esta sede':'';
@@ -1590,6 +1610,8 @@ function salir(){
 
   if(unsubDS){unsubDS();unsubDS=null}
   if(unsubRP){unsubRP();unsubRP=null}
+  if(unsubLC){unsubLC();unsubLC=null}
+  licD=[];
   if(unsubRE){unsubRE();unsubRE=null}
   repEv=[];
   repD={};
@@ -1636,6 +1658,7 @@ async function entrar(user){
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
   if(puedeVer('est'))unsubED=onSnapshot(collection(db,'estdata'),snap=>{edDatos={};snap.docs.forEach(d=>edDatos[d.id]=d.data());renderED();if(!$('estv').hidden&&estVista==='plant')renderEst()},()=>{});
+  if(puedeVer('lic'))unsubLC=onSnapshot(collection(db,'licencias'),snap=>{licD=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderLic()},()=>{});
   if(puedeVer('rep'))unsubRE=onSnapshot(collection(db,'repevid'),snap=>{repEv=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderEvid()},()=>{});
   if(puedeVer('rep'))unsubRP=onSnapshot(collection(db,'repuestos'),snap=>{repD={};snap.docs.forEach(d=>{const x=d.data();try{repD[d.id]={...x,hojas:typeof x.hojas==='string'?JSON.parse(x.hojas):x.hojas,evid:typeof x.evid==='string'?JSON.parse(x.evid):(x.evid||[])}}catch(e){}});renderRep()},()=>{});
   if(puedeVer('disp'))unsubDS=onSnapshot(doc(db,'disp','todas'),d=>{if(d.exists()){const x=d.data();dispD={...x,filas:(x.filas||[]).map(r=>typeof r==='string'?JSON.parse(r):r)}}else dispD=null;renderDisp()},()=>{});
@@ -1804,7 +1827,8 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
   if(m!=='ini'&&!puedeVer(m))m='ini';
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep',lc=m==='lic';
+  $('licv').hidden=!lc;if(lc)renderLic();
   document.documentElement.classList.toggle('tema-rep',rp);$('repv').hidden=!rp;if(rp)renderRep();
   document.documentElement.classList.toggle('tema-disp',ds);$('dispv').hidden=!ds;if(ds)renderDisp();
   document.documentElement.classList.toggle('tema-urea',ur);$('ureav').hidden=!ur;if(ur)renderUrea();
@@ -1817,9 +1841,9 @@ function modulo(m){
   document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp;
-  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc;
+  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||!canEdit();$('raladd').hidden=!ral||!canEdit();
   if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';$('kmllanos').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
@@ -1832,10 +1856,10 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden;
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden,lc=!$('licv').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':rp?'Repuestos':ds?'Disponibilidad':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?'Estándar de Flota · Datos del Excel':'Estándar de Flota'):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!cal&&$('dash').hidden);
+  $('vtit').textContent=ini?'':lc?'Notificación Licencia':rp?'Repuestos':ds?'Disponibilidad':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?'Estándar de Flota · Datos del Excel':'Estándar de Flota'):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!lc&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
@@ -2001,6 +2025,7 @@ function vistaPDF(){
   if(vis('ralv'))return{el:$('ralv'),titulo:'Ralentí'};
   if(vis('docv'))return{el:$('docv'),titulo:$('vtit').textContent};
   if(vis('blv'))return{el:$('blv'),titulo:BLN[blTipo].t};
+  if(vis('licv'))return{el:$('licv'),titulo:'Notificacion Licencia'};
   if(vis('repv'))return{el:$('repv'),titulo:'Repuestos'};
   if(vis('dispv'))return{el:$('dispv'),titulo:'Disponibilidad'};
   if(vis('ureav'))return{el:$('ureav'),titulo:'CO2 - dioxido de carbono'};
@@ -4492,6 +4517,57 @@ $('rpdact').onclick=()=>{const u=repD[sede]&&repD[sede].driveUrl;if(u)rpDrv(u)};
       await setDoc(doc(db,'repuestos',sd),d);repD[sd]={...d,hojas,evid:hojas.evid||[]};$('rpmsg').textContent=`Excel de ${sd} guardado. Leyendo las evidencias…`;const em=await evGuardarExcel(sd,await f.arrayBuffer());$('rpmsg').textContent=`Excel de ${sd} guardado: ${hojas.map(h=>h.n).join(' y ')}.${hojas.aviso?' '+hojas.aviso:''}${em}`;renderRep()}
     catch(x){console.error(x);$('rpmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. '+(x&&x.code?ERR(x.code):'')}}});
 
+/* ---------- NOTIFICACIÓN LICENCIA: PDF por conductor (Villavicencio y Yopal) ---------- */
+let licD=[],unsubLC=null,licEdit=null,licQ='';
+const LIC_PARTE=700000;
+function renderLic(){
+  if(!cur||$('licv').hidden)return;$('licnew').hidden=!canEdit();
+  const q=sinTilde(licQ.trim()),ls=licD.filter(x=>x.sede===sede&&(!q||sinTilde((x.conductor||'')+' '+(x.archivo||'')+' '+(x.obs||'')).includes(q))).sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||''))||(b.creado?.seconds||0)-(a.creado?.seconds||0));
+  $('licsub').textContent=`${ls.length} notificaci${ls.length===1?'ón':'ones'} · ${sede}`;
+  $('liclist').innerHTML=ls.length?`<div class="tscroll"><table class="kmt lictab"><thead><tr><th>Conductor</th><th>Fecha</th><th>Archivo PDF</th><th>Observación</th><th>Registró</th><th></th></tr></thead><tbody>
+    ${ls.map(x=>`<tr><td><b>${esc(x.conductor||'—')}</b></td><td>${x.fecha?fd(x.fecha):'—'}</td><td><span class="dic p licic">PDF</span> ${esc(x.archivo||'')} <small class="mnota">${x.tam?tam(x.tam):''}</small></td><td>${esc(x.obs||'')}</td><td><small>${esc(x.por||'')}${x.editadoPor?`<br>Editado: ${esc(x.editadoPor)}`:''}</small></td>
+      <td><div class="licacc"><button type="button" class="btn ghost" data-licver="${x.id}">Ver</button><button type="button" class="btn ghost" data-licdl="${x.id}">Descargar</button>${canEdit()?`<button type="button" class="btn ghost" data-licedit="${x.id}">Editar</button>`:''}${cur.rol==='admin'||(canEdit()&&x.uid===cur.uid)?`<button type="button" class="del" data-licdel="${x.id}">Borrar</button>`:''}</div></td></tr>`).join('')}</tbody></table></div>`
+    :`<p class="empty" style="margin:0">${q?'Ninguna notificación coincide con la búsqueda.':`Aún no hay notificaciones de licencia en ${esc(sede)}.`}</p>`;
+}
+async function licPdf(x){ // reconstruye el PDF desde sus partes
+  const sn=await getDocs(collection(db,'licencias',x.id,'partes'));const ps=sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.id.localeCompare(b.id));
+  const b64=ps.map(p=>p.d).join(''),bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new Blob([u],{type:'application/pdf'});
+}
+async function licAccion(id,modo){const x=licD.find(y=>y.id===id);if(!x)return;
+  try{const b=await licPdf(x),u=URL.createObjectURL(b);if(modo==='dl'){const a=document.createElement('a');a.href=u;a.download=x.archivo||`notificacion_${x.conductor}.pdf`;document.body.appendChild(a);a.click();a.remove()}else window.open(u,'_blank');setTimeout(()=>URL.revokeObjectURL(u),60000)}
+  catch(e){console.error(e);alert('No se pudo abrir el PDF.')}}
+function licAbrir(x){licEdit=x||null;$('lictit').textContent=x?'Editar notificación de licencia':`Nueva notificación de licencia · ${sede}`;$('licerr').textContent='';
+  $('liccond').value=x?x.conductor||'':'';$('licfec').value=x?x.fecha||'':new Date().toISOString().slice(0,10);$('licobs').value=x?x.obs||'':'';$('licarch').value='';
+  $('licarch').required=!x;$('licactual').textContent=x?`Archivo actual: ${x.archivo||'PDF'} (déjalo vacío para conservarlo)`:'';
+  const ls=(listas['conductores_'+sede]||{}).nombres||(listas['conductores_'+sede]||{}).lista||[];$('liccl').innerHTML=(Array.isArray(ls)?ls:[]).map(n=>`<option value="${esc(n)}">`).join('');
+  $('licdlg').showModal();setTimeout(()=>$('liccond').focus(),50)}
+$('licnew').onclick=()=>{if(canEdit())licAbrir(null)};
+$('licbusca').oninput=e=>{licQ=e.target.value;renderLic()};
+$('liclist').addEventListener('click',async e=>{
+  const v=e.target.closest('[data-licver]');if(v){licAccion(v.dataset.licver,'ver');return}
+  const d=e.target.closest('[data-licdl]');if(d){licAccion(d.dataset.licdl,'dl');return}
+  const ed=e.target.closest('[data-licedit]');if(ed&&canEdit()){licAbrir(licD.find(y=>y.id===ed.dataset.licedit));return}
+  const b=e.target.closest('[data-licdel]');if(b){const x=licD.find(y=>y.id===b.dataset.licdel);if(!x||!confirm(`¿Borrar la notificación de ${x.conductor}?`))return;
+    try{const sn=await getDocs(collection(db,'licencias',x.id,'partes'));for(const p of sn.docs)await deleteDoc(doc(db,'licencias',x.id,'partes',p.id));await deleteDoc(doc(db,'licencias',x.id))}catch(er){alert(ERR(er.code))}}});
+$('licfrm').onsubmit=async e=>{e.preventDefault();if(!canEdit())return;
+  const cond=$('liccond').value.trim(),fec=$('licfec').value,obs=$('licobs').value.trim(),f=$('licarch').files[0];
+  if(!cond){$('licerr').textContent='Escribe el nombre del conductor.';return}
+  if(!licEdit&&!f){$('licerr').textContent='Selecciona el PDF.';return}
+  if(f&&!(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name))){$('licerr').textContent='El archivo debe ser un PDF.';return}
+  if(f&&f.size>20*1024*1024){$('licerr').textContent='El PDF supera 20 MB.';return}
+  const btn=$('licsave');btn.disabled=true;btn.textContent='Guardando…';
+  try{let id=licEdit?licEdit.id:doc(collection(db,'licencias')).id,partes=null;
+    if(f){const b64=await new Promise((r,j)=>{const fr=new FileReader();fr.onload=()=>r(String(fr.result).split(',')[1]);fr.onerror=j;fr.readAsDataURL(f)});
+      partes=[];for(let i=0;i<b64.length;i+=LIC_PARTE)partes.push(b64.slice(i,i+LIC_PARTE));
+      if(licEdit){const sn=await getDocs(collection(db,'licencias',id,'partes'));for(const p of sn.docs)await deleteDoc(doc(db,'licencias',id,'partes',p.id))}
+      for(let i=0;i<partes.length;i++){btn.textContent=`Subiendo ${i+1} de ${partes.length}…`;await setDoc(doc(db,'licencias',id,'partes','p'+String(i).padStart(3,'0')),{d:partes[i]})}}
+    const meta={conductor:cond,fecha:fec,obs};if(f){meta.archivo=f.name;meta.tam=f.size;meta.nPartes=partes.length}
+    if(licEdit)await updateDoc(doc(db,'licencias',id),{...meta,editadoPor:cur.nombre,editado:serverTimestamp()});
+    else await setDoc(doc(db,'licencias',id),{...meta,sede,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});
+    $('licdlg').close()}
+  catch(x){console.error(x);$('licerr').textContent='No se pudo guardar. '+(x&&x.code?ERR(x.code):'')}
+  btn.disabled=false;btn.textContent='Guardar'};
+
 $('vper').onchange=()=>renderVar();
 
 /* ---------- Sistema "Otro" y lista de conductores ---------- */
@@ -4878,7 +4954,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  dsF.cd='';rpF.hoja=rpF.hoja==='__acta'?'__acta':'';actaVer=null;renderRep();renderDisp();renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
+  dsF.cd='';renderLic();rpF.hoja=rpF.hoja==='__acta'?'__acta':'';actaVer=null;renderRep();renderDisp();renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
