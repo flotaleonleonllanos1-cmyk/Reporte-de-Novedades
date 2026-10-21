@@ -848,6 +848,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .menu .sub .si:hover{background:rgba(212,160,23,.18);color:#fff}
 .menu .sub .si[aria-current="true"]{background:linear-gradient(90deg,rgba(242,201,76,.95),rgba(184,134,11,.85))!important;color:#111!important;box-shadow:0 3px 8px rgba(0,0,0,.4)}
 .sidefoot .si{color:rgba(242,214,130,.85)}.sidefoot .si:hover{color:#fff;background:rgba(212,160,23,.15)}
+
+/* ===== Permisos: solo el administrador descarga (Visual y Editor solo ven) ===== */
+html:not([data-rol="admin"]) :is(#ddpdf,#dddrive,#docdrive,#pvdl,#resabrir,#resdrive,[data-licdl],.rescf a,a[href*="export=download"],a[download],.actafila .chead .hb a,#pdfv){display:none!important}
 </style>
 </head>
 <body>
@@ -1646,7 +1649,7 @@ async function entrar(user){
   $('login').hidden=true;$('app').hidden=false;
   aplicarModulos();aplicarSedes();modsFirma=JSON.stringify(cur.modulos||null)+JSON.stringify(cur.sedes||null)+cur.rol;
   unsubU=onSnapshot(doc(db,'usuarios',user.uid),d=>{if(!d.exists())return;const x=d.data(),f=JSON.stringify(x.modulos||null)+JSON.stringify(x.sedes||null)+x.rol;if(f!==modsFirma){modsFirma=f;location.reload()}},()=>{});
-  $('add').hidden=!canEdit();$('adminb').hidden=cur.rol!=='admin';$('dashb').hidden=cur.rol!=='admin';
+  document.documentElement.dataset.rol=cur.rol;$('add').hidden=!canEdit();$('adminb').hidden=cur.rol!=='admin';$('dashb').hidden=cur.rol!=='admin';
   $('who').textContent=cur.nombre+' · '+ROLES[cur.rol]+(cur.rol!=='admin'&&Array.isArray(cur.sedes)&&cur.sedes.length===1?' · '+cur.sedes[0]:'');
   $('list').innerHTML='<div class="empty">Cargando novedades…</div>';
   if(puedeVer('nov'))unsub=onSnapshot(query(collection(db,'novedades'),orderBy('creado','desc')),snap=>{
@@ -1911,7 +1914,7 @@ async function renderDoc(reiniciar){
   $('docmiga').innerHTML=docRuta.map((c,k)=>k<docRuta.length-1?`<button type="button" class="docmb" data-dk="${k}">${esc(c.name)}</button><span aria-hidden="true">›</span>`:`<b>${esc(c.name)}</b>`).join('');
   if(docSec==='con'&&docRuta.length>1){const esCond=docRuta.length>=3,fc=fotosCond[act.id];
     $('docmiga').innerHTML=`<b class="docnom">${esc(act.name)}</b>${esCond?`<span class="fcbox">${fc&&fc.foto?`<img src="${fc.foto}" alt="Foto de ${esc(act.name)}" data-fcver>`:'<span class="fcvac" aria-hidden="true">👤</span>'}
-      <span class="fclinks"><button type="button" class="ver" data-fccam>${fc&&fc.foto?'📷 Tomar otra foto':'📷 Tomar foto'}</button>${canEdit()?'<button type="button" class="ver" data-fcgal>Subir desde galería</button>':''}${fc&&fc.foto&&cur.rol==='admin'?'<button type="button" class="ver" data-fcdel>Quitar</button>':''}</span></span>`:''}`}
+      <span class="fclinks">${canEdit()?'':'<!--'}<button type="button" class="ver" data-fccam>${fc&&fc.foto?'📷 Tomar otra foto':'📷 Tomar foto'}</button>${canEdit()?'':'-->'}${canEdit()?'<button type="button" class="ver" data-fcgal>Subir desde galería</button>':''}${fc&&fc.foto&&cur.rol==='admin'?'<button type="button" class="ver" data-fcdel>Quitar</button>':''}</span></span>`:''}`}
   $('docup').hidden=docRuta.length<2;pintarDocPlaca(act);
   let items;try{if(!docCache[act.id])$('doclist').innerHTML='<p class="empty" style="margin:0">Cargando documentos…</p>';items=await driveLista(act.id)}catch(x){docFallback(x);return}
   if(docRuta[docRuta.length-1]!==act)return;
@@ -1974,7 +1977,7 @@ $('docup').onclick=()=>{if(docRuta.length>1){docRuta.pop();renderDoc()}};
 $('fccam').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)guardarFotoCond(f)};
 $('fcgal').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f&&canEdit())guardarFotoCond(f,true)};
 $('docmiga').addEventListener('click',e=>{
-  if(e.target.closest('[data-fccam]')){$('fccam').click();return}if(e.target.closest('[data-fcgal]')&&canEdit()){$('fcgal').click();return}
+  if(e.target.closest('[data-fccam]')){if(canEdit())$('fccam').click();return}if(e.target.closest('[data-fcgal]')&&canEdit()){$('fcgal').click();return}
   const v=e.target.closest('[data-fcver]');if(v){$('bigimg').src=v.src;$('big').showModal();return}
   if(e.target.closest('[data-fcdel]')&&cur.rol==='admin'&&confirm('¿Quitar la foto de este conductor?')){const a=docRuta[docRuta.length-1];deleteDoc(doc(db,'fotoscond',a.id)).then(()=>{delete fotosCond[a.id];renderDoc()}).catch(x=>alert(ERR(x.code)))}});
 $('docmiga').onclick=e=>{const b=e.target.closest('[data-dk]');if(b){docRuta=docRuta.slice(0,Number(b.dataset.dk)+1);renderDoc()}};
@@ -2790,7 +2793,7 @@ function renderPpt(){
     .sort((a,b)=>(b.creado?.seconds||0)-(a.creado?.seconds||0));
   const f=d=>d&&d.toDate?d.toDate().toLocaleDateString('es-CO'):'';
   $('cppt').innerHTML=`<div class="dc" style="margin-top:14px">
-    <div class="chead" style="margin:0"><h2 style="font-size:1.05rem">Documentos de ${MESES[cmes-1]}</h2><div class="hb"><button type="button" class="btn ghost" id="drvadd">Agregar enlace de Drive</button><button type="button" class="btn" id="pptup"${subiendo?' disabled':''}>${subiendo?'Cargando…':'Cargar PDF'}</button></div></div>
+    <div class="chead" style="margin:0"><h2 style="font-size:1.05rem">Documentos de ${MESES[cmes-1]}</h2><div class="hb">${canEdit()?`<button type="button" class="btn ghost" id="drvadd">Agregar enlace de Drive</button><button type="button" class="btn" id="pptup"${subiendo?' disabled':''}>${subiendo?'Cargando…':'Cargar PDF'}</button>`:''}</div></div>
     <small>${MESES[cmes-1]} ${canio} · ${esc(sede)}. PDF de hasta 70 MB: usa «Cargar PDF». Presentaciones u otros archivos más grandes: súbelos a Google Drive y usa «Agregar enlace de Drive».</small>
     <div class="pprog" id="pprog" role="status">${esc(pptMsg)}</div>
     ${fs.length?fs.map(a=>a.tipo==='drive'?`<div class="pfile"><span class="pico drv" aria-hidden="true">Drive</span>
@@ -2890,8 +2893,8 @@ document.addEventListener('keydown',e=>{if(!$('pvdlg').open||!pv)return;if(e.key
 $('pvdlg').addEventListener('close',()=>{if($('pvdlg').classList.contains('drive'))$('pvslide').innerHTML=''});
 let pvRz;window.addEventListener('resize',()=>{if($('pvdlg').open&&pv){clearTimeout(pvRz);pvRz=setTimeout(()=>pvMostrar(pvI),200)}});
 $('cppt').onclick=async e=>{
-  if(e.target.closest('#pptup')){$('pptin').click();return}
-  if(e.target.closest('#drvadd')){$('drfrm').reset();$('drerr').textContent='';$('drtit').textContent=`Agregar enlace de Google Drive · ${MESES[cmes-1]} ${canio}`;$('drdlg').showModal();return}
+  if(e.target.closest('#pptup')){if(canEdit())$('pptin').click();return}
+  if(e.target.closest('#drvadd')&&canEdit()){$('drfrm').reset();$('drerr').textContent='';$('drtit').textContent=`Agregar enlace de Google Drive · ${MESES[cmes-1]} ${canio}`;$('drdlg').showModal();return}
   if(!cur||cur.rol!=='admin')return;
   const v=e.target.closest('[data-pver]'),d=e.target.closest('[data-pdl]'),x=e.target.closest('[data-pdel]');
   if(v){const a=archivos.find(q=>q.id===v.dataset.pver);if(a&&a.tipo==='drive')verDrive(a);else verPpt(a);return}
@@ -3107,7 +3110,7 @@ function renderKm(){
     .map(([v,l,c])=>`<div class="kpi"><b class="${c}">${v}</b><span>${l}</span></div>`).join('');
   const vis=filas.filter(f=>kmFiltro==='todos'||(kmFiltro==='pend'?!f.l:f.ev&&(f.ev.nivel==='r'||f.ev.nivel==='a')));
   if(!vis.length){$('kmlist').innerHTML=`<div class="empty">${kmFiltro==='pend'?'Todos los vehículos tienen el kilometraje de esta semana.':'No hay alertas esta semana.'}</div>`;return}
-  const fut=kmSem>act,adm=cur.rol==='admin',edit=!fut&&(adm||kmSem===act),borr={};
+  const fut=kmSem>act,adm=cur.rol==='admin',edit=!fut&&canEdit()&&(adm||kmSem===act),borr={};
   const cierre=new Date(semMs(act));cierre.setDate(cierre.getDate()+6);
   $('kmaviso').hidden=false;
   $('kmaviso').textContent=fut?'Esta semana aún no ha comenzado.':kmSem===act?`Los kilometrajes de esta semana se pueden registrar y corregir hasta el domingo ${fCorta(fISO(cierre.getTime()))} a las 11:59 p. m.${adm?'':' Después, solo el administrador podrá modificarlos.'}`
@@ -4129,7 +4132,7 @@ function renderCo2Fotos(){
   w.innerHTML=`<div class="chead" style="margin:0"><div><h2>Registro fotográfico</h2><small>${ls.length} ${ls.length===1?'imagen guardada':'imágenes guardadas'}</small></div>
     ${ed?`<div class="hb"><button type="button" class="btn" id="co2cam">📷 Tomar foto</button><button type="button" class="btn ghost" id="co2gal">Subir imágenes</button></div>`:''}</div>
     <div class="pprog" id="co2fmsg" role="status"></div>
-    <div class="co2grid">${ls.map(f=>`<figure><img src="${f.foto}" alt="Foto CO₂" data-co2img><figcaption><span>${esc(f.por||'')} · ${f.creado&&f.creado.toDate?f.creado.toDate().toLocaleDateString('es-CO'):''}</span>${cur.rol==='admin'||f.uid===cur.uid?`<button type="button" class="del" data-co2del="${f.id}" aria-label="Eliminar imagen">Eliminar</button>`:''}</figcaption></figure>`).join('')||`<p class="empty" style="margin:0">Aún no hay imágenes.${ed?' Toma una foto o sube imágenes.':''}</p>`}</div>
+    <div class="co2grid">${ls.map(f=>`<figure><img src="${f.foto}" alt="Foto CO₂" data-co2img><figcaption><span>${esc(f.por||'')} · ${f.creado&&f.creado.toDate?f.creado.toDate().toLocaleDateString('es-CO'):''}</span>${cur.rol==='admin'?`<button type="button" class="del" data-co2del="${f.id}" aria-label="Eliminar imagen">Eliminar</button>`:''}</figcaption></figure>`).join('')||`<p class="empty" style="margin:0">Aún no hay imágenes.${ed?' Toma una foto o sube imágenes.':''}</p>`}</div>
     <input type="file" id="co2fcam" accept="image/*" capture="environment" hidden><input type="file" id="co2fgal" accept="image/*" multiple hidden>`;
   if(!ed)return;$('co2cam').onclick=()=>$('co2fcam').click();$('co2gal').onclick=()=>$('co2fgal').click();
   const subir=async files=>{if(co2Sub||!files.length)return;co2Sub=true;let ok=0;
@@ -4138,7 +4141,7 @@ function renderCo2Fotos(){
   $('co2fcam').onchange=e=>{const f=[...e.target.files];e.target.value='';subir(f)};$('co2fgal').onchange=e=>{const f=[...e.target.files];e.target.value='';subir(f)};
 }
 document.addEventListener('click',e=>{const im=e.target.closest('[data-co2img]');if(im){$('bigimg').src=im.src;$('big').showModal();return}
-  const d=e.target.closest('[data-co2del]');if(d&&confirm('¿Eliminar esta imagen?'))deleteDoc(doc(db,'co2img',d.dataset.co2del)).catch(x=>alert(ERR(x.code)))});
+  const d=e.target.closest('[data-co2del]');if(d&&cur.rol==='admin'&&confirm('¿Eliminar esta imagen?'))deleteDoc(doc(db,'co2img',d.dataset.co2del)).catch(x=>alert(ERR(x.code)))});
 function renderUrea(){
   if(!cur||$('ureav').hidden)return;co2BorrarViejo();
   $('urup').hidden=$('urdrive').hidden=!canEdit();$('urdel').hidden=!(cur.rol==='admin'&&ureaD);
@@ -4421,6 +4424,7 @@ async function evExtraer(buf){
   return{n:sh.getAttribute('name'),meses};
 }
 async function evGuardarExcel(sd,buf){
+  if(!cur||cur.rol!=='admin')return '';
   let E;try{E=await evExtraer(buf)}catch(x){console.error(x);return ''}if(!E)return '';
   const viejos=repEv.filter(x=>x.sede===sd&&x.origen==='excel');for(const v of viejos){try{await deleteDoc(doc(db,'repevid',v.id))}catch(x){}}
   let n=0;const anio=new Date().getFullYear();
@@ -4526,14 +4530,14 @@ function renderLic(){
   $('licsub').textContent=`${ls.length} notificaci${ls.length===1?'ón':'ones'} · ${sede}`;
   $('liclist').innerHTML=ls.length?`<div class="tscroll"><table class="kmt lictab"><thead><tr><th>Conductor</th><th>Fecha</th><th>Archivo PDF</th><th>Observación</th><th>Registró</th><th></th></tr></thead><tbody>
     ${ls.map(x=>`<tr><td><b>${esc(x.conductor||'—')}</b></td><td>${x.fecha?fd(x.fecha):'—'}</td><td><span class="dic p licic">PDF</span> ${esc(x.archivo||'')} <small class="mnota">${x.tam?tam(x.tam):''}</small></td><td>${esc(x.obs||'')}</td><td><small>${esc(x.por||'')}${x.editadoPor?`<br>Editado: ${esc(x.editadoPor)}`:''}</small></td>
-      <td><div class="licacc"><button type="button" class="btn ghost" data-licver="${x.id}">Ver</button><button type="button" class="btn ghost" data-licdl="${x.id}">Descargar</button>${canEdit()?`<button type="button" class="btn ghost" data-licedit="${x.id}">Editar</button>`:''}${cur.rol==='admin'||(canEdit()&&x.uid===cur.uid)?`<button type="button" class="del" data-licdel="${x.id}">Borrar</button>`:''}</div></td></tr>`).join('')}</tbody></table></div>`
+      <td><div class="licacc"><button type="button" class="btn ghost" data-licver="${x.id}">Ver</button>${cur.rol==='admin'?`<button type="button" class="btn ghost" data-licdl="${x.id}">Descargar</button>`:''}${canEdit()?`<button type="button" class="btn ghost" data-licedit="${x.id}">Editar</button>`:''}${cur.rol==='admin'?`<button type="button" class="del" data-licdel="${x.id}">Borrar</button>`:''}</div></td></tr>`).join('')}</tbody></table></div>`
     :`<p class="empty" style="margin:0">${q?'Ninguna notificación coincide con la búsqueda.':`Aún no hay notificaciones de licencia en ${esc(sede)}.`}</p>`;
 }
 async function licPdf(x){ // reconstruye el PDF desde sus partes
-  const sn=await getDocs(collection(db,'licencias',x.id,'partes'));const ps=sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.id.localeCompare(b.id));
+  const sn=await getDocs(collection(db,'licencias',x.id,'partes'));let ps=sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.id.localeCompare(b.id));if(x.nPartes)ps=ps.slice(0,x.nPartes);
   const b64=ps.map(p=>p.d).join(''),bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new Blob([u],{type:'application/pdf'});
 }
-async function licAccion(id,modo){const x=licD.find(y=>y.id===id);if(!x)return;
+async function licAccion(id,modo){const x=licD.find(y=>y.id===id);if(!x)return;if(modo==='dl'&&cur.rol!=='admin')return;
   try{const b=await licPdf(x),u=URL.createObjectURL(b);if(modo==='dl'){const a=document.createElement('a');a.href=u;a.download=x.archivo||`notificacion_${x.conductor}.pdf`;document.body.appendChild(a);a.click();a.remove()}else window.open(u,'_blank');setTimeout(()=>URL.revokeObjectURL(u),60000)}
   catch(e){console.error(e);alert('No se pudo abrir el PDF.')}}
 function licAbrir(x){licEdit=x||null;$('lictit').textContent=x?'Editar notificación de licencia':`Nueva notificación de licencia · ${sede}`;$('licerr').textContent='';
@@ -4547,7 +4551,7 @@ $('liclist').addEventListener('click',async e=>{
   const v=e.target.closest('[data-licver]');if(v){licAccion(v.dataset.licver,'ver');return}
   const d=e.target.closest('[data-licdl]');if(d){licAccion(d.dataset.licdl,'dl');return}
   const ed=e.target.closest('[data-licedit]');if(ed&&canEdit()){licAbrir(licD.find(y=>y.id===ed.dataset.licedit));return}
-  const b=e.target.closest('[data-licdel]');if(b){const x=licD.find(y=>y.id===b.dataset.licdel);if(!x||!confirm(`¿Borrar la notificación de ${x.conductor}?`))return;
+  const b=e.target.closest('[data-licdel]');if(b&&cur.rol==='admin'){const x=licD.find(y=>y.id===b.dataset.licdel);if(!x||!confirm(`¿Borrar la notificación de ${x.conductor}?`))return;
     try{const sn=await getDocs(collection(db,'licencias',x.id,'partes'));for(const p of sn.docs)await deleteDoc(doc(db,'licencias',x.id,'partes',p.id));await deleteDoc(doc(db,'licencias',x.id))}catch(er){alert(ERR(er.code))}}});
 $('licfrm').onsubmit=async e=>{e.preventDefault();if(!canEdit())return;
   const cond=$('liccond').value.trim(),fec=$('licfec').value,obs=$('licobs').value.trim(),f=$('licarch').files[0];
@@ -4559,7 +4563,7 @@ $('licfrm').onsubmit=async e=>{e.preventDefault();if(!canEdit())return;
   try{let id=licEdit?licEdit.id:doc(collection(db,'licencias')).id,partes=null;
     if(f){const b64=await new Promise((r,j)=>{const fr=new FileReader();fr.onload=()=>r(String(fr.result).split(',')[1]);fr.onerror=j;fr.readAsDataURL(f)});
       partes=[];for(let i=0;i<b64.length;i+=LIC_PARTE)partes.push(b64.slice(i,i+LIC_PARTE));
-      if(licEdit){const sn=await getDocs(collection(db,'licencias',id,'partes'));for(const p of sn.docs)await deleteDoc(doc(db,'licencias',id,'partes',p.id))}
+      if(licEdit&&cur.rol==='admin'){const sn=await getDocs(collection(db,'licencias',id,'partes'));for(const p of sn.docs)await deleteDoc(doc(db,'licencias',id,'partes',p.id))}
       for(let i=0;i<partes.length;i++){btn.textContent=`Subiendo ${i+1} de ${partes.length}…`;await setDoc(doc(db,'licencias',id,'partes','p'+String(i).padStart(3,'0')),{d:partes[i]})}}
     const meta={conductor:cond,fecha:fec,obs};if(f){meta.archivo=f.name;meta.tam=f.size;meta.nPartes=partes.length}
     if(licEdit)await updateDoc(doc(db,'licencias',id),{...meta,editadoPor:cur.nombre,editado:serverTimestamp()});
