@@ -1038,7 +1038,7 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
     <div id="edlistaw"><div class="kpis" id="edkpi"></div><div id="edtop" style="margin-top:12px"></div>
     <div id="edlist" style="margin-top:12px"></div></div>
     <div id="eddash" hidden></div>
-    <small class="mnota" style="margin-top:8px">Se lee la pestaña «Data», columnas N a AN, y la columna K para el filtro. Se muestra cada ítem en «NO» con las placas que lo tienen; MES se toma de la columna AN.</small>
+    <small class="mnota" style="margin-top:8px">Se lee la pestaña «Data» (Estándar: ítems N a AN y MES en AN · Safety: ítems O a AU y MES en AW) y la columna K para el filtro. Se muestra cada ítem en «NO» con las placas que lo tienen; MES se toma de la columna AN.</small>
     <input type="file" id="edfile" accept=".xlsx,.xls" hidden></div>
  </div>
  <div id="estplant">
@@ -3863,7 +3863,7 @@ async function edLeer(f){
   const nom=wb.SheetNames.find(n=>sinTilde(n).trim()==='data')||wb.SheetNames.find(n=>sinTilde(n).includes('data'));
   if(!nom)throw{msg:`El archivo no tiene una pestaña llamada «Data». Pestañas encontradas: ${wb.SheetNames.join(', ')}.`};
   const ws=wb.Sheets[nom],R=X.utils.decode_range(ws['!ref']||'A1');R.s.r=0;R.s.c=0;
-  Object.keys(ws).forEach(k=>{if(k[0]==='!')return;const a=X.utils.decode_cell(k);if(a.r>R.e.r)R.e.r=a.r;if(a.c>R.e.c)R.e.c=a.c});if(R.e.c<41)R.e.c=41;ws['!ref']=X.utils.encode_range(R);
+  Object.keys(ws).forEach(k=>{if(k[0]==='!')return;const a=X.utils.decode_cell(k);if(a.r>R.e.r)R.e.r=a.r;if(a.c>R.e.c)R.e.c=a.c});if(R.e.c<48)R.e.c=48;ws['!ref']=X.utils.encode_range(R);
   const t=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:true,range:R,dateNF:'d/mm/yyyy'});
   const tr=X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:true,range:R});
   return{t,tr,hoja:nom};
@@ -3875,19 +3875,24 @@ function tiempoAP(raw,txt,tit){
   const v=durSeg(txt,tit);return v===null?null:v;
 }
 function edProcesar(t,tr){
+  // Estándar de Flota: ítems N a AN y MES en AN · Safety: ítems O a AU y MES en AW
+  const SAF=estVar==='safety',INI=SAF?14:13,FIN=SAF?46:39,MES=SAF?48:39;
   const tx=(r,c)=>String(((t[r]||[])[c])??'').trim();
-  // fila de títulos: la primera que tenga texto en varias columnas de N a AN
-  let hi=t.findIndex(r=>r&&r.slice(ED_INI,ED_FIN+1).filter(v=>String(v??'').trim()).length>=3);if(hi<0)hi=0;
-  const tit={};for(let c=ED_INI;c<=ED_FIN;c++)tit[colL(c)]=tx(hi,c)||`Columna ${colL(c)}`;
-  let cPl=-1;for(let c=ED_INI;c<=ED_FIN;c++){if(/placa/.test(sinTilde(tit[colL(c)]))){cPl=c;break}}if(cPl<0)cPl=ED_INI;
-  const cMes=ED_FIN,items=[];for(let c=ED_INI;c<=ED_FIN;c++)if(c!==cPl&&c!==cMes)items.push(c);
+  let hi=t.findIndex(r=>r&&r.slice(INI,FIN+1).filter(v=>String(v??'').trim()).length>=3);if(hi<0)hi=0;
+  const tit={};for(let c=INI;c<=FIN;c++)tit[colL(c)]=tx(hi,c)||`Columna ${colL(c)}`;tit[colL(MES)]=tx(hi,MES)||'MES';
+  let cPl=-1;for(let c=INI;c<=FIN;c++){if(/placa/.test(sinTilde(tit[colL(c)]))){cPl=c;break}}
+  if(cPl<0){const h=(t[hi]||[]).findIndex(v=>/placa/.test(sinTilde(String(v??''))));cPl=h>=0?h:(SAF?13:INI)}
+  if(!tit[colL(cPl)])tit[colL(cPl)]=tx(hi,cPl)||'Placa';
+  const cMes=MES,items=[];for(let c=INI;c<=FIN;c++)if(c!==cPl&&c!==cMes)items.push(c);
   const cK=10;tit.K=tx(hi,cK)||'Columna K';
-  let cAP=41;const vacio=c=>{for(let r=hi+1;r<t.length;r++){const a=((t[r]||[])[c]),b=(((tr||[])[r]||[])[c]);if(String(a??'').trim()||(b!==undefined&&b!==null&&b!==''))return false}return true};
-  if(vacio(41)){const alt=(t[hi]||[]).findIndex((h,c)=>c!==41&&/tiempo/.test(sinTilde(String(h||'')))&&!vacio(c));if(alt>=0)cAP=alt}
-  tit.AP=tx(hi,cAP)||'Columna AP';tit.APcol=colL(cAP);const esSI=v=>/^s[ií]\b|^si$/.test(sinTilde(String(v??'').trim()));
+  const vacio=c=>{for(let r=hi+1;r<t.length;r++){const a=((t[r]||[])[c]),b=(((tr||[])[r]||[])[c]);if(String(a??'').trim()||(b!==undefined&&b!==null&&b!==''))return false}return true};
+  // tiempo de ejecución: AP en Estándar; en Safety (AP es un ítem) se busca la columna con título «Tiempo» fuera de O–AU
+  let cAP=SAF?-1:41;if(cAP<0||vacio(cAP)){const alt=(t[hi]||[]).findIndex((h,c)=>(c<INI||c>FIN)&&c!==cMes&&/tiempo/.test(sinTilde(String(h||'')))&&!vacio(c));if(alt>=0)cAP=alt}
+  tit.TP=cAP>=0?(tx(hi,cAP)||'Tiempo'):'Tiempo';tit.TPcol=cAP>=0?colL(cAP):'';const esSI=v=>/^s[ií]\b|^si$/.test(sinTilde(String(v??'').trim()));
   const filas=[];for(let r=hi+1;r<t.length;r++){const p=tx(r,cPl);if(!p)continue;const no=items.filter(c=>esNO(tx(r,c))).map(colL),si=items.filter(c=>esSI(tx(r,c))).length;
-    const tpt=tx(r,cAP),tp=tpt||((tr||[])[r]||[])[cAP]!==''?tiempoAP(((tr||[])[r]||[])[cAP],tpt,tit.AP):null;filas.push({p,mes:tx(r,cMes),k:tx(r,cK),no,si,tp,tpt})}
-  return{ver:2,tit,colPlaca:colL(cPl),colMes:colL(cMes),filaTitulos:hi+1,nItems:items.length,filas};
+    let tp=null,tpt='';if(cAP>=0){tpt=tx(r,cAP);const rv=((tr||[])[r]||[])[cAP];tp=tpt||(rv!==undefined&&rv!=='')?tiempoAP(rv,tpt,tit.TP):null}
+    filas.push({p,mes:tx(r,cMes),k:tx(r,cK),no,si,tp,tpt})}
+  return{ver:2,tit,colPlaca:colL(cPl),colMes:colL(cMes),rango:`${colL(INI)}–${colL(FIN)}`,filaTitulos:hi+1,nItems:items.length,filas};
 }
 function renderED(){
   if(!cur||$('estv').hidden||estVista!=='data')return;
@@ -3931,10 +3936,10 @@ function tablasTiempo(D,fs){
   const q=normP($('edbusca').value),porP={};fs.forEach(f=>{const p=normP(f.p)||f.p;(porP[p]=porP[p]||[]).push(f)});
   const filasPl=Object.entries(porP).map(([p,l])=>({p,a:agr(l)})).filter(x=>x.a&&(!q||x.p.includes(q))).sort((a,b)=>b.a.prom-a.a.prom);
   return `<div class="dgrid" style="margin-top:14px">
-    <div class="dc"><h2>Tiempos de ejecución por mes</h2><small>Columna ${esc((D.tit||{}).APcol||'AP')} · todos los meses de ${esc(sede)}</small>
+    <div class="dc"><h2>Tiempos de ejecución por mes</h2><small>Columna ${esc(((D.tit||{}).TPcol||(D.tit||{}).APcol)||'AP')} · todos los meses de ${esc(sede)}</small>
       <div class="tscroll"><table class="kmt edtt"><thead><tr><th>Mes</th><th class="num">Registros</th><th class="num">Promedio</th><th class="num">Mínimo</th><th class="num">Máximo</th></tr></thead><tbody>
       ${filasMes.map(x=>`<tr${x.m===edMesSel?' class="sel"':''}><td><b>${esc(x.m)}</b></td><td class="num">${x.a.n}</td><td class="num"><b>${durF(x.a.prom)}</b></td><td class="num">${durF(x.a.mn.tp)}<small>${pl(x.a.mn)}</small></td><td class="num">${durF(x.a.mx.tp)}<small>${pl(x.a.mx)}</small></td></tr>`).join('')}</tbody></table></div></div>
-    <div class="dc"><h2>Tiempos de ejecución por placa</h2><small>Columna ${esc((D.tit||{}).APcol||'AP')} · ${edMesSel==='__todos'?'todos los meses':esc(edMesSel)} · de mayor a menor promedio</small>
+    <div class="dc"><h2>Tiempos de ejecución por placa</h2><small>Columna ${esc(((D.tit||{}).TPcol||(D.tit||{}).APcol)||'AP')} · ${edMesSel==='__todos'?'todos los meses':esc(edMesSel)} · de mayor a menor promedio</small>
       <div class="tscroll edtts"><table class="kmt edtt"><thead><tr><th>Placa</th><th class="num">Registros</th><th class="num">Promedio</th><th class="num">Mínimo</th><th class="num">Máximo</th></tr></thead><tbody>
       ${filasPl.map(x=>`<tr><td><b>${esc(x.p)}</b></td><td class="num">${x.a.n}</td><td class="num"><b>${durF(x.a.prom)}</b></td><td class="num">${durF(x.a.mn.tp)}</td><td class="num">${durF(x.a.mx.tp)}</td></tr>`).join('')}</tbody></table></div></div></div>`;
 }
@@ -3954,7 +3959,7 @@ function dashED(D,fs){
   const pSI=base?totSI/base*100:0,pNO=base?totNO/base*100:0,siOk=fs.some(f=>typeof f.si==='number');
   $('eddash').innerHTML=`
    <div class="kpis">${[[hayT?durF(prom):'—','Promedio de tiempo de ejecución'],[hayT?durF(mn.tp):'—',`Tiempo mínimo${mn?` · ${esc(normP(mn.p)||mn.p)}`:''}`],[hayT?durF(mx.tp):'—',`Tiempo máximo${mx?` · ${esc(normP(mx.p)||mx.p)}`:''}`],[nPl,'Placas evaluadas'],[fs.length,'Registros']].map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
-   ${hayT?'':`<small class="mnota">No se encontraron tiempos en la columna AP${(D.tit||{}).AP?` («${esc(D.tit.AP)}»)`:''}${(()=>{const e=fs.find(f=>f.tpt);return e?`; valor encontrado: «${esc(e.tpt)}»`:''})()}. Vuelve a cargar el Excel con esta versión de la página.</small>`}
+   ${hayT?'':`<small class="mnota">No se encontraron tiempos en la columna AP${(D.tit||{}).AP?` («${esc((D.tit.TP||D.tit.AP))}»)`:''}${(()=>{const e=fs.find(f=>f.tpt);return e?`; valor encontrado: «${esc(e.tpt)}»`:''})()}. Vuelve a cargar el Excel con esta versión de la página.</small>`}
    ${hayT?tablasTiempo(D,fs):''}
    <div class="dc" style="margin-top:14px"><h2>Cumplimiento sobre la cantidad de placas</h2>
      <div class="kpis" style="margin:8px 0">${[[nPl,'Placas evaluadas',''],[totSI,'Total de «SI»','okc'],[totNO,'Total de «NO»','badc'],[nPl?(totSI/nPl).toFixed(1):'—','«SI» por placa (promedio)','okc'],[nPl?(totNO/nPl).toFixed(1):'—','«NO» por placa (promedio)','badc']].map(([v,l,k])=>`<div class="kpi"><b class="${k}">${v}</b><span>${l}</span></div>`).join('')}</div><small>${siOk?`${nPl} placa${nPl===1?'':'s'} · ${fs.length} registro${fs.length===1?'':'s'} × ${nIt} ítems = ${base} respuestas posibles`:'Vuelve a cargar el Excel para calcular los «SI».'}</small>
