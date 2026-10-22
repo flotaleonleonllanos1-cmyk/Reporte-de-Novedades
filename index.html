@@ -3883,7 +3883,10 @@ function edProcesar(t,tr){
   let cPl=-1;for(let c=INI;c<=FIN;c++){if(/placa/.test(sinTilde(tit[colL(c)]))){cPl=c;break}}
   if(cPl<0){const h=(t[hi]||[]).findIndex(v=>/placa/.test(sinTilde(String(v??''))));cPl=h>=0?h:(SAF?13:INI)}
   if(!tit[colL(cPl)])tit[colL(cPl)]=tx(hi,cPl)||'Placa';
-  const cMes=MES,items=[];for(let c=INI;c<=FIN;c++)if(c!==cPl&&c!==cMes)items.push(c);
+  // MES: AW en Safety / AN en Estándar; si esa columna no trae meses, se busca la columna con meses (título «Mes»)
+  const esMesCol=c=>{let n=0,m=0;for(let r=hi+1;r<t.length&&n<80;r++){const v=tx(r,c);if(!v)continue;n++;if(mesIdx(v)>=0||fechaAny(((tr||[])[r]||[])[c]))m++}return n&&m/n>=.6};
+  let cMes=MES;if(!esMesCol(cMes)){const H=(t[hi]||[]).map(v=>sinTilde(String(v??'')).trim());let alt=H.findIndex((h,c)=>/^mes\b/.test(h)&&esMesCol(c));if(alt<0)for(let c=H.length-1;c>=0;c--){if(c>=INI&&c<=FIN&&!SAF)continue;if(esMesCol(c)){alt=c;break}}if(alt>=0)cMes=alt}
+  const items=[];for(let c=INI;c<=FIN;c++)if(c!==cPl&&c!==cMes)items.push(c);
   const cK=10;tit.K=tx(hi,cK)||'Columna K';
   const vacio=c=>{for(let r=hi+1;r<t.length;r++){const a=((t[r]||[])[c]),b=(((tr||[])[r]||[])[c]);if(String(a??'').trim()||(b!==undefined&&b!==null&&b!==''))return false}return true};
   // tiempo de ejecución: AP en Estándar; en Safety (AP es un ítem) se busca la columna con título «Tiempo» fuera de O–AU
@@ -3891,13 +3894,15 @@ function edProcesar(t,tr){
   tit.TP=cAP>=0?(tx(hi,cAP)||'Tiempo'):'Tiempo';tit.TPcol=cAP>=0?colL(cAP):'';const esSI=v=>/^s[ií]\b|^si$/.test(sinTilde(String(v??'').trim()));
   const filas=[];for(let r=hi+1;r<t.length;r++){const p=tx(r,cPl);if(!p)continue;const no=items.filter(c=>esNO(tx(r,c))).map(colL),si=items.filter(c=>esSI(tx(r,c))).length;
     let tp=null,tpt='';if(cAP>=0){tpt=tx(r,cAP);const rv=((tr||[])[r]||[])[cAP];tp=tpt||(rv!==undefined&&rv!=='')?tiempoAP(rv,tpt,tit.TP):null}
-    filas.push({p,mes:tx(r,cMes),k:tx(r,cK),no,si,tp,tpt})}
+    let mv=tx(r,cMes);if(mesIdx(mv)<0){const f=fechaAny(((tr||[])[r]||[])[cMes])||fechaAny(mv);if(f)mv=MESES[+f.slice(5,7)-1].toLowerCase()}
+    filas.push({p,mes:mv,k:tx(r,cK),no,si,tp,tpt})}
   return{ver:2,tit,colPlaca:colL(cPl),colMes:colL(cMes),rango:`${colL(INI)}–${colL(FIN)}`,filaTitulos:hi+1,nItems:items.length,filas};
 }
 function renderED(){
   if(!cur||$('estv').hidden||estVista!=='data')return;
   const D=edDoc();$('edup').hidden=cur.rol!=='admin';
-  $('edsub').textContent=D?`Última carga: ${D.fecha?dtTxt(D.fecha):'—'} · ${D.nombre||'Excel'}`:'';
+  const malMes=D&&estVar==='safety'&&D.colMes&&D.colMes!=='AW'&&(D.filas||[]).some(f=>/^(si|no)$/i.test(sinTilde(f.mes||'')));
+  $('edsub').textContent=D?`Última carga: ${D.fecha?dtTxt(D.fecha):'—'} · ${D.nombre||'Excel'}${malMes?' · ⚠ Este archivo se cargó con la versión anterior (MES en otra columna): vuelve a pulsar «Cargar Excel».':''}`:'';
   if(!D){$('edmes').innerHTML='';$('edkpi').innerHTML='';$('edtop').innerHTML='';$('edlist').innerHTML=`<p class="empty" style="margin:0">Aún no hay datos cargados para ${esc(sede)}.${cur.rol==='admin'?' Usa «Cargar Excel» y elige el archivo que tiene la pestaña «Data».':''}</p>`;return}
   const meses=[...new Set(edFilasSede(D).map(f=>f.mes).filter(Boolean))].sort((a,b)=>(mesIdx(a)-mesIdx(b))||a.localeCompare(b,'es'));
   if(!edMesSel||(edMesSel!=='__todos'&&!meses.includes(edMesSel)))edMesSel=meses[meses.length-1]||'__todos';
