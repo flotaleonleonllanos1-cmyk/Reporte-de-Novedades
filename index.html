@@ -878,6 +878,7 @@ html:not([data-rol="admin"]) :is(#ddpdf,#dddrive,#docdrive,#pvdl,#resabrir,#resd
 .menu .grp>.mi[data-m="ests"]~.sub .si{color:#fecaca}
 .menu .grp>.mi[data-m="ests"]~.sub .si[aria-current="true"]{background:linear-gradient(90deg,#f87171,#b91c1c)!important;color:#fff!important}
 html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .esbar{background:linear-gradient(90deg,#ef4444,#b91c1c)!important}
+.sinmods{margin:6px 4px 10px;padding:12px;border:1px dashed rgba(242,201,76,.6);border-radius:10px;background:rgba(212,160,23,.08);color:#f2d27a;font-size:.84rem;display:grid;gap:6px}.sinmods[hidden]{display:none}.sinmods span{color:#d6d6d6}
 </style>
 </head>
 <body>
@@ -1521,9 +1522,12 @@ const sedesHTML=(pre,sel)=>`<div class="mudchk">${SEDES.map(x=>`<label><input ty
 function aplicarSedes(){const ok=SEDES.filter(puedeSede);$('sede').innerHTML=ok.map(x=>`<option${x===sede?' selected':''}>${x}</option>`).join('');$('sede').disabled=ok.length<2;$('sede').title=ok.length<2?'Tu usuario solo tiene acceso a esta sede':'';
   if(!ok.includes(sede)){$('sede').value=ok[0];$('sede').dispatchEvent(new Event('change'))}}
 const puedeVer=m=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.modulos)||cur.modulos.includes(m));
+const MODK=new Set(MODS.map(m=>m[0]));const modsValidos=u=>!Array.isArray(u.modulos)||u.modulos.some(k=>MODK.has(k));
 const modsHTML=(pre,sel)=>`<div class="mudchk">${MODS.map(([k,l])=>`<label><input type="checkbox" data-${pre}="${k}"${!sel||sel.includes(k)?' checked':''}> ${l}</label>`).join('')}</div>`;
 let unsubU=null,modsFirma='';
-function aplicarModulos(){document.querySelectorAll('.mi[data-m]').forEach(b=>{const g=b.closest('.grp');if(g)g.hidden=!puedeVer(b.dataset.m)})}
+function aplicarModulos(){let n=0;document.querySelectorAll('.mi[data-m]').forEach(b=>{const g=b.closest('.grp');const v=puedeVer(b.dataset.m);if(g)g.hidden=!v;if(v)n++});
+  let av=$('sinmods');if(!av){av=document.createElement('div');av.id='sinmods';av.className='sinmods';const m=document.querySelector('.menu');if(m)m.prepend(av)}
+  av.hidden=n>0;if(!n)av.innerHTML=`<b>No tienes botones asignados</b><span>Tu usuario no tiene ningún botón habilitado${Array.isArray(cur&&cur.modulos)&&cur.modulos.length?` (botones guardados: ${esc(cur.modulos.join(', '))})`:''}. Pídele al administrador que entre a <b>Admin → Sede y botones</b> y marque los botones que puedes usar.</span>`}
 const ERRS={'auth/invalid-credential':'Usuario o contraseña incorrectos.','auth/wrong-password':'Contraseña incorrecta.','auth/user-not-found':'Usuario o contraseña incorrectos.',
  'auth/invalid-email':'Usuario no válido.','auth/too-many-requests':'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
  'auth/network-request-failed':'Sin conexión a internet. Revisa tu conexión e inténtalo de nuevo.','unavailable':'Sin conexión con la base de datos. Revisa tu internet.',
@@ -5188,7 +5192,7 @@ async function ulist(){
       <div><small>Contraseña</small><br>${u.clave?`<span class="cred" data-c="${esc(u.clave)}">••••••</span> <button type="button" class="ver">Mostrar</button>`:'<small>No registrada</small>'}</div>
       ${u.rol==='admin'?'<div><small>Rol</small><br>Administrador</div>':`<label>Rol<select data-u="${u.id}">${['visual','editor','inactivo'].map(r=>`<option value="${r}"${u.rol===r?' selected':''}>${ROLES[r]}</option>`).join('')}</select></label>`}
       ${u.rol==='admin'?'<span></span>':`<div class="umods"><button type="button" class="btn ghost" data-um="${u.id}">Sede y botones</button><button type="button" class="del" data-ud="${u.id}">Eliminar</button></div>`}
-      <div class="umodl"><small>${u.rol==='admin'?'Todas las sedes':'Sede: '+(Array.isArray(u.sedes)&&u.sedes.length?u.sedes.join(' y '):'Villavicencio y Yopal')} · ${u.rol==='admin'?'Ve todos los botones':!Array.isArray(u.modulos)?'Ve todos los botones':u.modulos.length?'Ve: '+MODS.filter(([k])=>u.modulos.includes(k)).map(([,l])=>l).join(', '):'No ve ningún botón'}</small></div>
+      <div class="umodl"><small>${u.rol==='admin'?'Todas las sedes':'Sede: '+(Array.isArray(u.sedes)&&u.sedes.length?u.sedes.join(' y '):'Villavicencio y Yopal')} · ${u.rol==='admin'?'Ve todos los botones':!Array.isArray(u.modulos)?'Ve todos los botones':u.modulos.length&&modsValidos(u)?'Ve: '+MODS.filter(([k])=>u.modulos.includes(k)).map(([,l])=>l).join(', '):'<b class="badc">⚠ No ve ningún botón: pulsa «Sede y botones» y márcale los botones</b>'}</small></div>
     </div>`).join('');
   }catch(x){$('ulist').innerHTML=`<p class="empty">${esc(ERR(x.code))}</p>`}
 }
