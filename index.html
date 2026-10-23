@@ -1539,7 +1539,9 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fd=d=>{if(!d)return 'Pendiente';const[y,m,day]=d.split('-');return `${day}/${m}/${y}`};
 const money=v=>'$'+Number(v||0).toLocaleString('es-CO');
-const canEdit=()=>cur&&(cur.rol==='admin'||cur.rol==='editor');
+// Roles: VISUAL solo ve · EDITOR sube, guarda y registra (crea) · ADMINISTRADOR edita, modifica, elimina, cancela y todo lo demás
+const canEdit=()=>cur&&(cur.rol==='admin'||cur.rol==='editor');   // subir / guardar / registrar
+const canMod=()=>!!cur&&cur.rol==='admin';                         // editar / modificar / eliminar / cancelar
 
 const novAbiertas=new Set(),calAbiertas=new Set();
 function render(){
@@ -1559,8 +1561,8 @@ function render(){
       <div><span class="placa">${esc(i.placa)}</span><div class="rpor">Reportado por <b>${esc(i.por||'—')}</b></div></div>
       <div class="acts"><button class="btn ghost" data-ntog="${i.id}">Reducir</button>
         <div class="seg" role="group" aria-label="Estado">
-          <button class="w" data-id="${i.id}" data-s="proceso" ${canEdit()?'':'disabled'} aria-pressed="${i.estado==='proceso'}">En proceso</button>
-          <button class="o" data-id="${i.id}" data-s="solucionado" ${canEdit()?'':'disabled'} aria-pressed="${i.estado==='solucionado'}">Solucionado</button>
+          <button class="w" data-id="${i.id}" data-s="proceso" ${canMod()?'':'disabled'} aria-pressed="${i.estado==='proceso'}">En proceso</button>
+          <button class="o" data-id="${i.id}" data-s="solucionado" ${canMod()?'':'disabled'} aria-pressed="${i.estado==='solucionado'}">Solucionado</button>
         </div>
         ${cur.rol==='admin'?`<button class="del" data-del="${i.id}">Eliminar</button>`:''}
       </div>
@@ -1598,7 +1600,7 @@ document.querySelectorAll('#listv .tab[data-f]').forEach(b=>b.onclick=()=>{
 });
 $('list').onclick=e=>{
   const s=e.target.closest('[data-s]'),d=e.target.closest('[data-del]');
-  if(s&&canEdit()){
+  if(s&&canMod()){
     const it=items.find(i=>i.id===s.dataset.id);if(!it||it.estado===s.dataset.s)return;
     const ch={estado:s.dataset.s};
     if(ch.estado==='solucionado'&&!it.fs)ch.fs=new Date().toISOString().slice(0,10);
@@ -1975,7 +1977,7 @@ async function renderDoc(reiniciar){
   $('docmiga').innerHTML=docRuta.map((c,k)=>k<docRuta.length-1?`<button type="button" class="docmb" data-dk="${k}">${esc(c.name)}</button><span aria-hidden="true">›</span>`:`<b>${esc(c.name)}</b>`).join('');
   if(docSec==='con'&&docRuta.length>1){const esCond=docRuta.length>=3,fc=fotosCond[act.id];
     $('docmiga').innerHTML=`<b class="docnom">${esc(act.name)}</b>${esCond?`<span class="fcbox">${fc&&fc.foto?`<img src="${fc.foto}" alt="Foto de ${esc(act.name)}" data-fcver>`:'<span class="fcvac" aria-hidden="true">👤</span>'}
-      <span class="fclinks">${canEdit()?'':'<!--'}<button type="button" class="ver" data-fccam>${fc&&fc.foto?'📷 Tomar otra foto':'📷 Tomar foto'}</button>${canEdit()?'':'-->'}${canEdit()?'<button type="button" class="ver" data-fcgal>Subir desde galería</button>':''}${fc&&fc.foto&&cur.rol==='admin'?'<button type="button" class="ver" data-fcdel>Quitar</button>':''}</span></span>`:''}`}
+      <span class="fclinks">${canMod()||(canEdit()&&!(fc&&fc.foto))?'':'<!--'}<button type="button" class="ver" data-fccam>${fc&&fc.foto?'📷 Tomar otra foto':'📷 Tomar foto'}</button>${canMod()||(canEdit()&&!(fc&&fc.foto))?'':'-->'}${canEdit()?'<button type="button" class="ver" data-fcgal>Subir desde galería</button>':''}${fc&&fc.foto&&cur.rol==='admin'?'<button type="button" class="ver" data-fcdel>Quitar</button>':''}</span></span>`:''}`}
   $('docup').hidden=docRuta.length<2;pintarDocPlaca(act);
   let items;try{if(!docCache[act.id])$('doclist').innerHTML='<p class="empty" style="margin:0">Cargando documentos…</p>';items=await driveLista(act.id)}catch(x){docFallback(x);return}
   if(docRuta[docRuta.length-1]!==act)return;
@@ -2343,12 +2345,12 @@ function renderCal(){
       <div class="vmtop"><span class="placa">${esc(c.placa)}</span><span class="pill ${okc?'o':'b'}">${okc?'Completa':'Falta 2ª calibración'}</span></div>
       <div class="vmdat"><span><small>Primera calibración</small>${fd(c.f1)}</span><span><small>Segunda calibración</small>${fd(c.f2)}</span><span><small>Reportado por</small>${esc(c.por||'—')}</span></div>
       ${cfs.length?`<div class="vmths">${cfs.map(([k])=>`<img src="${c.fotos[k]}" alt="">`).join('')}</div>`:'<span></span>'}
-      <div class="acts"><button class="btn ghost" data-ctog="${c.id}">Ampliar</button>${canEdit()?`<button class="btn ghost" data-ced="${c.id}">Editar</button>`:''}</div></article>`;
+      <div class="acts"><button class="btn ghost" data-ctog="${c.id}">Ampliar</button>${(canMod()||(canEdit()&&!c.f2))?`<button class="btn ghost" data-ced="${c.id}">Editar</button>`:''}</div></article>`;
     return `<article class="cal ${okc?'':'pend'}" data-ccard="${c.id}">
     <div class="top">
       <div><span class="placa">${esc(c.placa)}</span> <span class="pill ${okc?'o':'b'}">${okc?'Completa':'Falta 2ª calibración'}</span><div class="rpor">Reportado por <b>${esc(c.por||'—')}</b></div></div>
       <div class="acts"><button class="btn ghost" data-ctog="${c.id}">Reducir</button>
-        ${canEdit()?`<button class="btn ghost" data-ced="${c.id}">Editar</button>`:''}
+        ${(canMod()||(canEdit()&&!c.f2))?`<button class="btn ghost" data-ced="${c.id}">Editar</button>`:''}
         ${cur.rol==='admin'?`<button class="del" data-cdel="${c.id}">Eliminar</button>`:''}
       </div>
     </div>
@@ -3037,10 +3039,10 @@ function renderVar(){
       <div class="vmdat"><span><small>Varada</small>${dtTxt(v.fv)}</span><span><small>${op?'Fuera de servicio':'Lleva varado'}</small><b style="color:${op?'inherit':'var(--bad)'}"${op?'':` data-vdur="${esc(v.fv)}"`}>${durTxt(t)}</b></span>
         <span><small>Sistema</small>${esc(sistemaDe(v))}</span><span><small>Taller</small>${esc(v.tallerNombre||'—')}</span><span><small>Conductor</small>${esc(v.conductor||'—')}</span></div>
       ${v.foto?`<img class="vmfoto" src="${v.foto}" alt="">`:''}
-      <div class="acts"><button class="btn ghost" data-vtog="${v.id}" aria-expanded="false">Ampliar</button>${canEdit()||v.comp?`<button class="btn ghost" data-vsh="${v.id}">Enviar al taller</button>`:''}${canEdit()?`<button class="btn ghost" data-ved="${v.id}">Editar</button>`:''}</div></article>`;
+      <div class="acts"><button class="btn ghost" data-vtog="${v.id}" aria-expanded="false">Ampliar</button>${canEdit()||v.comp?`<button class="btn ghost" data-vsh="${v.id}">Enviar al taller</button>`:''}${canMod()?`<button class="btn ghost" data-ved="${v.id}">Editar</button>`:''}</div></article>`;
     return `<article class="vcard ${op?'ok':''}" data-vcard="${v.id}">
     <div class="top"><div><span class="placa">${esc(v.placa)}</span> <span class="pill ${op?'o':'b'}">${op?'Operativo':'Varado'}</span><div class="rpor">Reportado por <b>${esc(v.por||'—')}</b>${v.editadoPor?` · Última edición: ${esc(v.editadoPor)}`:''}</div></div>
-      <div class="acts"><button class="btn ghost" data-vtog="${v.id}" aria-expanded="true">Reducir</button>${canEdit()||v.comp?`<button class="btn ghost" data-vsh="${v.id}">Enviar al taller</button>`:''}${canEdit()?`<button class="btn ghost" data-ved="${v.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="del" data-vdel="${v.id}">Eliminar</button>`:''}</div></div>
+      <div class="acts"><button class="btn ghost" data-vtog="${v.id}" aria-expanded="true">Reducir</button>${canEdit()||v.comp?`<button class="btn ghost" data-vsh="${v.id}">Enviar al taller</button>`:''}${canMod()?`<button class="btn ghost" data-ved="${v.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="del" data-vdel="${v.id}">Eliminar</button>`:''}</div></div>
     <div class="vbody"><div><dl class="vgrid">
       <div><dt>Fecha y hora de la varada</dt><dd>${dtTxt(v.fv)}</dd></div>
       <div><dt>Operativo nuevamente</dt><dd>${op?dtTxt(v.fo):'<span style="color:var(--bad)">Sigue varado</span>'}</dd></div>
@@ -3183,7 +3185,7 @@ function renderKm(){
   ${vis.map(f=>{const niv=f.ev?f.ev.nivel:'';return `<tr class="${niv==='r'?'alr':niv==='a'?'al':''}" data-pl="${esc(f.pl)}">
     <td><button type="button" class="kpl" data-kh="${esc(f.pl)}" title="Ver historial">${esc(f.pl)}</button></td>
     <td class="num">${f.ant?`${kmN(f.ant.km)}<span class="kmsaved">Semana del ${fCorta(f.ant.semana)}</span>`:'—'}</td>
-    <td><div class="kmin"><input type="number" min="0" step="1" inputmode="numeric" aria-label="Kilometraje de ${esc(f.pl)}" value="${f.l?f.l.km:''}" data-kin="${esc(f.pl)}" ${edit?'':'disabled'}>${edit?`<button type="button" class="btn" data-ks="${esc(f.pl)}">${f.l?'Actualizar':'Guardar'}</button>`:''}${adm&&f.l?`<button type="button" class="del" data-kdel="${esc(f.pl)}">Eliminar</button>`:''}</div>
+    <td><div class="kmin"><input type="number" min="0" step="1" inputmode="numeric" aria-label="Kilometraje de ${esc(f.pl)}" value="${f.l?f.l.km:''}" data-kin="${esc(f.pl)}" ${edit&&(adm||!f.l)?'':'disabled'}>${edit?`<button type="button" class="btn" data-ks="${esc(f.pl)}">${f.l?'Actualizar':'Guardar'}</button>`:''}${adm&&f.l?`<button type="button" class="del" data-kdel="${esc(f.pl)}">Eliminar</button>`:''}</div>
       ${f.l?`<span class="kmsaved">Registrado por ${esc(f.l.por||'—')}${f.l.editadoPor?` · editado por ${esc(f.l.editadoPor)}`:''}</span>`:''}</td>
     <td class="num">${f.ev&&f.ev.rec!==undefined?kmN(f.ev.rec):'—'}</td>
     <td data-kal="${esc(f.pl)}">${f.ev?`<span class="kmal ${niv}">${esc(f.ev.txt)}</span>`:'<span class="kmal n">Pendiente</span>'}</td></tr>`}).join('')}
@@ -3511,7 +3513,7 @@ async function renderRal(){
   const cc=detectarCols(D.cols,a.mapa);if(!(a.mapa&&Number.isInteger(a.mapa.dur)))cc.dur=detectarDur(D.cols,D.filas,cc);const porDis=cc.dis>=0,hD=cc.dur>=0?D.cols[cc.dur]:'';
   const falt=[['Dispositivo',porDis],['Ubicación',cc.ubi>=0||(cc.lat>=0&&cc.lng>=0)],['Hora de inicio',cc.fec>=0],['Duración',cc.dur>=0]].filter(x=>!x[1]).map(x=>x[0]);
   $('ralcolsn').textContent=falt.length?`No se identificó ${falt.length>1?'las columnas':'la columna'} ${falt.map(x=>'«'+x+'»').join(', ')}.${!porDis?' Se agrupa por placa.':''}${canEdit()?' Usa «Elegir columnas» para indicarlas.':''}`:'';
-  $('ralcolb').hidden=!canEdit();
+  $('ralcolb').hidden=!canMod();
   const durMal=cc.dur>=0&&D.filas.length&&D.filas.every(r=>!String(r[cc.dur]||'').trim()||durSeg(r[cc.dur],D.cols[cc.dur])===null)&&D.filas.some(r=>String(r[cc.dur]||'').trim());
   if(durMal)$('ralcolsn').textContent=($('ralcolsn').textContent+` La columna «${D.cols[cc.dur]}» no tiene un formato de duración reconocible (por ejemplo «${String((D.filas.find(r=>String(r[cc.dur]||'').trim())||[])[cc.dur]).slice(0,30)}»); se muestra tal como viene.${canEdit()?' Si no es la columna correcta, usa «Elegir columnas».':''}`).trim();
   const U=porDis?{uno:'dispositivo',Uno:'Dispositivo',Varios:'Dispositivos',todos:'todos los dispositivos'}:{uno:'placa',Uno:'Placa',Varios:'Placas',todos:'todas las placas'};
@@ -3625,7 +3627,7 @@ function renderBL(){
   $('bllist').innerHTML=vis.map(a=>{const ok=a.antes&&a.despues,ab=blAbiertas.has(a.id);return `<article class="blc ${ok?'ok':''} ${ab?'abierta':''}" data-blcard="${a.id}">
     <div class="top"><div><span class="placa">${esc(a.placa)}</span> <span class="pill ${ok?'o':'w'}">${ok?'Completo':a.antes?'Falta DESPUÉS':'Falta ANTES'}</span>
       <div class="rpor">${esc(dtTxt(a.fecha))} · Registrado por <b>${esc(a.por||'—')}</b>${a.editadoPor?` · editado por ${esc(a.editadoPor)}`:''}</div></div>
-      <div class="acts"><button class="btn ghost" data-bltog="${a.id}" aria-expanded="${ab}">${ab?'Reducir':'Ampliar'}</button>${canEdit()?`<button class="btn ghost" data-bled="${a.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="btn ghost" data-blpdf="${a.id}">PDF</button><button class="del" data-bldel="${a.id}">Eliminar</button>`:''}</div></div>
+      <div class="acts"><button class="btn ghost" data-bltog="${a.id}" aria-expanded="${ab}">${ab?'Reducir':'Ampliar'}</button>${canMod()?`<button class="btn ghost" data-bled="${a.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="btn ghost" data-blpdf="${a.id}">PDF</button><button class="del" data-bldel="${a.id}">Eliminar</button>`:''}</div></div>
     <div class="blfotos">${fig(a,'antes','ANTES')}${fig(a,'despues','DESPUÉS')}</div></article>`}).join('');
 }
 function blSlot(k){const L=k==='antes'?'ANTES':'DESPUÉS';
@@ -3663,7 +3665,7 @@ $('bllist').onclick=e=>{const card=e.target.closest('[data-blcard]');
   const tog=e.target.closest('[data-bltog]');if(tog){const id=tog.dataset.bltog;blAbiertas.has(id)?blAbiertas.delete(id):blAbiertas.add(id);renderBL();return}
   const im=e.target.closest('[data-blimg]');if(im){if(card&&!card.classList.contains('abierta')){blAbiertas.add(card.dataset.blcard);renderBL();return}$('bigimg').src=im.src;$('big').showModal();return}
   if(card&&!card.classList.contains('abierta')&&!e.target.closest('button,a')){blAbiertas.add(card.dataset.blcard);renderBL();return}
-  const ed=e.target.closest('[data-bled]');if(ed&&canEdit()){abrirBL(aseo.find(a=>a.id===ed.dataset.bled));return}
+  const ed=e.target.closest('[data-bled]');if(ed&&canMod()){abrirBL(aseo.find(a=>a.id===ed.dataset.bled));return}
   const pd=e.target.closest('[data-blpdf]');if(pd&&cur.rol==='admin'){const a=aseo.find(x=>x.id===pd.dataset.blpdf);if(a)descargarBLPDF([a]);return}
   const d=e.target.closest('[data-bldel]');if(d&&cur.rol==='admin'&&confirm('¿Eliminar este registro y sus fotos?'))deleteDoc(doc(db,'aseo',d.dataset.bldel)).catch(x=>alert(ERR(x.code)))};
 $('blpl').onchange=renderBL;$('blmes').onchange=renderBL;
@@ -3842,7 +3844,7 @@ function renderEst(){
   const d=estSel==='nuevo'?null:L.find(x=>x.id===estSel);
   if(!d&&estSel!=='nuevo'){$('estslide').innerHTML=`<div class="empty" style="margin:20px">No hay ítems en ${MESES[estMes-1]} ${estAnio} para ${esc(sede)}.</div>`;$('estacts').innerHTML='';return}
   if(!estF||estF._id!==(d?d.id:'nuevo'))estF={...(d?{placas:d.placas||[],cat:d.cat||EST_CATS[0],item:d.item||'',accion:d.accion||'',obs:d.obs||'',antes:d.antes||'',despues:d.despues||'',antesMarca:!!d.antesMarca,despuesMarca:!!d.despuesMarca}:estNuevo()),_id:d?d.id:'nuevo'};
-  const ed=canEdit(),F=estF;F.placas=F.placas||[];
+  const ed=estSel==='nuevo'?canEdit():canMod(),F=estF;F.placas=F.placas||[];
   const IMall=edItemsMes(),usados=new Set(L.filter(x=>x.id!==(d&&d.id)).map(x=>x.item));const IM=IMall?IMall.filter(x=>!usados.has(x.t)):null;
   const plItem=IMall?((IMall.find(x=>x.t===F.item)||{}).pl||[]):[];const plOps=[...new Set([...plItem,...F.placas])];
   const foto=(k,l)=>`<div class="esf"><div class="esftit">${l}</div><div class="esfbox">${F[k]?`<img src="${F[k]}" alt="${l}" data-estimg>`:'<span class="esvac">Sin foto</span>'}
@@ -4608,7 +4610,7 @@ function renderLic(){
   $('licsub').textContent=`${ls.length} notificaci${ls.length===1?'ón':'ones'} · ${sede}`;
   $('liclist').innerHTML=ls.length?`<div class="tscroll"><table class="kmt lictab"><thead><tr><th>Conductor</th><th>Fecha</th><th>Archivo PDF</th><th>Observación</th><th>Registró</th><th></th></tr></thead><tbody>
     ${ls.map(x=>`<tr><td><b>${esc(x.conductor||'—')}</b></td><td>${x.fecha?fd(x.fecha):'—'}</td><td><span class="dic p licic">PDF</span> ${esc(x.archivo||'')} <small class="mnota">${x.tam?tam(x.tam):''}</small></td><td>${esc(x.obs||'')}</td><td><small>${esc(x.por||'')}${x.editadoPor?`<br>Editado: ${esc(x.editadoPor)}`:''}</small></td>
-      <td><div class="licacc"><button type="button" class="btn ghost" data-licver="${x.id}">Ver</button>${cur.rol==='admin'?`<button type="button" class="btn ghost" data-licdl="${x.id}">Descargar</button>`:''}${canEdit()?`<button type="button" class="btn ghost" data-licedit="${x.id}">Editar</button>`:''}${cur.rol==='admin'?`<button type="button" class="del" data-licdel="${x.id}">Borrar</button>`:''}</div></td></tr>`).join('')}</tbody></table></div>`
+      <td><div class="licacc"><button type="button" class="btn ghost" data-licver="${x.id}">Ver</button>${cur.rol==='admin'?`<button type="button" class="btn ghost" data-licdl="${x.id}">Descargar</button>`:''}${canMod()?`<button type="button" class="btn ghost" data-licedit="${x.id}">Editar</button>`:''}${cur.rol==='admin'?`<button type="button" class="del" data-licdel="${x.id}">Borrar</button>`:''}</div></td></tr>`).join('')}</tbody></table></div>`
     :`<p class="empty" style="margin:0">${q?'Ninguna notificación coincide con la búsqueda.':`Aún no hay notificaciones de licencia en ${esc(sede)}.`}</p>`;
 }
 async function licPdf(x){ // reconstruye el PDF desde sus partes
@@ -4628,7 +4630,7 @@ $('licbusca').oninput=e=>{licQ=e.target.value;renderLic()};
 $('liclist').addEventListener('click',async e=>{
   const v=e.target.closest('[data-licver]');if(v){licAccion(v.dataset.licver,'ver');return}
   const d=e.target.closest('[data-licdl]');if(d){licAccion(d.dataset.licdl,'dl');return}
-  const ed=e.target.closest('[data-licedit]');if(ed&&canEdit()){licAbrir(licD.find(y=>y.id===ed.dataset.licedit));return}
+  const ed=e.target.closest('[data-licedit]');if(ed&&canMod()){licAbrir(licD.find(y=>y.id===ed.dataset.licedit));return}
   const b=e.target.closest('[data-licdel]');if(b&&cur.rol==='admin'){const x=licD.find(y=>y.id===b.dataset.licdel);if(!x||!confirm(`¿Borrar la notificación de ${x.conductor}?`))return;
     try{const sn=await getDocs(collection(db,'licencias',x.id,'partes'));for(const p of sn.docs)await deleteDoc(doc(db,'licencias',x.id,'partes',p.id));await deleteDoc(doc(db,'licencias',x.id))}catch(er){alert(ERR(er.code))}}});
 $('licfrm').onsubmit=async e=>{e.preventDefault();if(!canEdit())return;
@@ -5005,7 +5007,7 @@ $('vlist').onclick=e=>{
   const tg=e.target.closest('[data-vtog]');if(tg){const id=tg.dataset.vtog;varAbiertas.has(id)?varAbiertas.delete(id):varAbiertas.add(id);renderVar();return}
   const mc=e.target.closest('.vmini');if(mc&&!e.target.closest('button,a')){varAbiertas.add(mc.dataset.vcard);renderVar();return}
   const im=e.target.closest('.vfot');if(im){$('bigimg').src=im.src;$('big').showModal();return}
-  const ed=e.target.closest('[data-ved]');if(ed&&canEdit()){abrirVar(varadas.find(v=>v.id===ed.dataset.ved));return}
+  const ed=e.target.closest('[data-ved]');if(ed&&canMod()){abrirVar(varadas.find(v=>v.id===ed.dataset.ved));return}
   const sh=e.target.closest('[data-vsh]');if(sh){const v=varadas.find(q=>q.id===sh.dataset.vsh);if(!v)return;
     if(v.comp){abrirCompartir(v,false);return}
     if(!canEdit())return;const comp=tokenComp();sh.disabled=true;
@@ -5131,7 +5133,7 @@ function abrirCal(c){
 $('cadd').onclick=()=>{if(canEdit())abrirCal()};
 $('calist').onclick=e=>{
   const im=e.target.closest('.thumbs img');if(im){$('bigimg').src=im.src;$('big').showModal();return}
-  const ed=e.target.closest('[data-ced]');if(ed&&canEdit()){abrirCal(cals.find(c=>c.id===ed.dataset.ced));return}
+  const ed=e.target.closest('[data-ced]');if(ed&&canEdit()){const c=cals.find(c=>c.id===ed.dataset.ced);if(!c||(!canMod()&&c.f2))return;abrirCal(c);return}
   const d=e.target.closest('[data-cdel]');
   if(d&&cur.rol==='admin'&&confirm('¿Eliminar este registro de calibración?'))deleteDoc(doc(db,'calibraciones',d.dataset.cdel)).catch(x=>alert(ERR(x.code)));
 };
