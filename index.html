@@ -345,6 +345,9 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .simtorta{display:grid;justify-items:center;gap:6px;padding:10px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,rgba(212,160,23,.08),transparent)}.simtorta h3{margin:0;font-size:.92rem}
 .simtorta .pleg{width:100%}.simtorta .pleg div{display:grid;grid-template-columns:12px 1fr auto;gap:6px;align-items:center;font-size:.8rem}.simtorta .pleg i{width:10px;height:10px;border-radius:3px}
 .simtab{min-width:980px;font-size:.84rem}.simtab th,.simtab td{text-align:center;white-space:nowrap}.simtab td:first-child,.simtab th:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
+.simcel{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.simpdfb{background:#0a0a0a;color:#fff;border:1px solid rgba(255,255,255,.85);border-radius:6px;padding:3px 10px;font:inherit;font-size:.72rem;font-weight:800;letter-spacing:.06em;cursor:pointer;box-shadow:0 0 8px rgba(255,255,255,.55),0 0 2px rgba(255,255,255,.9)}
+.simpdfb:hover{box-shadow:0 0 14px rgba(255,255,255,.8),0 0 3px #fff}.simpdfb:disabled{opacity:.7;cursor:wait}
 .simced{background:linear-gradient(180deg,#f2c94c,#b8860b);border:0;color:#111;font:inherit;font-size:.74rem;font-weight:700;border-radius:6px;padding:3px 6px;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.35);margin:1px}.simced:hover{filter:brightness(1.1)}
 .lictab{min-width:820px;font-size:.88rem}.lictab td{vertical-align:middle}.lictab .dic.licic{display:inline-grid!important;width:22px!important;height:24px!important;font-size:.5rem!important;vertical-align:middle;border-radius:4px;margin-right:4px}.licacc{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.licacc .btn{padding:5px 10px;font-size:.82rem}
 .rplist{display:grid;gap:4px;max-height:420px;overflow:auto;margin-top:8px;padding-right:4px}
@@ -1644,7 +1647,7 @@ function salir(){
   if(unsubRP){unsubRP();unsubRP=null}
   if(unsubLC){unsubLC();unsubLC=null}
   if(unsubSM){unsubSM();unsubSM=null}
-  simCfg=null;simData=null;
+  simCfgs={};simDatas={};simCfg=null;simData=null;
   licD=[];
   if(unsubRE){unsubRE();unsubRE=null}
   repEv=[];
@@ -1692,7 +1695,7 @@ async function entrar(user){
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
   unsubED=[];[['std','estdata','est'],['safety','estdata_safety','ests']].forEach(([v,c,m])=>{if(puedeVer(m))unsubED.push(onSnapshot(collection(db,c),snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());estStore[v].ed=o;if(estVar===v){edDatos=o;renderED();if(!$('estv').hidden&&estVista==='plant')renderEst()}},()=>{}))});
-  if(puedeVer('sim'))unsubSM=onSnapshot(doc(db,'simit','config'),d=>{const n=d.exists()?d.data():null;const cambio=(n&&n.url)!==(simCfg&&simCfg.url);simCfg=n;if(cambio){simData=null;simErr=''}renderSim()},()=>{});
+  if(puedeVer('sim'))unsubSM=onSnapshot(collection(db,'simit'),snap=>{const ant=JSON.stringify(Object.fromEntries(Object.entries(simCfgs).map(([k,v])=>[k,v&&v.url])));simCfgs={};snap.docs.forEach(d=>simCfgs[d.id]=d.data());SEDES.forEach(sd=>{const a=simCfgDe(sd);if(simDatas[sd]&&!(a&&a.url))simDatas[sd]=null});const nue=JSON.stringify(Object.fromEntries(Object.entries(simCfgs).map(([k,v])=>[k,v&&v.url])));if(ant!==nue){SEDES.forEach(sd=>{simDatas[sd]=simDatas[sd]&&simDatas[sd]._url===((simCfgDe(sd)||{}).url)?simDatas[sd]:null})}simErr='';renderSim()},()=>{});
   if(puedeVer('lic'))unsubLC=onSnapshot(collection(db,'licencias'),snap=>{licD=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderLic()},()=>{});
   if(puedeVer('rep'))unsubRE=onSnapshot(collection(db,'repevid'),snap=>{repEv=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderEvid()},()=>{});
   if(puedeVer('rep'))unsubRP=onSnapshot(collection(db,'repuestos'),snap=>{repD={};snap.docs.forEach(d=>{const x=d.data();try{repD[d.id]={...x,hojas:typeof x.hojas==='string'?JSON.parse(x.hojas):x.hojas,evid:typeof x.evid==='string'?JSON.parse(x.evid):(x.evid||[])}}catch(e){}});renderRep()},()=>{});
@@ -4622,17 +4625,21 @@ $('licfrm').onsubmit=async e=>{e.preventDefault();if(!canEdit())return;
   btn.disabled=false;btn.textContent='Guardar'};
 
 /* ---------- SIMIT: PDF por mes desde una carpeta de Google Drive (subcarpetas por mes) ---------- */
-let simCfg=null,unsubSM=null,simData=null,simCarg=false,simErr='',simAnio='',simQ='';
+let simCfgs={},simDatas={},unsubSM=null,simCarg=false,simErr='',simAnio='',simQ='';
+const simCfgDe=sd=>simCfgs[sd]||(sd==='Villavicencio'?simCfgs.config:null)||null;
+let simCfg=null,simData=null;function simSede(){simCfg=simCfgDe(sede);simData=simDatas[sede]||null}
+// mes desde el nombre de carpeta o archivo: nombre del mes, número (01, 2026-03…) o fecha
+function simMes(t){const m=mesDeTexto(t);if(m)return m;const s=String(t||'');let x=s.match(/^\s*(0?[1-9]|1[0-2])(?:\b|[.\-_ ])/);if(x)return +x[1];x=s.match(/20\d{2}[-_.\/](0?[1-9]|1[0-2])\b/);if(x)return +x[1];x=s.match(/\b\d{1,2}[-_.\/](0?[1-9]|1[0-2])[-_.\/]20\d{2}\b/);if(x)return +x[1];return 0}
 const simCed=n=>{const m=String(n||'').match(/\d{6,12}/);return m?m[0]:String(n||'').replace(/\.pdf$/i,'').trim()};
 async function simLeer(forzar){
-  const url=simCfg&&simCfg.url;if(!url){simData=null;renderSim();return}
+  simSede();const sdL=sede;const url=simCfg&&simCfg.url;if(!url){simDatas[sdL]=null;simData=null;renderSim();return}
   const id=(String(url).match(/\/folders\/([\w-]{10,})/)||[])[1]||(/^[\w-]{20,}$/.test(url)?url:'');if(!id){simErr='El enlace guardado no es de una carpeta de Google Drive.';simData=null;renderSim();return}
   if(forzar)Object.keys(docCache).forEach(k=>delete docCache[k]);
   simCarg=true;simErr='';renderSim();
   try{const pdfs=[];
-    const vis=async(fid,n,ruta,mes,anio)=>{const it=await driveLista(fid);for(const f of it){if(f.mimeType===MIME_FOLDER){if(n<3){const m=mesDeTexto(f.name)||mes,a=(f.name.match(/\b(20\d{2})\b/)||[])[1]||anio;await vis(f.id,n+1,ruta?ruta+' › '+f.name:f.name,m,a)}}
-      else if(/pdf$/i.test(f.mimeType)||/\.pdf$/i.test(f.name)){const m=mes||mesDeTexto(f.name);pdfs.push({id:f.id,name:f.name,ced:simCed(f.name),mes:m||0,anio:anio||(f.modifiedTime||'').slice(0,4),ruta})}}};
-    await vis(id,0,'',0,'');simData={pdfs,leido:new Date()}}
+    const vis=async(fid,n,ruta,mes,anio)=>{const it=await driveLista(fid);for(const f of it){if(f.mimeType===MIME_FOLDER){if(n<3){const m=simMes(f.name)||mes,a=(f.name.match(/\b(20\d{2})\b/)||[])[1]||anio;await vis(f.id,n+1,ruta?ruta+' › '+f.name:f.name,m,a)}}
+      else if(/pdf$/i.test(f.mimeType)||/\.pdf$/i.test(f.name)){let m=mes||simMes(f.name),est=false;if(!m&&f.modifiedTime){m=+f.modifiedTime.slice(5,7);est=true}pdfs.push({id:f.id,name:f.name,ced:simCed(f.name),mes:m||0,est,anio:anio||(f.modifiedTime||'').slice(0,4),ruta})}}};
+    await vis(id,0,'',0,'');simDatas[sdL]={pdfs,leido:new Date(),_url:url};if(sdL===sede)simData=simDatas[sdL]}
   catch(x){console.error(x);simErr=x&&x.razon==='accessNotConfigured'?'La Google Drive API no está activada en el proyecto.':'No se pudo leer la carpeta de Drive. Revisa que esté compartida como «Cualquier persona con el vínculo».';simData=null}
   simCarg=false;renderSim();
 }
@@ -4642,11 +4649,11 @@ function simTorta(items,tit){const tot=items.reduce((a,x)=>a+x.n,0),C=['#d4a017'
   return `<div class="simtorta"><h3>${tit}</h3><svg viewBox="0 0 140 140" width="140" height="140">${sl}<circle cx="${c}" cy="${c}" r="26" fill="var(--card)"/><text x="${c}" y="${c+5}" text-anchor="middle" font-size="15" font-weight="800" fill="var(--ink)">${tot}</text></svg>
     <div class="pleg">${items.map((x,i)=>`<div><i style="background:${C[i]}"></i><span>${x.l}</span><b>${x.n}</b></div>`).join('')}</div></div>`}
 function renderSim(){
-  if(!cur||$('simv').hidden)return;const ed=canEdit(),adm=cur.rol==='admin';
+  if(!cur||$('simv').hidden)return;simSede();const ed=canEdit(),adm=cur.rol==='admin';
   $('simcfg').hidden=!ed;$('simguar').hidden=!ed;$('simborr').hidden=!(adm&&simCfg&&simCfg.url);
   if(document.activeElement!==$('simurl'))$('simurl').value=(simCfg&&simCfg.url)||'';
-  $('simsub').textContent=simCfg&&simCfg.url?`Carpeta predeterminada guardada${simCfg.por?' por '+simCfg.por:''}${simData?` · leída el ${simData.leido.toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'})}`:''}`:'Sin carpeta de Drive guardada.';
-  if(!simCfg||!simCfg.url){$('simbody').innerHTML=`<p class="empty" style="margin:0">${ed?'Pega el enlace de la carpeta de Drive del SIMIT y pulsa «Guardar».':'Aún no hay una carpeta de SIMIT configurada.'}</p>`;return}
+  $('simsub').textContent=simCfg&&simCfg.url?`${sede} · carpeta predeterminada guardada${simCfg.por?' por '+simCfg.por:''}${simData?` · leída el ${simData.leido.toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'})}`:''}`:'Sin carpeta de Drive guardada.';
+  if(!simCfg||!simCfg.url){$('simsub').textContent=`${sede} · sin carpeta de Drive guardada.`;$('simbody').innerHTML=`<p class="empty" style="margin:0">${ed?`Pega el enlace de la carpeta de Drive del SIMIT de ${esc(sede)} y pulsa «Guardar».`:`Aún no hay una carpeta de SIMIT configurada para ${esc(sede)}.`}</p>`;return}
   if(simCarg&&!simData){$('simbody').innerHTML='<p class="empty" style="margin:0">Leyendo la carpeta de Google Drive…</p>';return}
   if(!simData){$('simbody').innerHTML=simErr?`<div class="ctalw" role="alert">${esc(simErr)}</div>`:'';if(!simErr&&!simCarg)simLeer();return}
   const ps=simData.pdfs,anios=[...new Set(ps.map(p=>p.anio).filter(Boolean))].sort();if(!anios.includes(simAnio))simAnio=anios[anios.length-1]||'';
@@ -4665,25 +4672,37 @@ function renderSim(){
   $('simbody').innerHTML=`
    <div class="ralbar" style="margin:0 0 12px">${anios.length>1?`<label>Año<select id="sim-anio">${anios.map(a=>`<option${a===simAnio?' selected':''}>${a}</option>`).join('')}</select></label>`:''}</div>
    <div class="kpis">${[[fs.length,'Total de SIMIT (PDF) en todas las carpetas'],[Object.keys(ced).length,'Cédulas distintas'],[pm.filter(n=>n).length,'Meses con SIMIT'],[Math.max(...pm),'Máximo en un mes']].map(([v,l],i)=>`<div class="kpi"><b class="${i?'':'kacpm'}">${v}</b><span>${l}</span></div>`).join('')}</div>
-   ${sinMes?`<small class="mnota">${sinMes} PDF no están dentro de una carpeta de mes y no se cuentan por mes.</small>`:''}
+   ${sinMes?`<small class="mnota">${sinMes} PDF no están dentro de una carpeta de mes y no se cuentan por mes.</small>`:''}${fs.some(p=>p.est)?`<small class="mnota">${fs.filter(p=>p.est).length} PDF no tienen el mes en el nombre de su carpeta ni del archivo; se ubicaron por su fecha de modificación en Drive.</small>`:''}
    <div class="dc" style="margin-top:14px"><h2>SIMIT por mes</h2><small>Cantidad de PDF en la carpeta de cada mes · la línea blanca muestra el ascenso y descenso</small><div class="tscroll">${g}</div></div>
    <div class="dc" style="margin-top:14px"><h2>SIMIT por trimestre</h2><small>Número de SIMIT de cada mes</small>
      <div class="simtortas">${[0,1,2,3].map(t=>simTorta([0,1,2].map(j=>({l:MESES[t*3+j],n:pm[t*3+j]})),`Trimestre ${t+1}`)).join('')}</div></div>
    <div class="dc" style="margin-top:14px"><div class="chead" style="margin:0"><div><h2>Cédulas por mes</h2><small>Toca una celda para abrir el PDF del SIMIT de ese mes</small></div>
      <div class="hb"><input type="search" id="sim-q" placeholder="Buscar cédula…" value="${esc(simQ)}" style="width:200px;margin:0">${adm?'<button type="button" class="btn ghost" id="simxls">⬇ Excel</button>':''}</div></div>
      <div class="tscroll" style="max-height:560px;overflow:auto;margin-top:10px"><table class="kmt simtab"><thead><tr><th>Cédula</th>${MESES.map(m=>`<th>${m.slice(0,3)}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
-     ${cl.map(c=>`<tr><td><b>${esc(c)}</b></td>${MESES.map((m,k)=>{const l=ced[c][k+1];return `<td>${l?l.map(p=>`<button type="button" class="simced" data-simpdf="${p.id}" data-simnom="${esc(p.name)}" title="${esc(p.name)} · ${m}">${esc(c)}</button>`).join(''):''}</td>`}).join('')}<td class="num"><b>${Object.values(ced[c]).reduce((a,l)=>a+l.length,0)}</b></td></tr>`).join('')||`<tr><td colspan="14" class="empty">Sin resultados.</td></tr>`}</tbody></table></div></div>`;
+     ${cl.map(c=>`<tr><td><div class="simcel"><b>${esc(c)}</b><button type="button" class="simpdfb" data-simunir="${esc(c)}" title="Unir en un solo PDF los SIMIT de todos los meses">PDF</button></div></td>${MESES.map((m,k)=>{const l=ced[c][k+1];return `<td>${l?l.map(p=>`<button type="button" class="simced" data-simpdf="${p.id}" data-simnom="${esc(p.name)}" title="${esc(p.name)} · ${m}">${esc(c)}</button>`).join(''):''}</td>`}).join('')}<td class="num"><b>${Object.values(ced[c]).reduce((a,l)=>a+l.length,0)}</b></td></tr>`).join('')||`<tr><td colspan="14" class="empty">Sin resultados.</td></tr>`}</tbody></table></div></div>`;
   const a=$('sim-anio');if(a)a.onchange=e=>{simAnio=e.target.value;renderSim()};
   $('sim-q').oninput=e=>{simQ=e.target.value;clearTimeout(window.__sqt);window.__sqt=setTimeout(()=>{renderSim();const i=$('sim-q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)};
   const xb=$('simxls');if(xb)xb.onclick=async()=>{const X=await loadXLSX(),rows=[['Cédula',...MESES,'Total']];Object.keys(ced).sort((a,b)=>a.localeCompare(b,'es',{numeric:true})).forEach(c=>rows.push([c,...MESES.map((m,k)=>ced[c][k+1]?ced[c][k+1].length:''),Object.values(ced[c]).reduce((s,l)=>s+l.length,0)]));
     rows.push(['Total',...pm,fs.length]);const wb=X.utils.book_new(),ws=X.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:16},...MESES.map(()=>({wch:11})),{wch:8}];X.utils.book_append_sheet(wb,ws,'SIMIT por mes');X.writeFile(wb,`SIMIT_${simAnio||'todos'}.xlsx`)};
 }
-$('simbody').addEventListener('click',e=>{const b=e.target.closest('[data-simpdf]');if(!b)return;const id=b.dataset.simpdf;
+$('simbody').addEventListener('click',async e=>{
+  const u=e.target.closest('[data-simunir]');if(u){const c=u.dataset.simunir,ls=((simData&&simData.pdfs)||[]).filter(p=>p.ced===c&&(!simAnio||p.anio===simAnio||!p.anio)).sort((a,b)=>(a.mes||99)-(b.mes||99)||a.name.localeCompare(b.name));if(!ls.length)return;
+    const t0=u.textContent;u.disabled=true;u.textContent='Uniendo…';
+    try{const L=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js','https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js'],'PDFLib');
+      const out=await L.PDFDocument.create();let n=0,mal=[];
+      for(const p of ls){u.textContent=`${++n}/${ls.length}…`;try{const src=await L.PDFDocument.load(await driveXlsx(p.id),{ignoreEncryption:true});const pg=await out.copyPages(src,src.getPageIndices());pg.forEach(x=>out.addPage(x))}catch(x){console.error(x);mal.push(p.name)}}
+      if(!out.getPageCount())throw new Error('sin páginas');
+      const blob=new Blob([await out.save()],{type:'application/pdf'}),url=URL.createObjectURL(blob);
+      if(cur.rol==='admin'){const a=document.createElement('a');a.href=url;a.download=`SIMIT_${c}_${simAnio||'todos'}.pdf`;document.body.appendChild(a);a.click();a.remove()}else window.open(url,'_blank');
+      setTimeout(()=>URL.revokeObjectURL(url),60000);if(mal.length)alert('No se pudieron unir: '+mal.join(', '))}
+    catch(x){console.error(x);alert('No se pudo unir el PDF. Revisa que los archivos estén compartidos y que la Google Drive API esté activa.')}
+    u.disabled=false;u.textContent=t0;return}
+  const b=e.target.closest('[data-simpdf]');if(!b)return;const id=b.dataset.simpdf;
   $('ddtit').textContent=b.dataset.simnom;$('ddsub').textContent='SIMIT';$('ddpdf').href=`https://drive.google.com/uc?export=download&id=${id}`;$('dddrive').href=`https://drive.google.com/file/d/${id}/view`;$('ddfr').src=`https://drive.google.com/file/d/${id}/preview`;$('ddprev').disabled=$('ddnext').disabled=true;$('docdlg').showModal()});
 $('simguar').onclick=async()=>{if(!canEdit())return;const u=$('simurl').value.trim();if(!/\/folders\/[\w-]{10,}/.test(u)&&!/^[\w-]{20,}$/.test(u)){$('simmsg').textContent='Pega el enlace de una carpeta de Google Drive.';return}
-  try{await setDoc(doc(db,'simit','config'),{url:u,por:cur.nombre,editado:serverTimestamp()});simCfg={url:u,por:cur.nombre};simData=null;$('simmsg').textContent='Carpeta guardada como predeterminada.';simLeer(true)}catch(x){$('simmsg').textContent=ERR(x.code)}};
-$('simact').onclick=()=>{if(simCfg&&simCfg.url){$('simmsg').textContent='';simData=null;simLeer(true)}};
-$('simborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm('¿Borrar el enlace de Drive del SIMIT?'))return;try{await deleteDoc(doc(db,'simit','config'));simCfg=null;simData=null;$('simmsg').textContent='Enlace borrado.';renderSim()}catch(x){alert(ERR(x.code))}};
+  try{await setDoc(doc(db,'simit',sede),{url:u,sede,por:cur.nombre,editado:serverTimestamp()});simCfgs[sede]={url:u,por:cur.nombre};simDatas[sede]=null;simData=null;$('simmsg').textContent='Carpeta guardada como predeterminada.';simLeer(true)}catch(x){$('simmsg').textContent=ERR(x.code)}};
+$('simact').onclick=()=>{simSede();if(simCfg&&simCfg.url){$('simmsg').textContent='';simDatas[sede]=null;simData=null;simLeer(true)}};
+$('simborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar el enlace de Drive del SIMIT de ${sede}?`))return;try{await deleteDoc(doc(db,'simit',sede));if(sede==='Villavicencio'&&simCfgs.config)await deleteDoc(doc(db,'simit','config')).catch(()=>{});delete simCfgs[sede];if(sede==='Villavicencio')delete simCfgs.config;simDatas[sede]=null;simCfg=null;simData=null;$('simmsg').textContent='Enlace borrado.';renderSim()}catch(x){alert(ERR(x.code))}};
 
 $('vper').onchange=()=>renderVar();
 
@@ -5071,7 +5090,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  dsF.cd='';renderLic();rpF.hoja=rpF.hoja==='__acta'?'__acta':'';actaVer=null;renderRep();renderDisp();renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
+  dsF.cd='';simQ='';simErr='';renderSim();renderLic();rpF.hoja=rpF.hoja==='__acta'?'__acta':'';actaVer=null;renderRep();renderDisp();renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
