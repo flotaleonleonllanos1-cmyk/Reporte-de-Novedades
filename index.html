@@ -345,6 +345,17 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .simtorta{display:grid;justify-items:center;gap:6px;padding:10px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,rgba(212,160,23,.08),transparent)}.simtorta h3{margin:0;font-size:.92rem}
 .simtorta .pleg{width:100%}.simtorta .pleg div{display:grid;grid-template-columns:12px 1fr auto;gap:6px;align-items:center;font-size:.8rem}.simtorta .pleg i{width:10px;height:10px;border-radius:3px}
 .simtab{min-width:980px;font-size:.84rem}.simtab th,.simtab td{text-align:center;white-space:nowrap}.simtab td:first-child,.simtab th:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
+.capgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px}
+.capcls{position:relative;border:0;background:none;padding:16px 0 0;cursor:pointer;font:inherit;text-align:center;transition:transform .15s}
+.capcls:hover:not(:disabled){transform:translateY(-3px)}.capcls:disabled{cursor:not-allowed;opacity:.5}
+.capboard{display:grid;justify-items:center;gap:6px;padding:20px 12px 18px;border-radius:10px;background:radial-gradient(circle at 30% 20%,#3a3a3a,#121212 75%);border:7px solid #8a6508;
+  box-shadow:inset 0 0 0 2px #b8860b,inset 0 0 22px rgba(0,0,0,.7),0 10px 20px rgba(0,0,0,.45);color:#f5f5f5;font-family:"Comic Sans MS","Segoe Print","Bradley Hand",cursive}
+.capic{font-size:2.2rem;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}.captit{font-size:1.35rem;font-weight:700;letter-spacing:.04em;text-shadow:0 0 1px #fff}.capn{font-size:.8rem;color:#d6d6d6;font-family:inherit}
+.captag{position:absolute;top:2px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#f2c94c,#b8860b);color:#111;font-size:.68rem;font-weight:900;letter-spacing:.14em;padding:4px 10px;border-radius:999px;box-shadow:0 3px 8px rgba(0,0,0,.4);z-index:1;white-space:nowrap}
+.captiza{display:block;height:7px;margin:0 18px;border-radius:0 0 6px 6px;background:linear-gradient(180deg,#6b4f05,#3a2a03);box-shadow:0 4px 8px rgba(0,0,0,.4)}
+.capcls.on .capboard{border-color:#f2c94c;box-shadow:inset 0 0 0 2px #fff3c4,0 0 0 3px rgba(242,201,76,.35),0 12px 24px rgba(0,0,0,.5)}
+.capfr{position:relative;width:100%;aspect-ratio:16/9;margin-top:12px;border-radius:10px;overflow:hidden;background:#000;border:1px solid var(--line)}.capfr iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.capvis select{margin:0;width:auto}
 .simcel{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .simpdfb{background:#0a0a0a;color:#fff;border:1px solid rgba(255,255,255,.85);border-radius:6px;padding:3px 10px;font:inherit;font-size:.72rem;font-weight:800;letter-spacing:.06em;cursor:pointer;box-shadow:0 0 8px rgba(255,255,255,.55),0 0 2px rgba(255,255,255,.9)}
 .simpdfb:hover{box-shadow:0 0 14px rgba(255,255,255,.8),0 0 3px #fff}.simpdfb:disabled{opacity:.7;cursor:wait}
@@ -949,6 +960,9 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
       <button type="button" class="mi" data-m="sim" aria-pressed="false" aria-expanded="false" title="SIMIT"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 28" width="24" height="24"><rect x="3" y="2" width="18" height="24" rx="2.5" fill="#f7efd6" stroke="rgba(255,255,255,.85)"/><rect x="6" y="6" width="12" height="2" rx="1" fill="#8a6508"/><rect x="6" y="10" width="9" height="2" rx="1" fill="#b8860b"/><rect x="6" y="14" width="11" height="2" rx="1" fill="#b8860b"/><circle cx="21" cy="20" r="6" fill="#d4a017" stroke="#fff" class="brillo"/><text x="21" y="23" text-anchor="middle" font-size="8" font-weight="900" fill="#111" font-family="Arial">$</text></svg></span><span class="lbl">SIMIT</span></button>
     </div>
     <div class="grp">
+      <button type="button" class="mi" data-m="cap" aria-pressed="false" aria-expanded="false" title="Capacitaciones"><span class="docico" aria-hidden="true"><svg viewBox="0 0 30 26" width="26" height="24"><rect x="2" y="2" width="26" height="16" rx="2" fill="#1f1f1f" stroke="#d4a017" stroke-width="1.6"/><path d="M6 8h8M6 12h12" stroke="#f5f5f5" stroke-width="1.4" stroke-linecap="round"/><circle cx="22" cy="9" r="2.4" fill="#f2c94c" class="brillo"/><path d="M8 18l-3 6M22 18l3 6M15 18v4" stroke="#b8860b" stroke-width="1.6" stroke-linecap="round"/></svg></span><span class="lbl">Capacitaciones</span></button>
+    </div>
+    <div class="grp">
       <button type="button" class="mi" data-m="var" aria-pressed="false" aria-expanded="false" title="Varadas"><svg class="ic icv" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3zM12 10v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Varadas</span><span class="humo" aria-hidden="true"><svg viewBox="0 0 48 36" width="44" height="33">
 <g class="nube"><circle cx="38" cy="14" r="3.4"/><circle cx="36" cy="14" r="3"/><circle cx="40" cy="14" r="3.2"/></g>
 <path d="M4 25v-6.5c0-1.2.7-2.2 1.8-2.6l5.2-2 4.4-4.6c.7-.7 1.6-1.1 2.6-1.1H33c1 0 1.9.5 2.5 1.3l4.3 6.2 3.6 1.4c1 .4 1.6 1.4 1.6 2.4V25c0 .8-.7 1.5-1.5 1.5H5.5C4.7 26.5 4 25.8 4 25z" fill="#f2f2f2" stroke="#2b2b2b" stroke-width="1.2"/>
@@ -1010,6 +1024,13 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
 </div>
 <div id="list"></div>
 </div>
+<section id="capv" hidden aria-label="Capacitaciones">
+  <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><div><h2 style="font-size:1.1rem">Capacitaciones</h2><small id="capsub"></small></div></div>
+    <div class="rpdrive" id="capcfg" hidden><label>Enlace de la carpeta de Google Drive (carpetas Checklist, Llantas, Combustible, Documentos y 5S)<input id="capurl" inputmode="url" placeholder="https://drive.google.com/drive/folders/…"></label>
+      <div class="hb"><button type="button" class="btn" id="capguar">Guardar</button><button type="button" class="btn ghost" id="capact">Actualizar</button><button type="button" class="del" id="capborr" hidden>Borrar</button></div></div>
+    <div class="pprog" id="capmsg" role="status"></div></div>
+  <div id="capbody"></div>
+</section>
 <section id="simv" hidden aria-label="SIMIT">
   <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><div><h2 style="font-size:1.1rem">SIMIT · consultas por mes</h2><small id="simsub"></small></div></div>
     <div class="rpdrive" id="simcfg" hidden><label>Enlace de la carpeta de Google Drive (subcarpetas por mes)<input id="simurl" inputmode="url" placeholder="https://drive.google.com/drive/folders/…"></label>
@@ -1494,7 +1515,7 @@ const DOM='@novedades-leon.app';
 const mail=u=>u.trim().toLowerCase()+DOM;
 const okUser=u=>/^[a-z0-9._-]{3,30}$/.test(u);
 const ROLES={admin:'Administrador',editor:'Editor',visual:'Visual',inactivo:'Sin acceso'};
-const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['ests','Estándar de Flota Safety'],['disp','Disponibilidad'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['lic','Notificación Licencia'],['sim','SIMIT'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
+const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['ests','Estándar de Flota Safety'],['disp','Disponibilidad'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['lic','Notificación Licencia'],['sim','SIMIT'],['cap','Capacitaciones'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
 const puedeSede=x=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.sedes)||!cur.sedes.length||cur.sedes.includes(x));
 const sedesHTML=(pre,sel)=>`<div class="mudchk">${SEDES.map(x=>`<label><input type="checkbox" data-${pre}="${x}"${!sel||!sel.length||sel.includes(x)?' checked':''}> ${x}</label>`).join('')}</div>`;
 function aplicarSedes(){const ok=SEDES.filter(puedeSede);$('sede').innerHTML=ok.map(x=>`<option${x===sede?' selected':''}>${x}</option>`).join('');$('sede').disabled=ok.length<2;$('sede').title=ok.length<2?'Tu usuario solo tiene acceso a esta sede':'';
@@ -1647,6 +1668,8 @@ function salir(){
   if(unsubRP){unsubRP();unsubRP=null}
   if(unsubLC){unsubLC();unsubLC=null}
   if(unsubSM){unsubSM();unsubSM=null}
+  if(unsubCP){unsubCP();unsubCP=null}
+  capCfgs={};capDatas={};capSel=null;
   simCfgs={};simDatas={};simCfg=null;simData=null;
   licD=[];
   if(unsubRE){unsubRE();unsubRE=null}
@@ -1695,6 +1718,7 @@ async function entrar(user){
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
   unsubED=[];[['std','estdata','est'],['safety','estdata_safety','ests']].forEach(([v,c,m])=>{if(puedeVer(m))unsubED.push(onSnapshot(collection(db,c),snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());estStore[v].ed=o;if(estVar===v){edDatos=o;renderED();if(!$('estv').hidden&&estVista==='plant')renderEst()}},()=>{}))});
+  if(puedeVer('cap'))unsubCP=onSnapshot(collection(db,'capac'),snap=>{capCfgs={};snap.docs.forEach(d=>capCfgs[d.id]=d.data());capErr='';renderCap()},()=>{});
   if(puedeVer('sim'))unsubSM=onSnapshot(collection(db,'simit'),snap=>{const ant=JSON.stringify(Object.fromEntries(Object.entries(simCfgs).map(([k,v])=>[k,v&&v.url])));simCfgs={};snap.docs.forEach(d=>simCfgs[d.id]=d.data());SEDES.forEach(sd=>{const a=simCfgDe(sd);if(simDatas[sd]&&!(a&&a.url))simDatas[sd]=null});const nue=JSON.stringify(Object.fromEntries(Object.entries(simCfgs).map(([k,v])=>[k,v&&v.url])));if(ant!==nue){SEDES.forEach(sd=>{simDatas[sd]=simDatas[sd]&&simDatas[sd]._url===((simCfgDe(sd)||{}).url)?simDatas[sd]:null})}simErr='';renderSim()},()=>{});
   if(puedeVer('lic'))unsubLC=onSnapshot(collection(db,'licencias'),snap=>{licD=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderLic()},()=>{});
   if(puedeVer('rep'))unsubRE=onSnapshot(collection(db,'repevid'),snap=>{repEv=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderEvid()},()=>{});
@@ -1865,7 +1889,8 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
   if(m!=='ini'&&!puedeVer(m))m='ini';
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est'||m==='ests',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep',lc=m==='lic',sm=m==='sim';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est'||m==='ests',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep',lc=m==='lic',sm=m==='sim',cp=m==='cap';
+  $('capv').hidden=!cp;if(cp)renderCap();
   $('simv').hidden=!sm;if(sm)renderSim();
   $('licv').hidden=!lc;if(lc)renderLic();
   document.documentElement.classList.toggle('tema-rep',rp);$('repv').hidden=!rp;if(rp)renderRep();
@@ -1880,9 +1905,9 @@ function modulo(m){
   document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm;
-  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp;
+  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||!canEdit();$('raladd').hidden=!ral||!canEdit();
   if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';$('kmllanos').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
@@ -1895,10 +1920,10 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden,lc=!$('licv').hidden,sm=!$('simv').hidden;
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden,lc=!$('licv').hidden,sm=!$('simv').hidden,cp=!$('capv').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':sm?'SIMIT':lc?'Notificación Licencia':rp?'Repuestos':ds?'Disponibilidad':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?estNomT()+' · Datos del Excel':estNomT()):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!lc&&!sm&&!cal&&$('dash').hidden);
+  $('vtit').textContent=ini?'':cp?'Capacitaciones':sm?'SIMIT':lc?'Notificación Licencia':rp?'Repuestos':ds?'Disponibilidad':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?estNomT()+' · Datos del Excel':estNomT()):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!lc&&!sm&&!cp&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
@@ -2064,6 +2089,7 @@ function vistaPDF(){
   if(vis('ralv'))return{el:$('ralv'),titulo:'Ralentí'};
   if(vis('docv'))return{el:$('docv'),titulo:$('vtit').textContent};
   if(vis('blv'))return{el:$('blv'),titulo:BLN[blTipo].t};
+  if(vis('capv'))return{el:$('capv'),titulo:'Capacitaciones'};
   if(vis('simv'))return{el:$('simv'),titulo:'SIMIT'};
   if(vis('licv'))return{el:$('licv'),titulo:'Notificacion Licencia'};
   if(vis('repv'))return{el:$('repv'),titulo:'Repuestos'};
@@ -4704,6 +4730,48 @@ $('simguar').onclick=async()=>{if(!canEdit())return;const u=$('simurl').value.tr
 $('simact').onclick=()=>{simSede();if(simCfg&&simCfg.url){$('simmsg').textContent='';simDatas[sede]=null;simData=null;simLeer(true)}};
 $('simborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar el enlace de Drive del SIMIT de ${sede}?`))return;try{await deleteDoc(doc(db,'simit',sede));if(sede==='Villavicencio'&&simCfgs.config)await deleteDoc(doc(db,'simit','config')).catch(()=>{});delete simCfgs[sede];if(sede==='Villavicencio')delete simCfgs.config;simDatas[sede]=null;simCfg=null;simData=null;$('simmsg').textContent='Enlace borrado.';renderSim()}catch(x){alert(ERR(x.code))}};
 
+/* ---------- CAPACITACIONES: presentaciones por tema desde una carpeta de Drive (por sede) ---------- */
+const CAP_TEMAS=[{k:'checklist',t:'Checklist',ic:'📋'},{k:'llantas',t:'Llantas',ic:'🛞'},{k:'combustible',t:'Combustible',ic:'⛽'},{k:'documentos',t:'Documentos',ic:'📄'},{k:'5s',t:'5S',ic:'🧹'}];
+let capCfgs={},capDatas={},unsubCP=null,capCarg=false,capErr='',capSel=null;
+const capNorm=t=>sinTilde(t||'').replace(/[^a-z0-9]/g,'');
+const capEsPpt=f=>/presentation/.test(f.mimeType)||/\.(pptx?|ppsx?|odp)$/i.test(f.name);
+async function capLeer(forzar){
+  const sd=sede,cfg=capCfgs[sd],url=cfg&&cfg.url;if(!url){capDatas[sd]=null;renderCap();return}
+  const id=(String(url).match(/\/folders\/([\w-]{10,})/)||[])[1]||(/^[\w-]{20,}$/.test(url)?url:'');if(!id){capErr='El enlace guardado no es de una carpeta de Google Drive.';renderCap();return}
+  if(forzar)Object.keys(docCache).forEach(k=>delete docCache[k]);capCarg=true;capErr='';renderCap();
+  try{const raiz=await driveLista(id),temas={};
+    for(const T of CAP_TEMAS){const f=raiz.find(x=>x.mimeType===MIME_FOLDER&&capNorm(x.name)===T.k)||raiz.find(x=>x.mimeType===MIME_FOLDER&&capNorm(x.name).includes(T.k));
+      if(!f){temas[T.k]=null;continue}const pp=[];const vis=async(fid,n)=>{for(const x of await driveLista(fid)){if(x.mimeType===MIME_FOLDER){if(n<2)await vis(x.id,n+1)}else if(capEsPpt(x))pp.push(x)}};await vis(f.id,0);
+      temas[T.k]={carpeta:f,ppts:pp.sort((a,b)=>a.name.localeCompare(b.name,'es',{numeric:true}))}}
+    capDatas[sd]={temas,leido:new Date(),_url:url}}
+  catch(x){console.error(x);capErr=x&&x.razon==='accessNotConfigured'?'La Google Drive API no está activada en el proyecto.':'No se pudo leer la carpeta de Drive. Revisa que esté compartida como «Cualquier persona con el vínculo».'}
+  capCarg=false;renderCap();
+}
+const capEmbed=f=>/google-apps\.presentation/.test(f.mimeType)?`https://docs.google.com/presentation/d/${f.id}/embed?start=false&loop=false&delayms=5000`:`https://drive.google.com/file/d/${f.id}/preview`;
+function renderCap(){
+  if(!cur||$('capv').hidden)return;const ed=canEdit(),adm=cur.rol==='admin',cfg=capCfgs[sede],D=capDatas[sede];
+  $('capcfg').hidden=!ed;$('capborr').hidden=!(adm&&cfg&&cfg.url);if(document.activeElement!==$('capurl'))$('capurl').value=(cfg&&cfg.url)||'';
+  $('capsub').textContent=cfg&&cfg.url?`${sede} · carpeta predeterminada guardada${cfg.por?' por '+cfg.por:''}${D?` · leída el ${D.leido.toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'})}`:''}`:`${sede} · sin carpeta de Drive guardada.`;
+  if(!cfg||!cfg.url){$('capbody').innerHTML=`<p class="empty" style="margin:0">${ed?`Pega el enlace de la carpeta de capacitaciones de ${esc(sede)} y pulsa «Guardar».`:`Aún no hay capacitaciones configuradas para ${esc(sede)}.`}</p>`;return}
+  if(!D||D._url!==cfg.url){if(capErr){$('capbody').innerHTML=`<div class="ctalw" role="alert">${esc(capErr)}</div>`;return}$('capbody').innerHTML='<p class="empty" style="margin:0">Leyendo las capacitaciones desde Google Drive…</p>';if(!capCarg)capLeer();return}
+  if(capSel&&(!D.temas[capSel.k]||!D.temas[capSel.k].ppts.some(p=>p.id===capSel.id)))capSel=null;
+  const T=capSel&&CAP_TEMAS.find(x=>x.k===capSel.k),tm=capSel&&D.temas[capSel.k],pp=tm&&tm.ppts.find(p=>p.id===capSel.id);
+  $('capbody').innerHTML=`<div class="capgrid">${CAP_TEMAS.map(x=>{const t=D.temas[x.k],n=t?t.ppts.length:0;return `<button type="button" class="capcls${capSel&&capSel.k===x.k?' on':''}" data-capk="${x.k}"${!n?' disabled':''} aria-label="Capacitación ${esc(x.t)}">
+      <span class="captag">CAPACITACIÓN</span><span class="capboard"><span class="capic" aria-hidden="true">${x.ic}</span><span class="captit">${esc(x.t)}</span><span class="capn">${t?(n?`${n} presentaci${n===1?'ón':'ones'}`:'Sin presentación'):'Carpeta no encontrada'}</span></span><span class="captiza" aria-hidden="true"></span></button>`}).join('')}</div>
+    ${pp?`<div class="dc capvis" style="margin-top:14px"><div class="chead" style="margin:0"><div><h2>${T.ic} Clase de ${esc(T.t)}</h2><small>${esc(pp.name)}</small></div>
+      <div class="hb">${tm.ppts.length>1?`<select id="cap-pp" aria-label="Presentación">${tm.ppts.map(p=>`<option value="${p.id}"${p.id===pp.id?' selected':''}>${esc(p.name)}</option>`).join('')}</select>`:''}<button type="button" class="btn ghost" id="capfs">⛶ Pantalla completa</button>${adm?`<a class="btn ghost" href="https://drive.google.com/uc?export=download&id=${pp.id}" target="_blank" rel="noopener">⬇ Descargar</a>`:''}<button type="button" class="btn ghost" id="capcer">✕ Cerrar</button></div></div>
+      <div class="capfr" id="capfrw"><iframe src="${capEmbed(pp)}" title="${esc(pp.name)}" allowfullscreen allow="autoplay; fullscreen"></iframe></div></div>`:'<small class="mnota" style="display:block;margin-top:10px">Toca una clase para abrir su presentación aquí mismo.</small>'}`;
+  const s=$('cap-pp');if(s)s.onchange=e=>{capSel={k:capSel.k,id:e.target.value};renderCap()};
+  const fs=$('capfs');if(fs)fs.onclick=()=>{const w=$('capfrw');(w.requestFullscreen||w.webkitRequestFullscreen||(()=>{})).call(w)};
+  const cc=$('capcer');if(cc)cc.onclick=()=>{capSel=null;renderCap()};
+}
+$('capbody').addEventListener('click',e=>{const b=e.target.closest('[data-capk]');if(!b||b.disabled)return;const D=capDatas[sede],t=D&&D.temas[b.dataset.capk];if(!t||!t.ppts.length)return;
+  capSel={k:b.dataset.capk,id:t.ppts[0].id};renderCap();setTimeout(()=>{const v=document.querySelector('.capvis');if(v)v.scrollIntoView({behavior:'smooth',block:'start'})},60)});
+$('capguar').onclick=async()=>{if(!canEdit())return;const u=$('capurl').value.trim();if(!/\/folders\/[\w-]{10,}/.test(u)&&!/^[\w-]{20,}$/.test(u)){$('capmsg').textContent='Pega el enlace de una carpeta de Google Drive.';return}
+  try{await setDoc(doc(db,'capac',sede),{url:u,sede,por:cur.nombre,editado:serverTimestamp()});capCfgs[sede]={url:u,por:cur.nombre};capDatas[sede]=null;capSel=null;$('capmsg').textContent='Carpeta guardada como predeterminada.';capLeer(true)}catch(x){$('capmsg').textContent=ERR(x.code)}};
+$('capact').onclick=()=>{if(capCfgs[sede]&&capCfgs[sede].url){$('capmsg').textContent='';capDatas[sede]=null;capLeer(true)}};
+$('capborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar el enlace de Drive de capacitaciones de ${sede}?`))return;try{await deleteDoc(doc(db,'capac',sede));delete capCfgs[sede];capDatas[sede]=null;capSel=null;$('capmsg').textContent='Enlace borrado.';renderCap()}catch(x){alert(ERR(x.code))}};
+
 $('vper').onchange=()=>renderVar();
 
 /* ---------- Sistema "Otro" y lista de conductores ---------- */
@@ -5090,7 +5158,7 @@ $('sede').onchange=e=>{
   if($('vdlg').open)$('vdlg').close();
   if($('cndlg').open)$('cndlg').close();
   if($('kmdlg').open)$('kmdlg').close();
-  dsF.cd='';simQ='';simErr='';renderSim();renderLic();rpF.hoja=rpF.hoja==='__acta'?'__acta':'';actaVer=null;renderRep();renderDisp();renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
+  dsF.cd='';capSel=null;capErr='';renderCap();simQ='';simErr='';renderSim();renderLic();rpF.hoja=rpF.hoja==='__acta'?'__acta':'';actaVer=null;renderRep();renderDisp();renderUrea();ctColF={};ctSort=null;estSel='';estF=null;edMesSel='';renderEst();renderED();renderKm();ralSel='';renderRal();renderCT();$('blpl').value='';renderBL();if(!$('docv').hidden)renderDoc(true);
   renderVar();
   aplicarSede();renderCal();
 };
