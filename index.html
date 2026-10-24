@@ -886,9 +886,10 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
 .portada{position:fixed;inset:0;z-index:300;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#2a2a2a,#0b0b0b 70%);transition:opacity .45s,transform .45s}
 .portada[hidden]{display:none}.portada.sale{opacity:0;transform:scale(1.04);pointer-events:none}
 .portin{display:grid;justify-items:center;gap:6px;padding:20px;width:min(640px,100%)}
-.porttit{margin:0;font-size:clamp(1.6rem,5vw,2.6rem);letter-spacing:.3em;font-weight:800;background:linear-gradient(90deg,#c8ec5a,#36d39a,#3fc2e3,#ff5f93,#ff8a7a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.porttit{margin:0;font-size:clamp(1.6rem,5vw,2.6rem);letter-spacing:.3em;font-weight:800;background:linear-gradient(90deg,#3b8fe6,#2fbf8f,#f59e2a,#f0533a);-webkit-background-clip:text;background-clip:text;color:transparent}
 .portsub{margin:0 0 4px;color:#bdbdbd;letter-spacing:.06em}
-.psvg{width:min(560px,92vw);height:auto;overflow:visible}
+.psvg{width:min(620px,94vw);height:auto;overflow:visible}.ptruck{animation:ptruck 1s cubic-bezier(.2,.8,.2,1) .4s both}@keyframes ptruck{from{opacity:0;transform:translate(420px,300px)}}
+.pbar.sel{transform:translateY(-12px) scale(1.06)}
 .pslice{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:transform .25s,filter .25s,opacity .3s;outline:none}
 .pslice:hover,.pslice:focus-visible{transform:translateY(-6px);filter:brightness(1.12) drop-shadow(0 8px 12px rgba(0,0,0,.45))}
 .pslice.sel{transform:translateY(-10px) scale(1.08);filter:brightness(1.3) saturate(1.3) drop-shadow(0 0 18px var(--hl)) drop-shadow(0 0 34px var(--hl))}
@@ -4803,30 +4804,54 @@ $('capguar').onclick=async()=>{if(!canEdit())return;const u=$('capurl').value.tr
 $('capact').onclick=()=>{if(capCfgs[sede]&&capCfgs[sede].url){$('capmsg').textContent='';capDatas[sede]=null;capLeer(true)}};
 $('capborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar el enlace de Drive de capacitaciones de ${sede}?`))return;try{await deleteDoc(doc(db,'capac',sede));delete capCfgs[sede];capDatas[sede]=null;capSel=null;$('capmsg').textContent='Enlace borrado.';renderCap()}catch(x){alert(ERR(x.code))}};
 
-/* ---------- Portada después del ingreso: pastel 3D (Módulo 1 a 4 y Extras) ---------- */
-const PORT=[ // ángulos en grados (0 = derecha, sentido horario), radio, colores (claro, oscuro, lateral)
-  {n:'MÓDULO 1',a0:-42,a1:8,r:100,c1:'#ff8a7a',c2:'#ef4f4f',sh:'#a8302f'},
-  {n:'MÓDULO 2',a0:-100,a1:-42,r:112,c1:'#ff5f93',c2:'#d81b60',sh:'#8e1240'},
-  {n:'MÓDULO 3',a0:-170,a1:-100,r:122,c1:'#3fc2e3',c2:'#1489ad',sh:'#0c5a73'},
-  {n:'MÓDULO 4',a0:-260,a1:-170,r:140,c1:'#36d39a',c2:'#119a6d',sh:'#0b6648'},
-  {n:'EXTRAS',a0:8,a1:100,r:165,c1:'#c8ec5a',c2:'#6cb52e',sh:'#45801c'}];
+/* ---------- Portada después del ingreso: barras 3D (Módulo 1 a 4) y camión ---------- */
+const PORT=[{n:'1',f:'#3b8fe6',s:'#1f5fa8',t:'#7fb8f2'},{n:'2',f:'#2fbf8f',s:'#1a8462',t:'#6fe0b8'},{n:'3',f:'#f59e2a',s:'#c06f0e',t:'#ffc56d'},{n:'4',f:'#f0533a',s:'#b0321e',t:'#ff8b74'}];
 function portadaSVG(){
-  const cx=230,cy=210,P=(r,a)=>[cx+r*Math.cos(a*Math.PI/180),cy+r*Math.sin(a*Math.PI/180)];
-  const sec=(r,a0,a1,dx,dy)=>{const[x0,y0]=P(r,a0),[x1,y1]=P(r,a1),l=a1-a0>180?1:0;return `M${(cx+dx).toFixed(1)},${(cy+dy).toFixed(1)}L${(x0+dx).toFixed(1)},${(y0+dy).toFixed(1)}A${r},${r} 0 ${l} 1 ${(x1+dx).toFixed(1)},${(y1+dy).toFixed(1)}Z`};
-  const ring=(r0,r1,a0,a1)=>{const[x0,y0]=P(r1,a0),[x1,y1]=P(r1,a1),[x2,y2]=P(r0,a1),[x3,y3]=P(r0,a0),l=a1-a0>180?1:0;return `M${x0},${y0}A${r1},${r1} 0 ${l} 1 ${x1},${y1}L${x2},${y2}A${r0},${r0} 0 ${l} 0 ${x3},${y3}Z`};
-  let defs='',back='',g='';
-  // anillos traseros decorativos (como la imagen)
-  back+=`<path d="${ring(150,168,-200,-30)}" fill="url(#pgB1)" opacity=".95"/><path d="${ring(126,140,-150,-20)}" fill="url(#pgB2)" opacity=".95"/>`;
-  defs+=`<linearGradient id="pgB1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5fbf3a"/><stop offset="1" stop-color="#9be15d"/></linearGradient><linearGradient id="pgB2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#36c9b0"/><stop offset="1" stop-color="#5ec8f2"/></linearGradient>`;
-  const orden=PORT.map((s,i)=>i).sort((a,b)=>Math.sin((PORT[a].a0+PORT[a].a1)/2*Math.PI/180)-Math.sin((PORT[b].a0+PORT[b].a1)/2*Math.PI/180));
-  orden.forEach(i=>{const s=PORT[i],am=(s.a0+s.a1)/2*Math.PI/180,ex=Math.cos(am)*7,ey=Math.sin(am)*7;
-    defs+=`<linearGradient id="pg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${s.c1}"/><stop offset="1" stop-color="${s.c2}"/></linearGradient>`;
-    let lado='';for(let d=16;d>0;d-=2)lado+=`<path d="${sec(s.r,s.a0,s.a1,ex,ey+d)}" fill="${s.sh}"/>`;
-    const[tx,ty]=P(s.r*(i===4?.6:i===0?.66:.62),(s.a0+s.a1)/2);
-    g+=`<g class="pslice" data-port="${i}" tabindex="0" role="button" aria-label="${s.n}" style="--hl:${s.c1}">${lado}<path class="ptop" d="${sec(s.r,s.a0,s.a1,ex,ey)}" fill="url(#pg${i})" stroke="rgba(255,255,255,.6)" stroke-width="1.2"/>
-      <text x="${(tx+ex).toFixed(1)}" y="${(ty+ey+5).toFixed(1)}" text-anchor="middle" font-size="${i===4?21:i===3?17:i===0?12:14}" font-weight="900" fill="#fff" style="paint-order:stroke;stroke:rgba(0,0,0,.25);stroke-width:2;pointer-events:none">${s.n}</text></g>`});
-  return `<svg viewBox="0 0 470 430" class="psvg" role="group" aria-label="Paneles de ingreso"><defs>${defs}<radialGradient id="pgsh"><stop offset="0" stop-color="rgba(0,0,0,.45)"/><stop offset="1" stop-color="rgba(0,0,0,0)"/></radialGradient></defs>
-    <ellipse cx="230" cy="400" rx="170" ry="18" fill="url(#pgsh)"/>${back}${g}</svg>`;
+  const DX=24,DY=-15,W=48,H=[78,118,160,206],B=[[112,300],[178,284],[244,268],[310,252]];
+  const pl=(...p)=>p.map(q=>q.join(',')).join(' ');
+  let s=`<defs><linearGradient id="ptop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e6e6e6"/></linearGradient>
+    <linearGradient id="pvid" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b7d99"/><stop offset="1" stop-color="#1d3346"/></linearGradient>
+    <linearGradient id="pazul" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1f8fd6"/><stop offset=".55" stop-color="#2ab5a0"/><stop offset="1" stop-color="#5cc65a"/></linearGradient>
+    <radialGradient id="psom"><stop offset="0" stop-color="rgba(0,0,0,.45)"/><stop offset="1" stop-color="rgba(0,0,0,0)"/></radialGradient></defs>`;
+  // plataforma blanca
+  s+=`<ellipse cx="300" cy="372" rx="250" ry="24" fill="url(#psom)"/>
+    <polygon points="${pl([60,318],[400,318],[490,262],[150,262])}" fill="url(#ptop)"/>
+    <polygon points="${pl([60,318],[400,318],[400,346],[60,346])}" fill="#d9d9d9"/><polygon points="${pl([400,318],[490,262],[490,290],[400,346])}" fill="#bfbfbf"/>`;
+  // barras
+  const pts=[];
+  PORT.forEach((c,i)=>{const[x,y]=B[i],h=H[i],top=y-h;
+    s+=`<g class="pslice pbar" data-port="${i}" tabindex="0" role="button" aria-label="Módulo ${c.n}" style="--hl:${c.t}">
+      <polygon points="${pl([x+W,y],[x+W+DX,y+DY],[x+W+DX,top+DY],[x+W,top])}" fill="${c.s}"/>
+      <polygon points="${pl([x,top],[x+W,top],[x+W+DX,top+DY],[x+DX,top+DY])}" fill="${c.t}"/>
+      <rect class="ptop" x="${x}" y="${top}" width="${W}" height="${h}" fill="${c.f}" stroke="rgba(255,255,255,.55)" stroke-width="1"/>
+      <rect x="${x+4}" y="${top+4}" width="8" height="${h-8}" fill="rgba(255,255,255,.18)"/>
+      <text x="${x+W/2}" y="${y-24}" text-anchor="middle" font-size="8.5" font-weight="900" fill="#fff" letter-spacing=".5">MÓDULO</text>
+      <text x="${x+W/2}" y="${y-6}" text-anchor="middle" font-size="18" font-weight="900" fill="#fff">${c.n}</text></g>`;
+    pts.push([x+W/2,top+16])});
+  // línea de tendencia blanca
+  s+=`<polyline points="${pl(...pts)}" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><polyline points="${pl(...pts)}" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#fff" stroke="rgba(0,0,0,.3)"/>`).join('')}`;
+  // camión (adelante a la derecha, sin tapar las barras)
+  const cx=318,cy=300;
+  s+=`<g class="ptruck" transform="translate(${cx} ${cy})">
+    <ellipse cx="96" cy="66" rx="112" ry="11" fill="url(#psom)"/>
+    <polygon points="0,6 156,6 172,-4 16,-4" fill="#f2f2f2" stroke="#c9c9c9" stroke-width=".8"/>
+    <polygon points="156,6 172,-4 172,48 156,58" fill="#cfcfcf"/>
+    <rect x="42" y="6" width="114" height="52" fill="#fafafa" stroke="#cfcfcf" stroke-width=".8"/>
+    <rect x="46" y="10" width="62" height="44" rx="2" fill="#e8253a"/>
+    <rect x="108" y="10" width="44" height="44" rx="2" fill="url(#pazul)"/>
+    <text x="77" y="27" text-anchor="middle" font-size="8" font-weight="900" fill="#fff" font-family="Arial">MENOS</text>
+    <text x="77" y="37" text-anchor="middle" font-size="8" font-weight="900" fill="#fff" font-family="Arial">EMISIONES</text>
+    <text x="77" y="48" text-anchor="middle" font-size="7.5" font-weight="900" fill="#fff" font-family="Arial">AIRE LIMPIO</text>
+    <path d="M115 44c6-10 14-14 30-16v20h-30z" fill="rgba(255,255,255,.35)"/>
+    <path d="M2 22 L8 10 L40 10 L42 58 L2 58 Z" fill="#f7f7f7" stroke="#bdbdbd" stroke-width=".8"/>
+    <path d="M6 22 L11 13 L38 13 L38 30 L6 30 Z" fill="url(#pvid)"/>
+    <rect x="2" y="40" width="10" height="16" fill="#9e9e9e"/><rect x="3" y="42" width="8" height="2" fill="#6b6b6b"/><rect x="3" y="46" width="8" height="2" fill="#6b6b6b"/><rect x="3" y="50" width="8" height="2" fill="#6b6b6b"/>
+    <rect x="1" y="34" width="5" height="4" rx="1" fill="#fff3c4"/>
+    <rect x="0" y="56" width="170" height="7" rx="2" fill="#3a3a3a"/>
+    ${[24,96,128].map(x=>`<circle cx="${x}" cy="64" r="11" fill="#1f1f1f"/><circle cx="${x}" cy="64" r="5" fill="#bdbdbd"/><circle cx="${x}" cy="64" r="2" fill="#555"/>`).join('')}
+  </g>`;
+  return `<svg viewBox="40 20 470 380" class="psvg" role="group" aria-label="Módulos de ingreso">${s}</svg>`;
 }
 function mostrarPortada(){const p=$('portada');if(!p)return;$('portsvg').innerHTML=portadaSVG();p.hidden=false;p.classList.remove('sale')}
 function elegirPanel(i){const p=$('portada');if(!p||p.classList.contains('sale'))return;
