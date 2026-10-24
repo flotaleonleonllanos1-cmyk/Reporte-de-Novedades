@@ -3871,26 +3871,28 @@ function renderEst(){
   const d=estSel==='nuevo'?null:L.find(x=>x.id===estSel);
   if(!d&&estSel!=='nuevo'){$('estslide').innerHTML=`<div class="empty" style="margin:20px">No hay ítems en ${MESES[estMes-1]} ${estAnio} para ${esc(sede)}.</div>`;$('estacts').innerHTML='';return}
   if(!estF||estF._id!==(d?d.id:'nuevo'))estF={...(d?{placas:d.placas||[],cat:d.cat||EST_CATS[0],item:d.item||'',accion:d.accion||'',obs:d.obs||'',antes:d.antes||'',despues:d.despues||'',antesMarca:!!d.antesMarca,despuesMarca:!!d.despuesMarca}:estNuevo()),_id:d?d.id:'nuevo'};
-  const ed=estSel==='nuevo'?canEdit():canMod(),F=estF;F.placas=F.placas||[];
+  // admin edita todo · editor registra ítems nuevos y completa (sube fotos, escribe) lo que está vacío en los guardados
+  const edAll=estSel==='nuevo'?canEdit():canMod(),comp=!edAll&&canEdit()&&!!d,ed=edAll||comp,F=estF;F.placas=F.placas||[];
+  const vac=k=>!d||(k==='placas'?!(d.placas&&d.placas.length):!d[k]),eF=k=>edAll||(comp&&vac(k));
   const IMall=edItemsMes(),usados=new Set(L.filter(x=>x.id!==(d&&d.id)).map(x=>x.item));const IM=IMall?IMall.filter(x=>!usados.has(x.t)):null;
   const plItem=IMall?((IMall.find(x=>x.t===F.item)||{}).pl||[]):[];const plOps=[...new Set([...plItem,...F.placas])];
   const foto=(k,l)=>`<div class="esf"><div class="esftit">${l}</div><div class="esfbox">${F[k]?`<img src="${F[k]}" alt="${l}" data-estimg>`:'<span class="esvac">Sin foto</span>'}
-    ${ed?`<div class="esfb"><button type="button" data-estcam="${k}">📷 Tomar foto</button><button type="button" data-estgal="${k}">Subir</button>${F[k]?`<button type="button" data-estq="${k}">Quitar</button>`:''}</div>`:''}</div></div>`;
+    ${eF(k)?`<div class="esfb"><button type="button" data-estcam="${k}">📷 Tomar foto</button><button type="button" data-estgal="${k}">Subir</button>${F[k]&&(edAll||vac(k))?`<button type="button" data-estq="${k}">Quitar</button>`:''}</div>`:''}</div></div>`;
   $('estslide').innerHTML=`<div class="esl">
     <div class="eshead"><div class="eslogo">FLOTA LLANOS</div><div class="estitulo">${estNom()} ${estAnio} - &nbsp;MES: <span class="esmes">${MESES[estMes-1].toUpperCase()}</span></div><div class="esdeco"><i></i><i></i></div></div>
     <div class="essede">${esc(sede.toUpperCase())}</div>
-    <div class="esbar">${ed?`<select id="es-cat" aria-label="Categoría">${EST_CATS.map(c=>`<option${c===F.cat?' selected':''}>${c}</option>`).join('')}</select>`:esc(F.cat)}</div>
-    <div class="esitem"><b>Ítem:</b>${ed?(IM?`<select id="es-item"><option value="">${IM.length?'Elige un ítem en «NO»…':'No hay ítems en «NO» pendientes este mes'}</option>${(F.item&&!IM.some(x=>x.t===F.item)?[{t:F.item}]:[]).concat(IM).map(x=>`<option${x.t===F.item?' selected':''}>${esc(x.t)}</option>`).join('')}</select>`:`<input id="es-item" maxlength="120" value="${esc(F.item)}" placeholder="Escribe el ítem">`):`<span>${esc(F.item||'—')}</span>`}</div>
+    <div class="esbar">${edAll?`<select id="es-cat" aria-label="Categoría">${EST_CATS.map(c=>`<option${c===F.cat?' selected':''}>${c}</option>`).join('')}</select>`:esc(F.cat)}</div>
+    <div class="esitem"><b>Ítem:</b>${edAll?(IM?`<select id="es-item"><option value="">${IM.length?'Elige un ítem en «NO»…':'No hay ítems en «NO» pendientes este mes'}</option>${(F.item&&!IM.some(x=>x.t===F.item)?[{t:F.item}]:[]).concat(IM).map(x=>`<option${x.t===F.item?' selected':''}>${esc(x.t)}</option>`).join('')}</select>`:`<input id="es-item" maxlength="120" value="${esc(F.item)}" placeholder="Escribe el ítem">`):`<span>${esc(F.item||'—')}</span>`}</div>
     <div class="esbody">
       <div class="esizq"><b>ACCIÓN:</b>
-        ${ed?`<div class="esacc esaccw">${IMall?`<select id="es-pl" class="espl" multiple size="4" aria-label="Placas con este ítem en NO">${plOps.length?plOps.map(p=>`<option value="${esc(p)}"${F.placas.includes(p)?' selected':''}>${esc(p)}</option>`).join(''):'<option disabled>Elige un ítem para ver sus placas</option>'}</select>`:''}<textarea id="es-accion" maxlength="1200" placeholder="Describe la acción">${esc(F.accion)}</textarea></div><textarea id="es-obs" class="esobs" maxlength="1500" placeholder="Hallazgo / observación">${esc(F.obs)}</textarea>`
+        ${ed?`<div class="esacc esaccw">${IMall?`<select id="es-pl" class="espl" multiple size="4" aria-label="Placas con este ítem en NO"${eF('placas')?'':' disabled'}>${plOps.length?plOps.map(p=>`<option value="${esc(p)}"${F.placas.includes(p)?' selected':''}>${esc(p)}</option>`).join(''):'<option disabled>Elige un ítem para ver sus placas</option>'}</select>`:''}<textarea id="es-accion" maxlength="1200" placeholder="Describe la acción"${eF('accion')?'':' readonly'}>${esc(F.accion)}</textarea></div><textarea id="es-obs" class="esobs" maxlength="1500" placeholder="Hallazgo / observación"${eF('obs')?'':' readonly'}>${esc(F.obs)}</textarea>`
           :`<div class="esacc">${F.placas.length?`<b class="esplro">Placas: ${esc(F.placas.join(', '))}</b><br>`:''}${esc(F.accion||'')}</div><div class="esobs">${esc(F.obs||'')}</div>`}</div>
       ${foto('antes','ANTES')}${foto('despues','DESPUÉS')}
     </div>
     <div class="espie"><div class="esanio"><span>${String(estAnio).slice(0,2)}</span><span>${String(estAnio).slice(2)}</span></div><div><b>FLOTA</b><small>CD Reg. Sur</small></div>
       <svg class="estruck" viewBox="0 0 64 40" aria-hidden="true"><path d="M2 8h34v22H2z" fill="#e5e7eb" stroke="#475569"/><path d="M37 14h13l9 10v6H37z" fill="#f1f5f9" stroke="#475569"/><path d="M40 17h8l5 6H40z" fill="#f2d27a"/><circle cx="13" cy="32" r="5" fill="#1f2937"/><circle cx="48" cy="32" r="5" fill="#1f2937"/><circle cx="13" cy="32" r="2" fill="#cbd5e1"/><circle cx="48" cy="32" r="2" fill="#cbd5e1"/></svg></div>
   </div>`;
-  $('estacts').innerHTML=(ed?`<button type="button" class="btn" id="estsave">${estSel==='nuevo'?'Guardar ítem':'Guardar cambios'}</button>`:'')+(cur.rol==='admin'&&d?`<button type="button" class="del" id="estdel">Eliminar ítem</button>`:'')+(cur.rol==='admin'&&L.length?`<button type="button" class="btn ghost" id="estpdf">⬇ PDF de todos los ítems</button><button type="button" class="btn ghost" id="estpptm">⬇ PowerPoint del mes</button>`:'')+(cur.rol==='admin'&&estDocs.some(x=>(x.sede||SEDES[0])===sede&&x.anio===estAnio)?`<button type="button" class="btn ghost" id="estpptA">⬇ PowerPoint del año ${estAnio}</button>`:'')+(d?`<small class="mnota">Registrado por ${esc(d.por||'—')}${d.editadoPor?` · editado por ${esc(d.editadoPor)}`:''}</small>`:'');
+  $('estacts').innerHTML=(ed?`<button type="button" class="btn" id="estsave">${estSel==='nuevo'?'Guardar ítem':edAll?'Guardar cambios':'Guardar'}</button>${comp?'<small class="mnota">Puedes completar lo que está vacío (fotos y textos); lo ya guardado solo lo cambia el administrador.</small>':''}`:'')+(cur.rol==='admin'&&d?`<button type="button" class="del" id="estdel">Eliminar ítem</button>`:'')+(cur.rol==='admin'&&L.length?`<button type="button" class="btn ghost" id="estpdf">⬇ PDF de todos los ítems</button><button type="button" class="btn ghost" id="estpptm">⬇ PowerPoint del mes</button>`:'')+(cur.rol==='admin'&&estDocs.some(x=>(x.sede||SEDES[0])===sede&&x.anio===estAnio)?`<button type="button" class="btn ghost" id="estpptA">⬇ PowerPoint del año ${estAnio}</button>`:'')+(d?`<small class="mnota">Registrado por ${esc(d.por||'—')}${d.editadoPor?` · editado por ${esc(d.editadoPor)}`:''}</small>`:'');
   if(ed){['item','accion','obs'].forEach(k=>{const el=$('es-'+k);if(el)el.oninput=()=>{estF[k]=el.value}});const sc=$('es-cat');if(sc)sc.onchange=()=>{estF.cat=sc.value};const si=$('es-item');if(si&&si.tagName==='SELECT')si.onchange=()=>{estF.item=si.value;estF.placas=[];renderEst()};const sp=$('es-pl');if(sp)sp.onchange=()=>{estF.placas=[...sp.selectedOptions].map(o=>o.value)}}
 }
 async function estFoto(k,file,cam){
@@ -3978,7 +3980,7 @@ function edProcesar(t,tr){
 }
 function renderED(){
   if(!cur||$('estv').hidden||estVista!=='data')return;
-  const D=edDoc();$('edup').hidden=cur.rol!=='admin';
+  const D=edDoc();$('edup').hidden=!canEdit();
   const malMes=D&&estVar==='safety'&&D.colMes&&D.colMes!=='AW'&&(D.filas||[]).some(f=>/^(si|no)$/i.test(sinTilde(f.mes||'')));
   $('edsub').textContent=D?`Última carga: ${D.fecha?dtTxt(D.fecha):'—'} · ${D.nombre||'Excel'}${malMes?' · ⚠ Este archivo se cargó con la versión anterior (MES en otra columna): vuelve a pulsar «Cargar Excel».':''}`:'';
   if(!D){$('edmes').innerHTML='';$('edkpi').innerHTML='';$('edtop').innerHTML='';$('edlist').innerHTML=`<p class="empty" style="margin:0">Aún no hay datos cargados para ${esc(sede)}.${cur.rol==='admin'?' Usa «Cargar Excel» y elige el archivo que tiene la pestaña «Data».':''}</p>`;return}
@@ -4000,8 +4002,8 @@ function renderED(){
       <div class="edpl">${x.pl.map(p=>`<span class="${q&&p.includes(q)?'hit':''}">${esc(p)}</span>`).join('')}</div></article>`).join('')}</div>`
     :`<p class="empty" style="margin:0">${q?'Ninguna placa coincide con la búsqueda.':'No hay ítems en «NO» en este periodo.'}</p>`;
 }
-$('edup').onclick=()=>{if(cur&&cur.rol==='admin')$('edfile').click()};
-$('edfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!cur||cur.rol!=='admin')return;$('edmsg').textContent='Leyendo el archivo…';
+$('edup').onclick=()=>{if(canEdit())$('edfile').click()};
+$('edfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;$('edmsg').textContent='Leyendo el archivo…';
   try{const{t,tr}=await edLeer(f),P=edProcesar(t,tr);if(!P.filas.length){$('edmsg').textContent='La pestaña «Data» no tiene placas en las columnas N a AN.';return}
     await setDoc(doc(db,edCol(),'todas'),{sede:'todas',nombre:f.name,fecha:ahoraDT(),...P,por:cur.nombre,editado:serverTimestamp()});edMesSel='';$('edmsg').textContent=''}
   catch(x){console.error(x);$('edmsg').textContent=x&&x.msg?x.msg:'No se pudo leer el archivo. Revisa que sea un Excel (.xlsx) válido y tu conexión. '+(x&&x.code?ERR(x.code):'')}};
