@@ -2151,7 +2151,7 @@ async function descargarCalFotos(btn){
 }
 async function descargarVistaPDF(){
   if(!$('calv').hidden&&cmes){return descargarCalFotos($('pdfv'))}
-  if(!cur||cur.rol!=='admin')return;const V=vistaPDF();if(!V)return;const b=$('pdfv'),t=b.textContent;b.disabled=true;b.textContent='Preparando PDF…';
+  if(!cur||cur.rol!=='admin')return;if(!$('licv').hidden){licUnirTodos($('pdfv'));return}const V=vistaPDF();if(!V)return;const b=$('pdfv'),t=b.textContent;b.disabled=true;b.textContent='Preparando PDF…';
   let h2c;try{h2c=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'],'html2canvas')}
   catch(x){b.disabled=false;b.textContent=t;if(confirm('No se pudo preparar el PDF directamente (revisa tu conexión). ¿Quieres usar la opción de imprimir y elegir «Guardar como PDF»?'))window.print();return}
   document.documentElement.classList.add('pdfcap');expandirTodo(true);
@@ -4642,6 +4642,24 @@ function renderLic(){
     ${ls.map(x=>`<tr><td><b>${esc(x.conductor||'—')}</b></td><td>${x.fecha?fd(x.fecha):'—'}</td><td><span class="dic p licic">PDF</span> ${esc(x.archivo||'')} <small class="mnota">${x.tam?tam(x.tam):''}</small></td><td>${esc(x.obs||'')}</td><td><small>${esc(x.por||'')}${x.editadoPor?`<br>Editado: ${esc(x.editadoPor)}`:''}</small></td>
       <td><div class="licacc"><button type="button" class="btn ghost" data-licver="${x.id}">Ver</button>${cur.rol==='admin'?`<button type="button" class="btn ghost" data-licdl="${x.id}">Descargar</button>`:''}${canMod()?`<button type="button" class="btn ghost" data-licedit="${x.id}">Editar</button>`:''}${cur.rol==='admin'?`<button type="button" class="del" data-licdel="${x.id}">Borrar</button>`:''}</div></td></tr>`).join('')}</tbody></table></div>`
     :`<p class="empty" style="margin:0">${q?'Ninguna notificación coincide con la búsqueda.':`Aún no hay notificaciones de licencia en ${esc(sede)}.`}</p>`;
+}
+// ⬇ PDF en Notificación Licencia: une, uno tras otro, todos los PDF reportados de la sede (en el orden de la lista)
+async function licUnirTodos(btn){
+  if(!cur||cur.rol!=='admin')return;
+  const q=sinTilde(licQ.trim()),ls=licD.filter(x=>x.sede===sede&&(!q||sinTilde((x.conductor||'')+' '+(x.archivo||'')+' '+(x.obs||'')).includes(q))).sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||''))||(b.creado?.seconds||0)-(a.creado?.seconds||0));
+  if(!ls.length){alert(`No hay notificaciones de licencia en ${sede}.`);return}
+  const t0=btn.textContent;btn.disabled=true;
+  try{const L=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js','https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js'],'PDFLib');
+    const out=await L.PDFDocument.create(),mal=[];let n=0;
+    for(const x of ls){btn.textContent=`Uniendo ${++n} de ${ls.length}…`;
+      try{const src=await L.PDFDocument.load(await (await licPdf(x)).arrayBuffer(),{ignoreEncryption:true});(await out.copyPages(src,src.getPageIndices())).forEach(p=>out.addPage(p))}catch(e){console.error(e);mal.push(x.conductor||x.archivo)}}
+    if(!out.getPageCount())throw new Error('sin páginas');
+    out.setTitle(`Notificaciones de licencia · ${sede}`);
+    const url=URL.createObjectURL(new Blob([await out.save()],{type:'application/pdf'})),a=document.createElement('a');
+    a.href=url;a.download=`notificaciones_licencia_${sede}_${new Date().toISOString().slice(0,10)}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+    if(mal.length)alert('No se pudieron unir: '+mal.join(', '))}
+  catch(e){console.error(e);alert('No se pudo generar el PDF unido.')}
+  btn.disabled=false;btn.textContent=t0;
 }
 async function licPdf(x){ // reconstruye el PDF desde sus partes
   const sn=await getDocs(collection(db,'licencias',x.id,'partes'));let ps=sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.id.localeCompare(b.id));if(x.nPartes)ps=ps.slice(0,x.nPartes);
