@@ -1050,7 +1050,7 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
 </div>
 <section id="capv" hidden aria-label="Capacitaciones">
   <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><div><h2 style="font-size:1.1rem">Capacitaciones</h2><small id="capsub"></small></div></div>
-    <div class="rpdrive" id="capcfg" hidden><label>Enlace de la carpeta de Google Drive (carpetas Checklist, Llantas, Combustible, Documentos y 5S)<input id="capurl" inputmode="url" placeholder="https://drive.google.com/drive/folders/…"></label>
+    <div class="rpdrive" id="capcfg" hidden><label>Enlace de la carpeta de Google Drive (Checklist, Llantas, Combustible, Documentos, 5S, Preventivos llanos y Rutinas renting)<input id="capurl" inputmode="url" placeholder="https://drive.google.com/drive/folders/…"></label>
       <div class="hb"><button type="button" class="btn" id="capguar">Guardar</button><button type="button" class="btn ghost" id="capact">Actualizar</button><button type="button" class="del" id="capborr" hidden>Borrar</button></div></div>
     <div class="pprog" id="capmsg" role="status"></div></div>
   <div id="capbody"></div>
@@ -4781,7 +4781,7 @@ $('simact').onclick=()=>{simSede();if(simCfg&&simCfg.url){$('simmsg').textConten
 $('simborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar el enlace de Drive del SIMIT de ${sede}?`))return;try{await deleteDoc(doc(db,'simit',sede));if(sede==='Villavicencio'&&simCfgs.config)await deleteDoc(doc(db,'simit','config')).catch(()=>{});delete simCfgs[sede];if(sede==='Villavicencio')delete simCfgs.config;simDatas[sede]=null;simCfg=null;simData=null;$('simmsg').textContent='Enlace borrado.';renderSim()}catch(x){alert(ERR(x.code))}};
 
 /* ---------- CAPACITACIONES: presentaciones por tema desde una carpeta de Drive (por sede) ---------- */
-const CAP_TEMAS=[{k:'checklist',t:'Checklist',ic:'📋'},{k:'llantas',t:'Llantas',ic:'🛞'},{k:'combustible',t:'Combustible',ic:'⛽'},{k:'documentos',t:'Documentos',ic:'📄'},{k:'5s',t:'5S',ic:'🧹'}];
+const CAP_TEMAS=[{k:'checklist',t:'Checklist',ic:'📋'},{k:'llantas',t:'Llantas',ic:'🛞'},{k:'combustible',t:'Combustible',ic:'⛽'},{k:'documentos',t:'Documentos',ic:'📄'},{k:'5s',t:'5S',ic:'🧹'},{k:'preventivosllanos',t:'Preventivos llanos',ic:'🔧',w:['preventiv','llano']},{k:'rutinasrenting',t:'Rutinas renting',ic:'📅',w:['rutina','renting']}];
 let capCfgs={},capDatas={},unsubCP=null,capCarg=false,capErr='',capSel=null;
 const capNorm=t=>sinTilde(t||'').replace(/[^a-z0-9]/g,'');
 const capEsPpt=f=>/presentation/.test(f.mimeType)||/\.(pptx?|ppsx?|odp)$/i.test(f.name);
@@ -4789,9 +4789,12 @@ async function capLeer(forzar){
   const sd=sede,cfg=capCfgs[sd],url=cfg&&cfg.url;if(!url){capDatas[sd]=null;renderCap();return}
   const id=(String(url).match(/\/folders\/([\w-]{10,})/)||[])[1]||(/^[\w-]{20,}$/.test(url)?url:'');if(!id){capErr='El enlace guardado no es de una carpeta de Google Drive.';renderCap();return}
   if(forzar)Object.keys(docCache).forEach(k=>delete docCache[k]);capCarg=true;capErr='';renderCap();
-  try{const raiz=await driveLista(id),temas={};
-    for(const T of CAP_TEMAS){const f=raiz.find(x=>x.mimeType===MIME_FOLDER&&capNorm(x.name)===T.k)||raiz.find(x=>x.mimeType===MIME_FOLDER&&capNorm(x.name).includes(T.k));
-      if(!f){temas[T.k]=null;continue}const pp=[];const vis=async(fid,n)=>{for(const x of await driveLista(fid)){if(x.mimeType===MIME_FOLDER){if(n<2)await vis(x.id,n+1)}else if(capEsPpt(x))pp.push(x)}};await vis(f.id,0);
+  try{const raiz=await driveLista(id),temas={};let todos=null;
+    const buscaPpt=async()=>{if(todos)return todos;todos=[];const vis=async(fid,n)=>{for(const x of await driveLista(fid)){if(x.mimeType===MIME_FOLDER){if(n<3)await vis(x.id,n+1)}else if(capEsPpt(x))todos.push(x)}};await vis(id,0);return todos};
+    const coincide=(T,nom)=>{const n=capNorm(String(nom).replace(/\.(pptx?|ppsx?|odp)$/i,''));return n===T.k||n.includes(T.k)||(T.w&&T.w.every(w=>n.includes(w)))};
+    for(const T of CAP_TEMAS){const f=raiz.find(x=>x.mimeType===MIME_FOLDER&&capNorm(x.name)===T.k)||raiz.find(x=>x.mimeType===MIME_FOLDER&&coincide(T,x.name));
+      if(!f){ // también puede ser una presentación suelta con ese nombre (en la carpeta o subcarpetas)
+        const pp=T.w?(await buscaPpt()).filter(x=>coincide(T,x.name)):[];temas[T.k]=pp.length?{carpeta:null,ppts:pp}:null;continue}const pp=[];const vis=async(fid,n)=>{for(const x of await driveLista(fid)){if(x.mimeType===MIME_FOLDER){if(n<2)await vis(x.id,n+1)}else if(capEsPpt(x))pp.push(x)}};await vis(f.id,0);
       temas[T.k]={carpeta:f,ppts:pp.sort((a,b)=>a.name.localeCompare(b.name,'es',{numeric:true}))}}
     capDatas[sd]={temas,leido:new Date(),_url:url}}
   catch(x){console.error(x);capErr=x&&x.razon==='accessNotConfigured'?'La Google Drive API no está activada en el proyecto.':'No se pudo leer la carpeta de Drive. Revisa que esté compartida como «Cualquier persona con el vínculo».'}
