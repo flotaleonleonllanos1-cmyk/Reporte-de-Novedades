@@ -905,7 +905,7 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
 .crep[hidden]{display:none}.crephd{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}.crephd b{font-size:1.05rem}.crephd small{color:var(--mut)}
 .creplist{display:grid;gap:12px}
 .crepr{display:grid;grid-template-columns:48px minmax(200px,420px) 1fr;gap:12px;align-items:center}
-.crepn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#3a3a3a;background:radial-gradient(circle at 35% 30%,#ffffff,#d9d9d9 60%,#a8a8a8);box-shadow:0 4px 8px rgba(0,0,0,.35),inset 0 -2px 4px rgba(0,0,0,.15)}
+.crepn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:.78rem;letter-spacing:.04em;color:#3a3a3a;background:radial-gradient(circle at 35% 30%,#ffffff,#d9d9d9 60%,#a8a8a8);box-shadow:0 4px 8px rgba(0,0,0,.35),inset 0 -2px 4px rgba(0,0,0,.15)}
 .crepbar{height:38px;border-radius:999px;display:flex;align-items:center;gap:12px;padding:0 10px 0 18px;background:linear-gradient(90deg,var(--c1),var(--c2));box-shadow:0 6px 12px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.35);transition:background .4s}
 .creppct{color:#fff;font-weight:800;font-size:.95rem;min-width:44px;text-shadow:0 1px 2px rgba(0,0,0,.3)}
 .creptr{flex:1;height:18px;border-radius:999px;background:rgba(255,255,255,.28);overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.25)}
@@ -2367,13 +2367,12 @@ const CREPC=[[90,'#ff8a3d','#e8551c'],[70,'#e0457b','#b3184f'],[50,'#7a5bc4','#4
 const crepCol=p=>CREPC.find(c=>(p||0)>=c[0]);
 function renderRepCal(S,del){
   const w=$('crep');if(!w)return;w.hidden=!crepAbierto;$('crepb').setAttribute('aria-expanded',crepAbierto);if(!crepAbierto)return;
-  const pc=(a,b)=>b?Math.min(100,a/b*100):null;let filas,tit;
-  if(cmes){const s=S[cmes-1],v=del.filter(c=>c.mes===cmes),L=s.lista,uno=L.filter(p=>v.some(c=>normP(c.placa)===p&&(c.f1||c.f2))).length,dos=L.filter(p=>v.some(c=>normP(c.placa)===p&&c.f1&&c.f2)).length;
-    const conM=S.filter(x=>x.mt),okA=conM.reduce((a,x)=>a+x.ok,0),mtA=conM.reduce((a,x)=>a+x.mt,0);
-    tit=`${MESES[cmes-1]} ${canio}`;filas=[[pc(s.ok,s.mt),'Cumplimiento del mes',`${s.ok} de ${s.mt} placas con sus dos calibraciones`],[pc(uno,L.length),'Placas con 1ª calibración',`${uno} de ${L.length} placas`],[pc(dos,L.length),'Placas con 2ª calibración',`${dos} de ${L.length} placas`],[pc(s.comp,s.n),'Registros completos',`${s.comp} de ${s.n} registros`],[pc(okA,mtA),`Cumplimiento del año ${canio}`,`${okA} de ${mtA} placas en ${conM.length} mes${conM.length===1?'':'es'}`]]}
-  else{tit=`Año ${canio}`;filas=S.filter(x=>x.mt||x.n).map(x=>[x.pct,MESES[x.m-1],x.mt?`${x.ok} de ${x.mt} placas`:`${x.n} registros · sin cantidad de placas`])}
+  // una sola barra: cumplimiento del mes (el mes abierto, o el mes actual / último con datos en el resumen del año)
+  const hoy=new Date(),mAct=+canio===hoy.getFullYear()?hoy.getMonth()+1:12,conD=S.filter(x=>x.mt||x.n).map(x=>x.m);
+  const m=cmes||(conD.includes(mAct)?mAct:(conD.filter(x=>x<=mAct).pop()||conD.pop()||mAct)),s=S[m-1];
+  const tit=`${MESES[m-1]} ${canio}`,filas=[[s.pct,'Cumplimiento del mes',s.mt?`${s.ok} de ${s.mt} placas con sus dos calibraciones`:`${s.n} registros · falta cargar la cantidad de placas`]],num=MESES[m-1].slice(0,3).toUpperCase();
   w.innerHTML=`<div class="crephd"><b>Reporte de cumplimiento</b><small>${esc(sede)} · ${tit}</small></div>
-   <div class="creplist">${filas.length?filas.map(([p,t,d],i)=>{const c=crepCol(p),v=p===null?0:p;return `<div class="crepr"><span class="crepn">${String(i+1).padStart(2,'0')}</span>
+   <div class="creplist">${filas.length?filas.map(([p,t,d],i)=>{const c=crepCol(p),v=p===null?0:p;return `<div class="crepr"><span class="crepn">${num}</span>
      <div class="crepbar" style="--c1:${c[1]};--c2:${c[2]}"><span class="creppct">${p===null?'—':Math.round(p)+'%'}</span><span class="creptr"><i style="width:${v}%"></i></span></div>
      <div class="creptx"><b>${esc(t)}</b><small>${esc(d)}</small></div></div>`}).join(''):'<p class="empty" style="margin:0">Sin datos de calibraciones.</p>'}</div>
    <div class="crepley">${[...CREPC].reverse().map((c,i,a)=>`<span><i style="background:linear-gradient(90deg,${c[1]},${c[2]})"></i>${c[0]}%${i<a.length-1?'–'+(a[i+1][0]-1)+'%':' o más'}</span>`).join('')}</div>`;
