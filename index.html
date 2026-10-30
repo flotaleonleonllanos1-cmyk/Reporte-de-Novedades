@@ -899,6 +899,20 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
 @keyframes pIn{from{opacity:0;transform:translateY(-30px) scale(.9)}to{opacity:1;transform:none}}
 .menu.menuluz .grp>.mi{animation:menuluz 1.4s ease}@keyframes menuluz{0%,100%{filter:none}40%{filter:brightness(1.35) drop-shadow(0 0 8px rgba(242,201,76,.8))}}
 @media (prefers-reduced-motion:reduce){.psvg .pslice,.menu.menuluz .grp>.mi{animation:none}}
+
+/* ===== Reporte de cumplimiento de Calibraciones (barras numeradas) ===== */
+.crep{margin:0 0 14px;padding:16px 18px;border-radius:14px;background:var(--card);border:1px solid var(--line);box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.crep[hidden]{display:none}.crephd{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}.crephd b{font-size:1.05rem}.crephd small{color:var(--mut)}
+.creplist{display:grid;gap:12px}
+.crepr{display:grid;grid-template-columns:48px minmax(200px,420px) 1fr;gap:12px;align-items:center}
+.crepn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#3a3a3a;background:radial-gradient(circle at 35% 30%,#ffffff,#d9d9d9 60%,#a8a8a8);box-shadow:0 4px 8px rgba(0,0,0,.35),inset 0 -2px 4px rgba(0,0,0,.15)}
+.crepbar{height:38px;border-radius:999px;display:flex;align-items:center;gap:12px;padding:0 10px 0 18px;background:linear-gradient(90deg,var(--c1),var(--c2));box-shadow:0 6px 12px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.35);transition:background .4s}
+.creppct{color:#fff;font-weight:800;font-size:.95rem;min-width:44px;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.creptr{flex:1;height:18px;border-radius:999px;background:rgba(255,255,255,.28);overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.25)}
+.creptr i{display:block;height:100%;border-radius:999px;background:linear-gradient(180deg,#ffffff,#eaeaea);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.creptx{display:grid;line-height:1.25}.creptx b{font-size:.92rem}.creptx small{color:var(--mut);font-size:.78rem}
+.crepley{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:.75rem;color:var(--mut)}.crepley i{display:inline-block;width:22px;height:10px;border-radius:999px;margin-right:5px;vertical-align:-1px}
+@media (max-width:700px){.crepr{grid-template-columns:40px 1fr}.creptx{grid-column:2}.crepn{width:38px;height:38px}}
 </style>
 </head>
 <body>
@@ -1231,10 +1245,12 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
   <div class="cbar">
     <label>Año<select id="canio"></select></label>
     <div class="hb">
+      <button class="btn ghost" id="crepb" aria-expanded="false">📊 Reporte de cumplimiento</button>
       <button class="btn ghost" id="cmetab" hidden>Cantidad de placas</button>
       <button class="btn" id="cadd">+ Registrar calibración</button>
     </div>
   </div>
+  <div id="crep" class="crep" hidden></div>
   <div id="cres"></div>
   <div id="cmesv" hidden>
     <div class="chead"><h2 id="ctit" hidden></h2><span id="csub"></span><button type="button" class="btn" id="cpdf" hidden>PDF con fotos del mes</button><button type="button" class="btn ghost" id="cback">Ver resumen del año</button></div>
@@ -2346,6 +2362,23 @@ function calcCal(){
     return{m,n:r.length,ok,comp:comp.length,fuera:lista.length?[...okSet].filter(p=>!lista.includes(p)).length:0,inc:r.length-comp.length,mt,pct:mt?ok/mt*100:null,falt:lista.filter(p=>!okSet.has(p)),lista}});
   return {del,meta,lista,S};
 }
+// Reporte de cumplimiento (estilo barras numeradas); el color cambia según el porcentaje
+const CREPC=[[90,'#ff8a3d','#e8551c'],[70,'#e0457b','#b3184f'],[50,'#7a5bc4','#4f338f'],[30,'#38c0e0','#1789ad'],[0,'#33b8a0','#1a8572']];
+const crepCol=p=>CREPC.find(c=>(p||0)>=c[0]);
+function renderRepCal(S,del){
+  const w=$('crep');if(!w)return;w.hidden=!crepAbierto;$('crepb').setAttribute('aria-expanded',crepAbierto);if(!crepAbierto)return;
+  const pc=(a,b)=>b?Math.min(100,a/b*100):null;let filas,tit;
+  if(cmes){const s=S[cmes-1],v=del.filter(c=>c.mes===cmes),L=s.lista,uno=L.filter(p=>v.some(c=>normP(c.placa)===p&&(c.f1||c.f2))).length,dos=L.filter(p=>v.some(c=>normP(c.placa)===p&&c.f1&&c.f2)).length;
+    const conM=S.filter(x=>x.mt),okA=conM.reduce((a,x)=>a+x.ok,0),mtA=conM.reduce((a,x)=>a+x.mt,0);
+    tit=`${MESES[cmes-1]} ${canio}`;filas=[[pc(s.ok,s.mt),'Cumplimiento del mes',`${s.ok} de ${s.mt} placas con sus dos calibraciones`],[pc(uno,L.length),'Placas con 1ª calibración',`${uno} de ${L.length} placas`],[pc(dos,L.length),'Placas con 2ª calibración',`${dos} de ${L.length} placas`],[pc(s.comp,s.n),'Registros completos',`${s.comp} de ${s.n} registros`],[pc(okA,mtA),`Cumplimiento del año ${canio}`,`${okA} de ${mtA} placas en ${conM.length} mes${conM.length===1?'':'es'}`]]}
+  else{tit=`Año ${canio}`;filas=S.filter(x=>x.mt||x.n).map(x=>[x.pct,MESES[x.m-1],x.mt?`${x.ok} de ${x.mt} placas`:`${x.n} registros · sin cantidad de placas`])}
+  w.innerHTML=`<div class="crephd"><b>Reporte de cumplimiento</b><small>${esc(sede)} · ${tit}</small></div>
+   <div class="creplist">${filas.length?filas.map(([p,t,d],i)=>{const c=crepCol(p),v=p===null?0:p;return `<div class="crepr"><span class="crepn">${String(i+1).padStart(2,'0')}</span>
+     <div class="crepbar" style="--c1:${c[1]};--c2:${c[2]}"><span class="creppct">${p===null?'—':Math.round(p)+'%'}</span><span class="creptr"><i style="width:${v}%"></i></span></div>
+     <div class="creptx"><b>${esc(t)}</b><small>${esc(d)}</small></div></div>`}).join(''):'<p class="empty" style="margin:0">Sin datos de calibraciones.</p>'}</div>
+   <div class="crepley">${[...CREPC].reverse().map((c,i,a)=>`<span><i style="background:linear-gradient(90deg,${c[1]},${c[2]})"></i>${c[0]}%${i<a.length-1?'–'+(a[i+1][0]-1)+'%':' o más'}</span>`).join('')}</div>`;
+}
+let crepAbierto=false;
 function renderCal(){
   if(!cur)return;
   const enCal=!$('calv').hidden;
@@ -2355,6 +2388,7 @@ function renderCal(){
   titulo();
   $('cadd').textContent='+ Registrar calibración en '+MESES[mesReg()-1];
   $('cmetab').hidden=cur.rol!=='admin';
+  renderRepCal(S,del);
   if(!cmes){$('cmesv').hidden=true;$('cres').hidden=false;resumenCal(S,del);return}
   $('cres').hidden=true;$('cmesv').hidden=false;$('cpdf').hidden=cur.rol!=='admin';
   const s=S[cmes-1],v=del.filter(c=>c.mes===cmes).sort((a,b)=>cmpP(normP(a.placa),normP(b.placa))||String(a.f1).localeCompare(String(b.f1)));
@@ -5188,6 +5222,7 @@ function cargarMesPlacas(m){pmes=m;$('mmes').value=String(m);plist=placasMes(m);
 $('mmes').innerHTML=MESES.map((n,k)=>`<option value="${k+1}">${n}</option>`).join('');
 $('mmes').onchange=()=>{const m=Number($('mmes').value);if(pdirty&&!confirm(`Tienes cambios sin guardar en ${MESES[pmes-1]}. ¿Descartarlos y cambiar de mes?`)){$('mmes').value=String(pmes);return}cargarMesPlacas(m)};
 $('pcopy').onclick=()=>{if(pmes<2)return;const src=placasMes(pmes-1);if(!src.length){$('merr').textContent=`${MESES[pmes-2]} no tiene placas cargadas.`;return}const n=sumarPlacas(src);$('merr').textContent=n?`Se copiaron ${n} placa${n===1?'':'s'} de ${MESES[pmes-2].toLowerCase()}. Pulsa «Guardar placas» para confirmar.`:`Las placas de ${MESES[pmes-2].toLowerCase()} ya están en la lista.`};
+$('crepb').onclick=()=>{crepAbierto=!crepAbierto;renderCal()};
 $('cmetab').onclick=()=>{
   if(cur.rol!=='admin')return;
   cargarMesPlacas(cmes||(canio===hoyD.getFullYear()?hoyD.getMonth()+1:1));$('mdlg').showModal();
