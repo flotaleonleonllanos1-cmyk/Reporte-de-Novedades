@@ -1245,7 +1245,6 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
   <div class="cbar">
     <label>Año<select id="canio"></select></label>
     <div class="hb">
-      <button class="btn ghost" id="crepb" aria-expanded="false">📊 Reporte de cumplimiento</button>
       <button class="btn ghost" id="cmetab" hidden>Cantidad de placas</button>
       <button class="btn" id="cadd">+ Registrar calibración</button>
     </div>
@@ -2366,7 +2365,7 @@ function calcCal(){
 const CREPC=[[90,'#ff8a3d','#e8551c'],[70,'#e0457b','#b3184f'],[50,'#7a5bc4','#4f338f'],[30,'#38c0e0','#1789ad'],[0,'#33b8a0','#1a8572']];
 const crepCol=p=>CREPC.find(c=>(p||0)>=c[0]);
 function renderRepCal(S,del){
-  const w=$('crep');if(!w)return;w.hidden=!crepAbierto;$('crepb').setAttribute('aria-expanded',crepAbierto);if(!crepAbierto)return;
+  const w=$('crep');if(!w)return;w.hidden=false;
   // una sola barra: cumplimiento del mes (el mes abierto, o el mes actual / último con datos en el resumen del año)
   const hoy=new Date(),mAct=+canio===hoy.getFullYear()?hoy.getMonth()+1:12,conD=S.filter(x=>x.mt||x.n).map(x=>x.m);
   const m=cmes||(conD.includes(mAct)?mAct:(conD.filter(x=>x<=mAct).pop()||conD.pop()||mAct)),s=S[m-1];
@@ -5221,7 +5220,6 @@ function cargarMesPlacas(m){pmes=m;$('mmes').value=String(m);plist=placasMes(m);
 $('mmes').innerHTML=MESES.map((n,k)=>`<option value="${k+1}">${n}</option>`).join('');
 $('mmes').onchange=()=>{const m=Number($('mmes').value);if(pdirty&&!confirm(`Tienes cambios sin guardar en ${MESES[pmes-1]}. ¿Descartarlos y cambiar de mes?`)){$('mmes').value=String(pmes);return}cargarMesPlacas(m)};
 $('pcopy').onclick=()=>{if(pmes<2)return;const src=placasMes(pmes-1);if(!src.length){$('merr').textContent=`${MESES[pmes-2]} no tiene placas cargadas.`;return}const n=sumarPlacas(src);$('merr').textContent=n?`Se copiaron ${n} placa${n===1?'':'s'} de ${MESES[pmes-2].toLowerCase()}. Pulsa «Guardar placas» para confirmar.`:`Las placas de ${MESES[pmes-2].toLowerCase()} ya están en la lista.`};
-$('crepb').onclick=()=>{crepAbierto=!crepAbierto;renderCal()};
 $('cmetab').onclick=()=>{
   if(cur.rol!=='admin')return;
   cargarMesPlacas(cmes||(canio===hoyD.getFullYear()?hoyD.getMonth()+1:1));$('mdlg').showModal();
