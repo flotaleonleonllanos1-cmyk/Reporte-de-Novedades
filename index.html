@@ -213,6 +213,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .fcbox img,.fcvac{width:64px;height:64px;border-radius:10px;object-fit:cover;border:2px solid var(--acc);background:var(--soft);display:inline-grid;place-items:center;font-size:1.8rem;cursor:zoom-in}
 .fcvac{cursor:default;border-style:dashed;color:var(--mut)}
 .fclinks{display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-size:.85rem}
+.dacc{align-items:center;flex-wrap:nowrap}.dcnt{font-size:.78rem;color:var(--acc);font-weight:700;white-space:nowrap;padding:3px 8px;border:1px solid var(--line);border-radius:999px;background:var(--soft)}.dcnt.vac{color:var(--mut)}
 .docconf{display:grid;gap:8px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}.docconf label{margin:0}.docconf input{margin-top:4px}
 .eswrap{overflow-x:auto;padding-bottom:6px}
 .esl{position:relative;width:100%;min-width:760px;aspect-ratio:16/9;background:#fff;color:#111;border-radius:6px;box-shadow:none;overflow:hidden;font-family:Calibri,Arial,sans-serif;display:flex;flex-direction:column}
@@ -1156,6 +1157,8 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
     <label>Enlace de la carpeta de Google Drive<input id="docurl" inputmode="url" placeholder="Pega aquí el enlace de la carpeta (https://drive.google.com/drive/folders/…)"></label>
     <div class="hb"><button type="button" class="btn" id="docsave">Guardar enlace</button><button type="button" class="del" id="docquita">Eliminar enlace</button></div>
     <small class="mnota" id="docconfn"></small>
+    <label>ID de cliente OAuth de Google (para eliminar carpetas en Drive)<input id="doccid" placeholder="xxxxxxxx.apps.googleusercontent.com" autocomplete="off"></label>
+    <div class="hb"><button type="button" class="btn ghost" id="doccidg">Guardar ID</button></div>
   </div>
   <input type="file" id="fccam" accept="image/*" capture="environment" hidden><input type="file" id="fcgal" accept="image/*" hidden>
   <div class="dc docw"><div class="dochead"><div><h2 id="doctit">Documentos de vehículos</h2><small id="docsub"></small></div><div class="docpl" id="docpl" hidden></div></div>
@@ -2036,8 +2039,37 @@ async function renderDoc(reiniciar){
         ${dir?'':`<div class="dga"><button type="button" class="ver" data-dver="${f.id}">Ver</button><a class="ver" href="${u.pdf}" target="_blank" rel="noopener" download>Descargar PDF</a></div>`}</div>`
       :`<div class="dli"><span class="dic ${dir?'f':ic==='PDF'?'p':''}">${dir?'📁':ic}</span>
         <button type="button" class="dln" ${dir?`data-dir="${f.id}"`:`data-dver="${f.id}"`}><b>${esc(f.name)}</b><small>${dir?'Carpeta':[f.size?tam(Number(f.size)):'',fch(f.modifiedTime)].filter(Boolean).join(' · ')}</small></button>
-        ${dir?`<button type="button" class="btn ghost" data-dir="${f.id}">Abrir</button>`:`<div class="hb"><button type="button" class="btn ghost" data-dver="${f.id}">Ver</button><a class="btn" href="${u.pdf}" target="_blank" rel="noopener" download>Descargar PDF</a></div>`}</div>`}).join('');
+        ${dir?`<div class="hb dacc"><span class="dcnt" data-dcnt="${f.id}">…</span><button type="button" class="btn ghost" data-dir="${f.id}">Abrir</button>${cur.rol==='admin'?`<button type="button" class="del" data-ddel="${f.id}" data-dnom="${esc(f.name)}">Eliminar</button>`:''}</div>`:`<div class="hb"><button type="button" class="btn ghost" data-dver="${f.id}">Ver</button><a class="btn" href="${u.pdf}" target="_blank" rel="noopener" download>Descargar PDF</a></div>`}</div>`}).join('');docContar();
 }
+// Cantidad de archivos dentro de cada carpeta (se consulta en segundo plano, de a 5)
+const docCnt={};
+function docContar(){const sp=[...document.querySelectorAll('[data-dcnt]')];let i=0;
+  const pinta=(el,c)=>{el.textContent=c.err?'—':`${c.a} archivo${c.a===1?'':'s'}${c.c?` · ${c.c} carpeta${c.c===1?'':'s'}`:''}`;el.classList.toggle('vac',!c.err&&!c.a&&!c.c)};
+  const sig=async()=>{while(i<sp.length){const el=sp[i++],id=el.dataset.dcnt;if(docCnt[id]){pinta(el,docCnt[id]);continue}
+    try{const it=await driveLista(id);docCnt[id]={a:it.filter(x=>x.mimeType!==MIME_FOLDER).length,c:it.filter(x=>x.mimeType===MIME_FOLDER).length}}catch(x){docCnt[id]={err:1}}
+    document.querySelectorAll(`[data-dcnt="${id}"]`).forEach(e=>pinta(e,docCnt[id]))}};
+  for(let k=0;k<5;k++)sig()}
+// Eliminar una carpeta en Google Drive (la envía a la papelera de Drive) con la cuenta de Google del administrador
+let gTok=null,gExp=0;
+async function tokenDrive(){
+  if(gTok&&Date.now()<gExp)return gTok;const cid=((listas['docs_drive']||{}).clientId||'').trim();
+  if(!cid)throw{msg:'Para eliminar en Google Drive falta el «ID de cliente OAuth». Escríbelo arriba, en el recuadro del enlace de Drive.'};
+  const G=await cargarScript(['https://accounts.google.com/gsi/client'],'google');
+  return new Promise((res,rej)=>{const tc=G.accounts.oauth2.initTokenClient({client_id:cid,scope:'https://www.googleapis.com/auth/drive',
+    callback:r=>{if(r&&r.access_token){gTok=r.access_token;gExp=Date.now()+((r.expires_in||3600)-60)*1000;res(gTok)}else rej({msg:'Google no autorizó la acción.'})},
+    error_callback:()=>rej({msg:'Se cerró la ventana de Google sin autorizar.'})});tc.requestAccessToken({prompt:gTok?'':'consent'})});
+}
+async function eliminarCarpetaDrive(id,nom,btn){
+  if(!cur||cur.rol!=='admin')return;
+  if(!confirm(`¿Eliminar la carpeta «${nom}»?\n\nSe enviará a la papelera de Google Drive con todo su contenido (se puede recuperar desde la papelera durante 30 días).`))return;
+  const t0=btn.textContent;btn.disabled=true;btn.textContent='Eliminando…';
+  try{const tk=await tokenDrive();
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files/${id}?supportsAllDrives=true`,{method:'PATCH',headers:{Authorization:'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({trashed:true})});
+    if(!r.ok){const j=await r.json().catch(()=>({}));if(r.status===401){gTok=null}throw{msg:r.status===403||r.status===404?'Tu cuenta de Google no tiene permiso para eliminar esa carpeta (debe ser dueña o editora en Drive).':'Drive respondió: '+((j.error&&j.error.message)||r.status)}}
+    Object.keys(docCache).forEach(k=>delete docCache[k]);delete docCnt[id];renderDoc()}
+  catch(x){console.error(x);alert(x&&x.msg?x.msg:'No se pudo eliminar la carpeta en Drive.');btn.disabled=false;btn.textContent=t0}
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-ddel]');if(b)eliminarCarpetaDrive(b.dataset.ddel,b.dataset.dnom,b)});
 function docFallback(x){
   $('docpl').hidden=true;
   if(x&&x.sinRaiz){$('docnav').hidden=true;$('docfr').hidden=true;$('doclist').hidden=false;$('docsub').textContent='';$('doclist').innerHTML=`<p class="empty" style="margin:0">No hay una carpeta de Google Drive configurada.${cur&&cur.rol==='admin'?' Pega el enlace de la carpeta arriba y pulsa «Guardar enlace».':' Pídele al administrador que la configure.'}</p>`;return}
@@ -2068,14 +2100,17 @@ function pintarDocPlaca(act){
 function pintarDocConf(){
   const adm=cur&&cur.rol==='admin';$('docconf').hidden=!adm||docSec==='tie';if(!adm)return;
   const c=listas['docs_drive'],r=docsRaiz();if(document.activeElement!==$('docurl'))$('docurl').value=c?(c.url||''):(r?`https://drive.google.com/drive/folders/${r}`:'');
+  if(document.activeElement!==$('doccid'))$('doccid').value=(c&&c.clientId)||'';
   $('docquita').hidden=!r;$('docconfn').textContent=r?`Carpeta actual: ${r}. En Vehículos se muestran las carpetas «VEHICULOS …» y en Conductores las carpetas «CONDUCTORES …» que estén dentro.`:'No hay carpeta configurada.';
 }
+$('doccidg').onclick=async()=>{if(cur.rol!=='admin')return;const v=$('doccid').value.trim();if(v&&!/\.apps\.googleusercontent\.com$/.test(v)){$('docconfn').textContent='El ID de cliente termina en «.apps.googleusercontent.com».';return}
+  try{await setDoc(doc(db,'listas','docs_drive'),{tipo:'docs_drive',clientId:v},{merge:true});listas['docs_drive']={...(listas['docs_drive']||{}),clientId:v};gTok=null;$('docconfn').textContent=v?'ID de cliente guardado.':'ID de cliente quitado.'}catch(x){$('docconfn').textContent=ERR(x.code)}};
 $('docsave').onclick=async()=>{if(cur.rol!=='admin')return;const u=$('docurl').value.trim(),id=idDrive(u);
   if(!id){$('docconfn').textContent='Ese enlace no parece de una carpeta de Google Drive. Cópialo desde Drive con «Compartir → Copiar vínculo».';return}
-  try{await setDoc(doc(db,'listas','docs_drive'),{tipo:'docs_drive',raiz:id,url:u,por:cur.nombre,editado:serverTimestamp()});Object.keys(docCache).forEach(k=>delete docCache[k]);listas['docs_drive']={raiz:id,url:u};renderDoc(true)}
+  try{await setDoc(doc(db,'listas','docs_drive'),{tipo:'docs_drive',raiz:id,url:u,por:cur.nombre,editado:serverTimestamp()},{merge:true});Object.keys(docCache).forEach(k=>delete docCache[k]);listas['docs_drive']={...(listas['docs_drive']||{}),raiz:id,url:u};renderDoc(true)}
   catch(x){$('docconfn').textContent=ERR(x.code)}};
 $('docquita').onclick=async()=>{if(cur.rol!=='admin'||!confirm('¿Eliminar el enlace de la carpeta de Google Drive? Documentos quedará vacío hasta que pegues otro enlace.'))return;
-  try{await setDoc(doc(db,'listas','docs_drive'),{tipo:'docs_drive',raiz:'',url:'',por:cur.nombre,editado:serverTimestamp()});Object.keys(docCache).forEach(k=>delete docCache[k]);listas['docs_drive']={raiz:'',url:''};$('docurl').value='';renderDoc(true)}
+  try{await setDoc(doc(db,'listas','docs_drive'),{tipo:'docs_drive',raiz:'',url:'',por:cur.nombre,editado:serverTimestamp()},{merge:true});Object.keys(docCache).forEach(k=>delete docCache[k]);listas['docs_drive']={...(listas['docs_drive']||{}),raiz:'',url:''};$('docurl').value='';renderDoc(true)}
   catch(x){$('docconfn').textContent=ERR(x.code)}};
 $('docvista').onclick=e=>{const b=e.target.closest('[data-dv]');if(!b)return;docVista=b.dataset.dv;renderDoc()};
 $('docbusca').oninput=()=>{docBusca=$('docbusca').value;clearTimeout(window.__dbt);window.__dbt=setTimeout(()=>renderDoc(),200)};
