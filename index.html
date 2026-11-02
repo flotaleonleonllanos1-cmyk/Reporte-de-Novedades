@@ -213,7 +213,7 @@ main{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
 .fcbox img,.fcvac{width:64px;height:64px;border-radius:10px;object-fit:cover;border:2px solid var(--acc);background:var(--soft);display:inline-grid;place-items:center;font-size:1.8rem;cursor:zoom-in}
 .fcvac{cursor:default;border-style:dashed;color:var(--mut)}
 .fclinks{display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-size:.85rem}
-.dacc{align-items:center;flex-wrap:nowrap}.dcnt{font-size:.78rem;color:var(--acc);font-weight:700;white-space:nowrap;padding:3px 8px;border:1px solid var(--line);border-radius:999px;background:var(--soft)}.dcnt.vac{color:var(--mut)}
+#docord{width:auto;margin:0}.dacc{align-items:center;flex-wrap:nowrap}.dcnt{font-size:.78rem;color:var(--acc);font-weight:700;white-space:nowrap;padding:3px 8px;border:1px solid var(--line);border-radius:999px;background:var(--soft)}.dcnt.vac{color:var(--mut)}
 .docconf{display:grid;gap:8px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}.docconf label{margin:0}.docconf input{margin-top:4px}
 .eswrap{overflow-x:auto;padding-bottom:6px}
 .esl{position:relative;width:100%;min-width:760px;aspect-ratio:16/9;background:#fff;color:#111;border-radius:6px;box-shadow:none;overflow:hidden;font-family:Calibri,Arial,sans-serif;display:flex;flex-direction:column}
@@ -1163,7 +1163,7 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
   <input type="file" id="fccam" accept="image/*" capture="environment" hidden><input type="file" id="fcgal" accept="image/*" hidden>
   <div class="dc docw"><div class="dochead"><div><h2 id="doctit">Documentos de vehículos</h2><small id="docsub"></small></div><div class="docpl" id="docpl" hidden></div></div>
     <div class="docnav" id="docnav"><button type="button" class="btn ghost" id="docup" hidden aria-label="Volver a la carpeta anterior">‹ Atrás</button><nav class="docmiga" id="docmiga" aria-label="Ubicación en las carpetas"></nav>
-      <input type="search" id="docbusca" placeholder="Buscar por nombre…" aria-label="Buscar documentos"><button type="button" class="btn ghost" id="docref" title="Actualizar">Actualizar</button></div>
+      <select id="docord" aria-label="Ordenar"><option value="az">Nombre A → Z</option><option value="za">Nombre Z → A</option><option value="mas">Más archivos primero</option><option value="menos">Menos archivos primero</option></select><input type="search" id="docbusca" placeholder="Buscar por nombre…" aria-label="Buscar documentos"><button type="button" class="btn ghost" id="docref" title="Actualizar">Actualizar</button></div>
     <div class="doclist list" id="doclist"></div>
     <iframe id="docfr" title="Documentos en Google Drive" loading="lazy" hidden></iframe>
   </div>
@@ -2028,6 +2028,10 @@ async function renderDoc(reiniciar){
   let items;try{if(!docCache[act.id])$('doclist').innerHTML='<p class="empty" style="margin:0">Cargando documentos…</p>';items=await driveLista(act.id)}catch(x){docFallback(x);return}
   if(docRuta[docRuta.length-1]!==act)return;
   const q=sinTilde(docBusca.trim());const vis=items.filter(f=>!q||sinTilde(f.name).includes(q));
+  // orden: A–Z / Z–A por nombre, o por cantidad de archivos (mayor–menor / menor–mayor); las carpetas siempre primero
+  {const o=docOrd,cmpN=(a,b)=>a.name.localeCompare(b.name,'es',{numeric:true,sensitivity:'base'}),n=f=>{const c=docCnt[f.id];return f.mimeType!==MIME_FOLDER?-2:c&&!c.err?c.a+c.c:-1};
+   vis.sort((a,b)=>{const da=a.mimeType===MIME_FOLDER,db=b.mimeType===MIME_FOLDER;if(da!==db)return da?-1:1;
+     if(o==='za')return -cmpN(a,b);if(o==='mas'||o==='menos'){const x=n(a),y=n(b);if(x!==y){if(x<0)return 1;if(y<0)return -1;return o==='mas'?y-x:x-y}}return cmpN(a,b)})}
   const nC=items.filter(f=>f.mimeType===MIME_FOLDER).length,nA=items.length-nC;
   $('docsub').textContent=`${nC?nC+' carpeta'+(nC>1?'s':'')+' · ':''}${nA} documento${nA===1?'':'s'}${q?` · ${vis.length} coinciden con la búsqueda`:''}`;
   if(!vis.length){$('doclist').innerHTML=`<p class="empty" style="margin:0">${items.length?'Ningún documento coincide con la búsqueda.':'Esta carpeta está vacía.'}</p>`;return}
@@ -2039,15 +2043,15 @@ async function renderDoc(reiniciar){
         ${dir?'':`<div class="dga"><button type="button" class="ver" data-dver="${f.id}">Ver</button><a class="ver" href="${u.pdf}" target="_blank" rel="noopener" download>Descargar PDF</a></div>`}</div>`
       :`<div class="dli"><span class="dic ${dir?'f':ic==='PDF'?'p':''}">${dir?'📁':ic}</span>
         <button type="button" class="dln" ${dir?`data-dir="${f.id}"`:`data-dver="${f.id}"`}><b>${esc(f.name)}</b><small>${dir?'Carpeta':[f.size?tam(Number(f.size)):'',fch(f.modifiedTime)].filter(Boolean).join(' · ')}</small></button>
-        ${dir?`<div class="hb dacc"><span class="dcnt" data-dcnt="${f.id}">…</span><button type="button" class="btn ghost" data-dir="${f.id}">Abrir</button>${cur.rol==='admin'?`<button type="button" class="del" data-ddel="${f.id}" data-dnom="${esc(f.name)}">Eliminar</button>`:''}</div>`:`<div class="hb"><button type="button" class="btn ghost" data-dver="${f.id}">Ver</button><a class="btn" href="${u.pdf}" target="_blank" rel="noopener" download>Descargar PDF</a></div>`}</div>`}).join('');docContar();
+        ${dir?`<div class="hb dacc"><span class="dcnt" data-dcnt="${f.id}">…</span><button type="button" class="btn ghost" data-dir="${f.id}">Abrir</button></div>`:`<div class="hb"><button type="button" class="btn ghost" data-dver="${f.id}">Ver</button><a class="btn" href="${u.pdf}" target="_blank" rel="noopener" download>Descargar PDF</a></div>`}</div>`}).join('');docContar();
 }
 // Cantidad de archivos dentro de cada carpeta (se consulta en segundo plano, de a 5)
-const docCnt={};
+const docCnt={};let docOrd='az',docOrdT=null;
 function docContar(){const sp=[...document.querySelectorAll('[data-dcnt]')];let i=0;
   const pinta=(el,c)=>{el.textContent=c.err?'—':`${c.a} archivo${c.a===1?'':'s'}${c.c?` · ${c.c} carpeta${c.c===1?'':'s'}`:''}`;el.classList.toggle('vac',!c.err&&!c.a&&!c.c)};
   const sig=async()=>{while(i<sp.length){const el=sp[i++],id=el.dataset.dcnt;if(docCnt[id]){pinta(el,docCnt[id]);continue}
     try{const it=await driveLista(id);docCnt[id]={a:it.filter(x=>x.mimeType!==MIME_FOLDER).length,c:it.filter(x=>x.mimeType===MIME_FOLDER).length}}catch(x){docCnt[id]={err:1}}
-    document.querySelectorAll(`[data-dcnt="${id}"]`).forEach(e=>pinta(e,docCnt[id]))}};
+    document.querySelectorAll(`[data-dcnt="${id}"]`).forEach(e=>pinta(e,docCnt[id]));if(docOrd==='mas'||docOrd==='menos'){clearTimeout(docOrdT);docOrdT=setTimeout(()=>renderDoc(),400)}}};
   for(let k=0;k<5;k++)sig()}
 // Eliminar una carpeta en Google Drive (la envía a la papelera de Drive) con la cuenta de Google del administrador
 let gTok=null,gExp=0;
@@ -2122,6 +2126,7 @@ $('docmiga').addEventListener('click',e=>{
   const v=e.target.closest('[data-fcver]');if(v){$('bigimg').src=v.src;$('big').showModal();return}
   if(e.target.closest('[data-fcdel]')&&cur.rol==='admin'&&confirm('¿Quitar la foto de este conductor?')){const a=docRuta[docRuta.length-1];deleteDoc(doc(db,'fotoscond',a.id)).then(()=>{delete fotosCond[a.id];renderDoc()}).catch(x=>alert(ERR(x.code)))}});
 $('docmiga').onclick=e=>{const b=e.target.closest('[data-dk]');if(b){docRuta=docRuta.slice(0,Number(b.dataset.dk)+1);renderDoc()}};
+$('docord').onchange=e=>{docOrd=e.target.value;renderDoc()};
 $('docref').onclick=()=>{const a=docRuta[docRuta.length-1];if(a)delete docCache[a.id];if(docRuta.length<=1){delete docCache[docsRaiz()];docBase=''}renderDoc()};
 let docItems=[];
 $('doclist').onclick=e=>{const d=e.target.closest('[data-dir]');if(d){const it=(docCache[docRuta[docRuta.length-1].id]||[]).find(f=>f.id===d.dataset.dir);docRuta.push({id:d.dataset.dir,name:it?it.name:'Carpeta'});$('docbusca').value='';docBusca='';renderDoc();return}
