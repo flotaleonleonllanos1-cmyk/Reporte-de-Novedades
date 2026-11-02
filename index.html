@@ -1484,6 +1484,7 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
   <form id="blfrm">
     <h2 id="bldlgt">Registrar</h2>
     <label>Placa<select id="blpla" required></select></label><small class="mnota" id="blplnota" hidden></small>
+    <label>Fecha y hora<input type="datetime-local" id="blfec" required></label>
     <div class="fotos blslots"><div class="foto" id="bl-antes"></div><div class="foto" id="bl-despues"></div></div>
     <small class="mnota">Las fotos tomadas con la cámara quedan con marca de agua: Flota Llanos, placa, ANTES o DESPUÉS, fecha, hora y ubicación. Puedes guardar con una sola foto y agregar la otra después con «Editar».</small>
     <div class="err" id="blerr" role="alert"></div>
@@ -2445,12 +2446,12 @@ function renderCal(){
       <div class="vmtop"><span class="placa">${esc(c.placa)}</span><span class="pill ${okc?'o':'b'}">${okc?'Completa':'Falta 2ª calibración'}</span></div>
       <div class="vmdat"><span><small>Primera calibración</small>${fd(c.f1)}</span><span><small>Segunda calibración</small>${fd(c.f2)}</span><span><small>Reportado por</small>${esc(c.por||'—')}</span></div>
       ${cfs.length?`<div class="vmths">${cfs.map(([k])=>`<img src="${c.fotos[k]}" alt="">`).join('')}</div>`:'<span></span>'}
-      <div class="acts"><button class="btn ghost" data-ctog="${c.id}">Ampliar</button>${(canMod()||(canEdit()&&!c.f2))?`<button class="btn ghost" data-ced="${c.id}">Editar</button>`:''}</div></article>`;
+      <div class="acts"><button class="btn ghost" data-ctog="${c.id}">Ampliar</button>${canEdit()?`<button class="btn ghost" data-ced="${c.id}">Editar</button>`:''}</div></article>`;
     return `<article class="cal ${okc?'':'pend'}" data-ccard="${c.id}">
     <div class="top">
       <div><span class="placa">${esc(c.placa)}</span> <span class="pill ${okc?'o':'b'}">${okc?'Completa':'Falta 2ª calibración'}</span><div class="rpor">Reportado por <b>${esc(c.por||'—')}</b></div></div>
       <div class="acts"><button class="btn ghost" data-ctog="${c.id}">Reducir</button>
-        ${(canMod()||(canEdit()&&!c.f2))?`<button class="btn ghost" data-ced="${c.id}">Editar</button>`:''}
+        ${canEdit()?`<button class="btn ghost" data-ced="${c.id}">Editar</button>`:''}
         ${cur.rol==='admin'?`<button class="del" data-cdel="${c.id}">Eliminar</button>`:''}
       </div>
     </div>
@@ -3731,7 +3732,7 @@ function renderBL(){
   $('bllist').innerHTML=vis.map(a=>{const ok=a.antes&&a.despues,ab=blAbiertas.has(a.id);return `<article class="blc ${ok?'ok':''} ${ab?'abierta':''}" data-blcard="${a.id}">
     <div class="top"><div><span class="placa">${esc(a.placa)}</span> <span class="pill ${ok?'o':'w'}">${ok?'Completo':a.antes?'Falta DESPUÉS':'Falta ANTES'}</span>
       <div class="rpor">${esc(dtTxt(a.fecha))} · Registrado por <b>${esc(a.por||'—')}</b>${a.editadoPor?` · editado por ${esc(a.editadoPor)}`:''}</div></div>
-      <div class="acts"><button class="btn ghost" data-bltog="${a.id}" aria-expanded="${ab}">${ab?'Reducir':'Ampliar'}</button>${canMod()?`<button class="btn ghost" data-bled="${a.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="btn ghost" data-blpdf="${a.id}">PDF</button><button class="del" data-bldel="${a.id}">Eliminar</button>`:''}</div></div>
+      <div class="acts"><button class="btn ghost" data-bltog="${a.id}" aria-expanded="${ab}">${ab?'Reducir':'Ampliar'}</button>${(canMod()||(canEdit()&&blTipo==='lavado'))?`<button class="btn ghost" data-bled="${a.id}">Editar</button>`:''}${cur.rol==='admin'?`<button class="btn ghost" data-blpdf="${a.id}">PDF</button><button class="del" data-bldel="${a.id}">Eliminar</button>`:''}</div></div>
     <div class="blfotos">${fig(a,'antes','ANTES')}${fig(a,'despues','DESPUÉS')}</div></article>`}).join('');
 }
 function blSlot(k){const L=k==='antes'?'ANTES':'DESPUÉS';
@@ -3754,22 +3755,24 @@ function abrirBL(a){
   const extra=a&&!pls.includes(a.placa)?[a.placa]:[];
   $('blpla').innerHTML=`<option value="">${pls.length?'Elige la placa…':'No hay placas cargadas'}</option>`+[...extra,...pls].map(p=>`<option>${esc(p)}</option>`).join('');$('blpla').value=a?a.placa:'';
   $('blplnota').hidden=pls.length>0;$('blplnota').textContent=cur.rol==='admin'?'Carga las placas con el botón «Placas».':'Pídele al administrador que cargue las placas.';
+  $('blfec').value=String((a&&a.fecha)||ahoraDT()).slice(0,16);
   blF={antes:a?a.antes||'':'',despues:a?a.despues||'':''};blM={antes:a?!!a.antesMarca:false,despues:a?!!a.despuesMarca:false};blSlot('antes');blSlot('despues');$('bldlg').showModal();
 }
 $('bladd').onclick=()=>{if(canEdit())abrirBL()};
 $('blfrm').onsubmit=async e=>{e.preventDefault();const placa=$('blpla').value;
   if(!placa){$('blerr').textContent='Elige la placa.';return}if(!blF.antes&&!blF.despues){$('blerr').textContent='Agrega al menos una foto (ANTES o DESPUÉS).';return}
-  const data={placa,antes:blF.antes,despues:blF.despues,antesMarca:blM.antes,despuesMarca:blM.despues};
+  const fec=$('blfec').value;if(!fec){$('blerr').textContent='Escribe la fecha y hora.';return}
+  const data={placa,fecha:fec,antes:blF.antes,despues:blF.despues,antesMarca:blM.antes,despuesMarca:blM.despues};
   if(JSON.stringify(data).length>950000){$('blerr').textContent='Las fotos pesan demasiado. Vuelve a tomarlas o súbelas de nuevo.';return}
   $('blsave').disabled=true;
   try{if(bledit)await updateDoc(doc(db,'aseo',bledit.id),{...data,editadoPor:cur.nombre,editado:serverTimestamp()});
-    else await addDoc(collection(db,'aseo'),{...data,tipo:blTipo,sede,fecha:ahoraDT(),por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});$('bldlg').close()}
+    else await addDoc(collection(db,'aseo'),{...data,tipo:blTipo,sede,por:cur.nombre,uid:cur.uid,creado:serverTimestamp()});$('bldlg').close()}
   catch(x){$('blerr').textContent=ERR(x.code)}$('blsave').disabled=false};
 $('bllist').onclick=e=>{const card=e.target.closest('[data-blcard]');
   const tog=e.target.closest('[data-bltog]');if(tog){const id=tog.dataset.bltog;blAbiertas.has(id)?blAbiertas.delete(id):blAbiertas.add(id);renderBL();return}
   const im=e.target.closest('[data-blimg]');if(im){if(card&&!card.classList.contains('abierta')){blAbiertas.add(card.dataset.blcard);renderBL();return}$('bigimg').src=im.src;$('big').showModal();return}
   if(card&&!card.classList.contains('abierta')&&!e.target.closest('button,a')){blAbiertas.add(card.dataset.blcard);renderBL();return}
-  const ed=e.target.closest('[data-bled]');if(ed&&canMod()){abrirBL(aseo.find(a=>a.id===ed.dataset.bled));return}
+  const ed=e.target.closest('[data-bled]');if(ed&&(canMod()||(canEdit()&&blTipo==='lavado'))){abrirBL(aseo.find(a=>a.id===ed.dataset.bled));return}
   const pd=e.target.closest('[data-blpdf]');if(pd&&cur.rol==='admin'){const a=aseo.find(x=>x.id===pd.dataset.blpdf);if(a)descargarBLPDF([a]);return}
   const d=e.target.closest('[data-bldel]');if(d&&cur.rol==='admin'&&confirm('¿Eliminar este registro y sus fotos?'))deleteDoc(doc(db,'aseo',d.dataset.bldel)).catch(x=>alert(ERR(x.code)))};
 $('blpl').onchange=renderBL;$('blmes').onchange=()=>{blMesSel=$('blmes').value;renderBL()};
@@ -5316,7 +5319,7 @@ function abrirCal(c){
 $('cadd').onclick=()=>{if(canEdit())abrirCal()};
 $('calist').onclick=e=>{
   const im=e.target.closest('.thumbs img');if(im){$('bigimg').src=im.src;$('big').showModal();return}
-  const ed=e.target.closest('[data-ced]');if(ed&&canEdit()){const c=cals.find(c=>c.id===ed.dataset.ced);if(!c||(!canMod()&&c.f2))return;abrirCal(c);return}
+  const ed=e.target.closest('[data-ced]');if(ed&&canEdit()){const c=cals.find(c=>c.id===ed.dataset.ced);if(!c)return;abrirCal(c);return}
   const d=e.target.closest('[data-cdel]');
   if(d&&cur.rol==='admin'&&confirm('¿Eliminar este registro de calibración?'))deleteDoc(doc(db,'calibraciones',d.dataset.cdel)).catch(x=>alert(ERR(x.code)));
 };
