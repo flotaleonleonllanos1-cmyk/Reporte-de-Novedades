@@ -5044,12 +5044,12 @@ function cpvHoja(t,tx,nombreArch,hoja){
   const s=(r,c)=>String(((tx[r]||[])[c])??'').trim();
   const hi=t.findIndex((r,i)=>i<30&&(r||[]).some(v=>/placa/.test(sinTilde(String(v??'')))));if(hi<0)return [];
   const H=(tx[hi]||[]).map(v=>String(v??'').trim()),hn=H.map(sinTilde);
-  const iP=hn.findIndex(h=>/placa/.test(h)),iR=hn.findIndex(h=>/rutina|tipo de (mant|prev)|preventivo|servicio/.test(h)),iF=(()=>{const a=hn.findIndex(h=>/fecha.*(realiz|ejec)|fecha/.test(h));return a})();
+  const iP=hn.findIndex(h=>/placa/.test(h)),iR=hn.findIndex(h=>/rutina|tipo de (mant|prev)|preventivo|servicio/.test(h)),iF=(()=>{let a=hn.findIndex(h=>/fecha.*(realiz|ejec|mant|prev)/.test(h));if(a<0)a=hn.findIndex(h=>/fecha/.test(h));if(a<0)a=hn.findIndex(h=>/marca temporal|timestamp/.test(h));return a})();
   // columnas de ítems: las que en sus datos tienen sobre todo SI / NO
   const datos=[];for(let r=hi+1;r<t.length;r++)if(s(r,iP))datos.push(r);
   const items=[];for(let c=0;c<H.length;c++){if([iP,iR,iF].includes(c))continue;let n=0,sn=0;datos.slice(0,300).forEach(r=>{const v=s(r,c);if(v){n++;if(cpvSi(v)||cpvNo(v)||/^n\/?a$/.test(sinTilde(v)))sn++}});if(n&&sn/n>=.7)items.push(c)}
   return datos.map(r=>{const raw=(t[r]||[])[iF],f=iF>=0?(fechaAny(raw)||fechaAny(s(r,iF))):'';
-    return{arch:nombreArch,hoja,p:normP(s(r,iP))||s(r,iP),rut:(iR>=0&&s(r,iR))||String(nombreArch).replace(/\.(xlsx?|csv)$/i,''),f,no:items.filter(c=>cpvNo(s(r,c))).map(c=>H[c]||colL(c)),nItems:items.length}});
+    return{arch:nombreArch,hoja,p:normP(s(r,iP))||s(r,iP),rut:(iR>=0&&s(r,iR))||((String(nombreArch).match(/rutina[^()]*/i)||[String(nombreArch).replace(/\.(xlsx?|csv)$/i,'')])[0].trim().replace(/^rutina/i,'Rutina')),f,no:items.filter(c=>cpvNo(s(r,c))).map(c=>H[c]||colL(c)),nItems:items.length}});
 }
 async function cpvLeer(forzar){
   const url=cpvCfg&&cpvCfg.url;if(!url){cpvData=null;renderCpv();return}
@@ -5058,11 +5058,16 @@ async function cpvLeer(forzar){
   try{const it=await driveLista(id),xs=it.filter(x=>/spreadsheet|excel|sheet/.test(x.mimeType)||/\.xlsx?$/i.test(x.name));
     if(!xs.length)throw{msg:it.length?`En la carpeta no hay archivos de Excel. Se encontraron: ${it.map(x=>x.name).join(', ')}.`:'La carpeta se ve vacía desde la página. Eso pasa cuando los archivos no están compartidos: en Drive, selecciona los dos Excel → Compartir → «Cualquier persona con el vínculo» (Lector), y luego pulsa «Actualizar».'};
     const X=await loadXLSX(),filas=[],arch=[];
-    for(const f of xs){try{const wb=X.read(await driveXlsx(f.id),{type:'array',cellDates:true,dateNF:'d/mm/yyyy'});let n=0;
-      for(const hn of wb.SheetNames){const ws=wb.Sheets[hn];if(!ws||!ws['!ref'])continue;const R=X.utils.decode_range(ws['!ref']);R.s.r=0;R.s.c=0;ws['!ref']=X.utils.encode_range(R);
-        const t=X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:true}),tx=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:true,dateNF:'d/mm/yyyy'});
-        const fs=cpvHoja(t,tx,f.name,hn);n+=fs.length;filas.push(...fs)}
-      arch.push({id:f.id,name:f.name,n,mod:f.modifiedTime})}catch(x){console.error(x);arch.push({id:f.id,name:f.name,n:0,err:1})}}
+    for(const f of xs){let n=0,err='';
+      try{const wb=X.read(await driveXlsx(f.id),{type:'array',cellDates:true,dateNF:'d/mm/yyyy'});
+        for(const hn of wb.SheetNames){const ws=wb.Sheets[hn];if(!ws||!ws['!ref'])continue;const R=X.utils.decode_range(ws['!ref']);R.s.r=0;R.s.c=0;ws['!ref']=X.utils.encode_range(R);
+          const t=X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:true}),tx=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:true,dateNF:'d/mm/yyyy'});
+          const fs=cpvHoja(t,tx,f.name,hn);n+=fs.length;filas.push(...fs)}}
+      catch(x){console.error(x);err=x&&x.message||'error'}
+      // Hojas de cálculo de Google (por ejemplo, respuestas de Forms): se leen como CSV público si la descarga falla
+      if(!n&&/google-apps\.spreadsheet/.test(f.mimeType)){try{const r=await fetch(`https://docs.google.com/spreadsheets/d/${f.id}/gviz/tq?tqx=out:csv&headers=1`);if(!r.ok)throw new Error('CSV '+r.status);
+          const t=parseCSV((await r.text()).replace(/^\uFEFF/,''));const fs=cpvHoja(t,t,f.name,'Hoja 1');n=fs.length;filas.push(...fs);err=n?'':'sin filas con «Placa»'}catch(x){console.error(x);err=err||x.message}}
+      arch.push({id:f.id,name:f.name,n,mod:f.modifiedTime,err:n?'':(err||'sin filas con «Placa»')})}
     if(gen!==cpvGen)return;cpvData={filas,arch,leido:new Date(),_url:url}}
   catch(x){console.error(x);cpvErr=x&&x.msg?x.msg:x&&x.razon==='accessNotConfigured'?'La Google Drive API no está activada en el proyecto.':'No se pudo leer la carpeta de Drive. Revisa que esté compartida como «Cualquier persona con el vínculo».'}
   if(gen!==cpvGen)return;cpvCarg=false;renderCpv();
@@ -5092,7 +5097,7 @@ function renderCpv(){
      <label>Mes<select id="cpv-m"><option value="__todos">Todos</option>${meses.map(k=>`<option value="${k}"${k===cpvF.mes?' selected':''}>${MESES[+k.slice(5)-1]} ${k.slice(0,4)}</option>`).join('')}</select></label>
      <input type="search" id="cpv-q" placeholder="Buscar placa…" value="${esc(cpvF.q)}" style="width:180px;margin:0"></div>
    <div class="kpis">${[[fs.length,'Rutinas realizadas'],[new Set(fs.map(f=>f.p)).size,'Placas'],[new Set(fs.map(f=>f.rut)).size,'Tipos de rutina'],[totNo,'Ítems en «NO»'],[its.length,'Ítems distintos con «NO»']].map(([v,l],i)=>`<div class="kpi"><b class="${i===3&&v?'badc':''}">${v}</b><span>${l}</span></div>`).join('')}</div>
-   <small class="mnota">Archivos leídos: ${D.arch.map(a=>`${esc(a.name)} (${a.err?'no se pudo leer':a.n+' registros'})`).join(' · ')}${sinF?` · ${sinF} registros sin fecha`:''}</small>
+   <small class="mnota">Archivos leídos: ${D.arch.map(a=>`${esc(a.name)} (${a.err?'no se pudo leer: '+esc(a.err):a.n+' registros'})`).join(' · ')}${sinF?` · ${sinF} registros sin fecha`:''}</small>
    <div class="dc" style="margin-top:12px"><h2>Meses en que se realizaron las rutinas</h2><small>Rutinas realizadas por mes (según la fecha del Excel) · cada color es una rutina</small>
      <div class="urleg">${ruts.map(r=>`<span><i style="background:${colR(r)}"></i>${esc(r)}</span>`).join('')}</div>
      ${pm.length?`<div class="tscroll"><div style="min-width:${pm.length*70}px"><div class="vcols t co2st" style="height:190px">${pm.map(x=>`<div><span class="co2l"><span class="tacpm">${x.t}</span></span><span class="stk" style="height:${x.t/mxM*100}%">${ruts.filter(r=>x.m[r]).map(r=>`<i style="flex:${x.m[r]};background:${colR(r)}" title="${esc(r)}: ${x.m[r]}"></i>`).join('')}</span></div>`).join('')}</div><div class="vcl t">${pm.map(x=>`<span${x.k===cpvF.mes?' style="color:var(--acc);font-weight:800"':''}>${mL(x.k)}</span>`).join('')}</div></div></div>`:'<p class="empty">Sin fechas en los Excel.</p>'}</div>
