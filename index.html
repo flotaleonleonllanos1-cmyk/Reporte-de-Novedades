@@ -914,6 +914,18 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
 .creptx{display:grid;line-height:1.25}.creptx b{font-size:.92rem}.creptx small{color:var(--mut);font-size:.78rem}
 .crepley{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:.75rem;color:var(--mut)}.crepley i{display:inline-block;width:22px;height:10px;border-radius:999px;margin-right:5px;vertical-align:-1px}
 @media (max-width:700px){.crepr{grid-template-columns:40px 1fr}.creptx{grid-column:2}.crepn{width:38px;height:38px}}
+
+/* ===== Documentos · PI ===== */
+.pigrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:12px}
+.pic{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card);display:grid;gap:10px;box-shadow:0 6px 14px rgba(0,0,0,.25)}.pic.on{border-color:#0f8a74;box-shadow:0 0 0 2px rgba(15,138,116,.35),0 8px 18px rgba(0,0,0,.35)}
+.pihead{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:none;border:0;color:var(--ink);font:inherit;text-align:left;cursor:pointer;padding:0}
+.pitx{display:grid;gap:2px}.pitx b{font-size:1rem}.pitx small{color:var(--mut);font-size:.78rem}.pichev{color:var(--mut);font-size:.8rem}
+.piacc{display:flex;gap:8px;flex-wrap:wrap}
+.pibtn{border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:9px 18px;font:inherit;font-weight:800;color:#fff;cursor:pointer;
+  background:radial-gradient(120% 140% at 85% 10%,#0c8a76 0%,#0a6b5c 35%,#073f35 70%,#041f1a 100%);box-shadow:0 6px 14px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.18);transition:filter .15s,transform .15s}
+.pibtn:hover{filter:brightness(1.15)}.pibtn:active{transform:translateY(1px)}.pibtn:disabled{opacity:.7;cursor:wait}
+.pivis{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card)}
+.pifr{position:relative;width:100%;height:min(78vh,760px);margin-top:10px;border-radius:10px;overflow:hidden;background:#fff}.pifr iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 </style>
 </head>
 <body>
@@ -1022,6 +1034,7 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
         <button type="button" class="si" data-doc="veh">Vehículos</button>
         <button type="button" class="si" data-doc="con">Conductores</button>
         <button type="button" class="si" data-doc="tie">Control Tiempo</button>
+        <button type="button" class="si" data-doc="pi">PI</button>
       </div>
     </div>
     <div class="grp">
@@ -1139,12 +1152,14 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
       <button class="tab" data-doc="veh" aria-pressed="true">Vehículos</button>
       <button class="tab" data-doc="con" aria-pressed="false">Conductores</button>
       <button class="tab" data-doc="tie" aria-pressed="false">Control Tiempo</button>
+      <button class="tab" data-doc="pi" aria-pressed="false">PI</button>
     </div>
     <div class="hb" id="dochb">
       <div class="tabs" role="group" aria-label="Vista" id="docvista" style="margin:0"><button class="tab" data-dv="list" aria-pressed="true">Lista</button><button class="tab" data-dv="grid" aria-pressed="false">Cuadrícula</button></div>
       <a class="btn ghost" id="docdrive" target="_blank" rel="noopener">Abrir en Google Drive</a>
     </div>
   </div>
+  <div class="dc piw" id="piw" hidden></div>
   <div class="dc ctw" id="ctw" hidden><div class="chead" style="margin:0"><h2 style="font-size:1.1rem">Control Tiempo</h2><div class="hb"><button type="button" class="del" id="ctdel" hidden>Borrar información</button><button type="button" class="btn" id="ctup" hidden>Cargar Excel</button></div></div>
     <small id="ctsub"></small><div class="pprog" id="ctmsg" role="status"></div>
     <div class="kpis" id="ctkpi" style="margin-top:10px"></div><div id="ctal"></div>
@@ -1971,7 +1986,7 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
 function titulo(){
   const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden,lc=!$('licv').hidden,sm=!$('simv').hidden,cp=!$('capv').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':cp?'Capacitaciones':sm?'SIMIT':lc?'Notificación Licencia':rp?'Repuestos':ds?'Disponibilidad':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?estNomT()+' · Datos del Excel':estNomT()):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('vtit').textContent=ini?'':cp?'Capacitaciones':sm?'SIMIT':lc?'Notificación Licencia':rp?'Repuestos':ds?'Disponibilidad':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?estNomT()+' · Datos del Excel':estNomT()):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':docSec==='pi'?'PI':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
   $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!lc&&!sm&&!cp&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
@@ -2009,8 +2024,8 @@ function urlsDoc(f){const id=f.id,m=f.mimeType;
 }
 const icoDoc=m=>m===MIME_FOLDER?'📁':m==='application/pdf'?'PDF':m&&m.startsWith('image/')?'IMG':m==='application/vnd.google-apps.document'?'DOC':m==='application/vnd.google-apps.spreadsheet'?'XLS':m==='application/vnd.google-apps.presentation'?'PPT':'ARC';
 async function renderDoc(reiniciar){
-  const tie=docSec==='tie';$('ctw').hidden=!tie;document.querySelector('.docw').hidden=tie;$('dochb').hidden=tie;$('ctup').hidden=!cur||cur.rol!=='admin';
-  if(tie){$('doctabs').querySelectorAll('[data-doc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.doc===docSec));if(typeof titulo==='function')titulo();renderCT();return}
+  const pi=docSec==='pi',tie=docSec==='tie';$('piw').hidden=!pi;$('ctw').hidden=!tie;document.querySelector('.docw').hidden=tie||pi;$('dochb').hidden=tie||pi;$('ctup').hidden=!cur||cur.rol!=='admin';
+  if(tie||pi){$('doctabs').querySelectorAll('[data-doc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.doc===docSec));if(typeof titulo==='function')titulo();if(tie)renderCT();else renderPI();const dp=document.querySelector('#docpl');if(dp)dp.hidden=true;return}
   $('doctabs').querySelectorAll('[data-doc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.doc===docSec));
   $('docvista').querySelectorAll('[data-dv]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dv===docVista));
   $('doctit').textContent=`Documentos de ${docSec==='veh'?'vehículos':'conductores'}`;pintarDocConf();
@@ -2103,7 +2118,7 @@ function pintarDocPlaca(act){
     <div class="blq r"><h3>RTM</h3><dl><dt>${tt('AF')}</dt><dd>${v('AF')}${r.k!=='n'?` <span class="ctst ${r.k}">${r.t}</span>`:''}</dd><dt>${tt('AG')}</dt><dd>${v('AG')}</dd></dl></div>`;
 }
 function pintarDocConf(){
-  const adm=cur&&cur.rol==='admin';$('docconf').hidden=!adm||docSec==='tie';if(!adm)return;
+  const adm=cur&&cur.rol==='admin';$('docconf').hidden=!adm||docSec==='tie'||docSec==='pi';if(!adm)return;
   const c=listas['docs_drive'],r=docsRaiz();if(document.activeElement!==$('docurl'))$('docurl').value=c?(c.url||''):(r?`https://drive.google.com/drive/folders/${r}`:'');
   if(document.activeElement!==$('doccid'))$('doccid').value=(c&&c.clientId)||'';
   $('docquita').hidden=!r;$('docconfn').textContent=r?`Carpeta actual: ${r}. En Vehículos se muestran las carpetas «VEHICULOS …» y en Conductores las carpetas «CONDUCTORES …» que estén dentro.`:'No hay carpeta configurada.';
@@ -4959,6 +4974,34 @@ function elegirPanel(i){const p=$('portada');if(!p||p.classList.contains('sale')
 document.addEventListener('click',e=>{const s=e.target.closest('[data-port]');if(s)elegirPanel(+s.dataset.port)});
 document.addEventListener('keydown',e=>{const s=e.target.closest&&e.target.closest('[data-port]');if(s&&(e.key==='Enter'||e.key===' ')){e.preventDefault();elegirPanel(+s.dataset.port)}});
 
+
+/* ---------- Documentos · PI: dos Excel de Drive con visual desplegable y botón Actualizar ---------- */
+const PI_XLS=[{id:'1QWNpi8haFetbT7689obl2tVz-AnlFdMS',t:'Excel PI 1'},{id:'12CE3e7_ujxBwEh5LSIlVfsoGkw16b52s',t:'Excel PI 2'}];
+let piMeta={},piAbierto=null,piVer={};
+async function piInfo(id,forzar){
+  if(piMeta[id]&&!forzar)return piMeta[id];
+  try{const r=await fetch(`https://www.googleapis.com/drive/v3/files/${id}?fields=name,modifiedTime,size&supportsAllDrives=true&key=${firebaseConfig.apiKey}`);const j=await r.json();
+    piMeta[id]=r.ok?{name:j.name,mod:j.modifiedTime,size:j.size}:{err:(j.error&&j.error.message)||r.status}}catch(x){piMeta[id]={err:x.message}}
+  return piMeta[id];
+}
+function renderPI(){
+  const w=$('piw');if(!w)return;
+  w.innerHTML=`<div class="chead" style="margin:0"><div><h2 style="font-size:1.1rem">PI</h2><small>Toca un Excel para desplegar su visual · «Actualizar» trae la versión más reciente desde Google Drive</small></div></div>
+   <div class="pigrid">${PI_XLS.map((x,i)=>{const m=piMeta[x.id]||{},nom=m.name||x.t;return `<div class="pic${piAbierto===i?' on':''}">
+     <button type="button" class="pihead" data-pio="${i}" aria-expanded="${piAbierto===i}"><span class="piic" aria-hidden="true"><svg viewBox="0 0 32 32" width="34" height="34"><rect x="4" y="3" width="24" height="26" rx="3" fill="#1f7244"/><rect x="4" y="3" width="24" height="7" rx="3" fill="#2aa05f"/><path d="M11 14l10 10M21 14L11 24" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></span>
+       <span class="pitx"><b>${esc(nom)}</b><small>${m.err?'No se pudo leer la información del archivo':m.mod?`Actualizado en Drive: ${new Date(m.mod).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'})}`:'Leyendo…'}</small></span><span class="pichev" aria-hidden="true">${piAbierto===i?'▲':'▼'}</span></button>
+     <div class="piacc"><button type="button" class="pibtn" data-piact="${i}">⟳ Actualizar</button>${cur&&cur.rol==='admin'?`<a class="btn ghost" href="https://docs.google.com/spreadsheets/d/${x.id}/edit" target="_blank" rel="noopener">Abrir en Drive</a>`:''}</div></div>`}).join('')}</div>
+   ${piAbierto!==null?`<div class="pivis"><div class="chead" style="margin:0"><b>${esc((piMeta[PI_XLS[piAbierto].id]||{}).name||PI_XLS[piAbierto].t)}</b><div class="hb"><button type="button" class="btn ghost" id="pifs">⛶ Pantalla completa</button><button type="button" class="btn ghost" id="picer">✕ Cerrar</button></div></div>
+     <div class="pifr" id="pifrw"><iframe src="https://drive.google.com/file/d/${PI_XLS[piAbierto].id}/preview?v=${piVer[PI_XLS[piAbierto].id]||0}" title="Excel" allow="fullscreen"></iframe></div></div>`:''}`;
+  const fs=$('pifs');if(fs)fs.onclick=()=>{const e=$('pifrw');(e.requestFullscreen||e.webkitRequestFullscreen||(()=>{})).call(e)};
+  const c=$('picer');if(c)c.onclick=()=>{piAbierto=null;renderPI()};
+  PI_XLS.forEach(x=>{if(!piMeta[x.id])piInfo(x.id).then(renderPI)});
+}
+document.addEventListener('click',async e=>{
+  const o=e.target.closest('[data-pio]');if(o&&o.closest('#piw')){const i=+o.dataset.pio;piAbierto=piAbierto===i?null:i;renderPI();if(piAbierto!==null)setTimeout(()=>{const v=document.querySelector('.pivis');if(v)v.scrollIntoView({behavior:'smooth',block:'start'})},60);return}
+  const a=e.target.closest('[data-piact]');if(a&&a.closest('#piw')){const i=+a.dataset.piact,id=PI_XLS[i].id;a.disabled=true;a.textContent='⟳ Actualizando…';
+    piVer[id]=Date.now();await piInfo(id,true);piAbierto=i;renderPI()}
+});
 
 $('vper').onchange=()=>renderVar();
 
