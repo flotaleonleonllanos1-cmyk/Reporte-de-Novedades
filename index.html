@@ -346,6 +346,7 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .simtorta{display:grid;justify-items:center;gap:6px;padding:10px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,rgba(212,160,23,.08),transparent)}.simtorta h3{margin:0;font-size:.92rem}
 .simtorta .pleg{width:100%}.simtorta .pleg div{display:grid;grid-template-columns:12px 1fr auto;gap:6px;align-items:center;font-size:.8rem}.simtorta .pleg i{width:10px;height:10px;border-radius:3px}
 .simtab{min-width:980px;font-size:.84rem}.simtab th,.simtab td{text-align:center;white-space:nowrap}.simtab td:first-child,.simtab th:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
+.cpvits{display:grid;gap:8px;max-height:520px;overflow:auto;margin-top:8px;padding-right:4px}
 .capgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px}
 .capcls{position:relative;border:0;background:none;padding:16px 0 0;cursor:pointer;font:inherit;text-align:center;transition:transform .15s}
 .capcls:hover:not(:disabled){transform:translateY(-3px)}.capcls:disabled{cursor:not-allowed;opacity:.5}
@@ -1026,6 +1027,9 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
 <rect x="43" y="18" width="2.4" height="2" rx=".6" fill="#f5c542"/></svg></span></button>
     </div>
     <div class="grp">
+      <button type="button" class="mi" data-m="cpv" aria-pressed="false" aria-expanded="false" title="Calidad Preventivo"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 28" width="24" height="24"><rect x="4" y="3" width="17" height="22" rx="2.5" fill="#f7efd6" stroke="rgba(255,255,255,.85)"/><path d="M8 9l2 2 3-4M8 15l2 2 3-4" stroke="#1f7a3e" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M15 9h4M15 15h4M8 21h11" stroke="#8a6508" stroke-width="1.6" stroke-linecap="round"/><circle cx="21" cy="21" r="5.5" fill="#d4a017" stroke="#fff" class="brillo"/><path d="M18.6 21l1.7 1.7 3.1-3.3" stroke="#111" stroke-width="1.7" fill="none" stroke-linecap="round"/></svg></span><span class="lbl">Calidad Preventivo</span></button>
+    </div>
+    <div class="grp">
       <button type="button" class="mi" data-m="km" aria-pressed="false" aria-expanded="false" title="Kilometrajes"><span class="kmbar" aria-hidden="true"><svg viewBox="0 0 16 32" width="16" height="30"><rect x="1" y="1" width="14" height="30" rx="4" fill="#0f172a" stroke="rgba(255,255,255,.6)" stroke-width="1"/><rect x="3" y="3.5" width="10" height="5" rx="1.5" fill="#ef4444"/><rect x="3" y="9.5" width="10" height="5" rx="1.5" fill="#f97316"/><rect x="3" y="15.5" width="10" height="5" rx="1.5" fill="#f2c94c"/><rect x="3" y="21.5" width="10" height="7" rx="1.5" fill="#22c55e"/></svg></span><span class="lbl">Kilometrajes</span></button>
     </div>
     <div class="grp">
@@ -1081,6 +1085,13 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
 </div>
 <div id="list"></div>
 </div>
+<section id="cpvv" hidden aria-label="Calidad Preventivo">
+  <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><div><h2 style="font-size:1.1rem">Calidad Preventivo</h2><small id="cpvsub"></small></div></div>
+    <div class="rpdrive" id="cpvcfg" hidden><label>Enlace de la carpeta «PREVENTIVOS EXCEL» de Google Drive<input id="cpvurl" inputmode="url" placeholder="https://drive.google.com/drive/folders/…"></label>
+      <div class="hb"><button type="button" class="btn" id="cpvguar">Guardar</button><button type="button" class="btn ghost" id="cpvact">Actualizar</button><button type="button" class="del" id="cpvborr" hidden>Borrar</button></div></div>
+    <div class="pprog" id="cpvmsg" role="status"></div></div>
+  <div id="cpvbody"></div>
+</section>
 <section id="capv" hidden aria-label="Capacitaciones">
   <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><div><h2 style="font-size:1.1rem">Capacitaciones</h2><small id="capsub"></small></div></div>
     <div class="rpdrive" id="capcfg" hidden><label>Enlace de la carpeta de Google Drive (Checklist, Llantas, Combustible, Documentos, 5S, Preventivos llanos y Rutinas renting)<input id="capurl" inputmode="url" placeholder="https://drive.google.com/drive/folders/…"></label>
@@ -1578,7 +1589,7 @@ const DOM='@novedades-leon.app';
 const mail=u=>u.trim().toLowerCase()+DOM;
 const okUser=u=>/^[a-z0-9._-]{3,30}$/.test(u);
 const ROLES={admin:'Administrador',editor:'Editor',visual:'Visual',inactivo:'Sin acceso'};
-const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['ests','Estándar de Flota Safety'],['disp','Disponibilidad'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['lic','Notificación Licencia'],['sim','SIMIT'],['cap','Capacitaciones'],['var','Varadas'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
+const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['ests','Estándar de Flota Safety'],['disp','Disponibilidad'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['lic','Notificación Licencia'],['sim','SIMIT'],['cap','Capacitaciones'],['var','Varadas'],['cpv','Calidad Preventivo'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
 const puedeSede=x=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.sedes)||!cur.sedes.length||cur.sedes.includes(x));
 const sedesHTML=(pre,sel)=>`<div class="mudchk">${SEDES.map(x=>`<label><input type="checkbox" data-${pre}="${x}"${!sel||!sel.length||sel.includes(x)?' checked':''}> ${x}</label>`).join('')}</div>`;
 function aplicarSedes(){const ok=SEDES.filter(puedeSede);$('sede').innerHTML=ok.map(x=>`<option${x===sede?' selected':''}>${x}</option>`).join('');$('sede').disabled=ok.length<2;$('sede').title=ok.length<2?'Tu usuario solo tiene acceso a esta sede':'';
@@ -1738,6 +1749,8 @@ function salir(){
   if(unsubLC){unsubLC();unsubLC=null}
   if(unsubSM){unsubSM();unsubSM=null}
   if(unsubCP){unsubCP();unsubCP=null}
+  if(unsubCV){unsubCV();unsubCV=null}
+  cpvCfg=null;cpvData=null;
   capCfgs={};capDatas={};capSel=null;
   simCfgs={};simDatas={};simCfg=null;simData=null;
   licD=[];
@@ -1787,6 +1800,7 @@ async function entrar(user){
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
   unsubED=[];[['std','estdata','est'],['safety','estdata_safety','ests']].forEach(([v,c,m])=>{if(puedeVer(m))unsubED.push(onSnapshot(collection(db,c),snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());estStore[v].ed=o;if(estVar===v){edDatos=o;renderED();if(!$('estv').hidden&&estVista==='plant')renderEst()}},()=>{}))});
+  if(puedeVer('cpv'))unsubCV=onSnapshot(doc(db,'cprev','config'),d=>{const n=d.exists()?d.data():null;if((n&&n.url)!==(cpvCfg&&cpvCfg.url)){cpvData=null;cpvErr=''}cpvCfg=n;renderCpv()},()=>{});
   if(puedeVer('cap'))unsubCP=onSnapshot(collection(db,'capac'),snap=>{capCfgs={};snap.docs.forEach(d=>capCfgs[d.id]=d.data());capErr='';renderCap()},()=>{});
   if(puedeVer('sim'))unsubSM=onSnapshot(collection(db,'simit'),snap=>{const ant=JSON.stringify(Object.fromEntries(Object.entries(simCfgs).map(([k,v])=>[k,v&&v.url])));simCfgs={};snap.docs.forEach(d=>simCfgs[d.id]=d.data());SEDES.forEach(sd=>{const a=simCfgDe(sd);if(simDatas[sd]&&!(a&&a.url))simDatas[sd]=null});const nue=JSON.stringify(Object.fromEntries(Object.entries(simCfgs).map(([k,v])=>[k,v&&v.url])));if(ant!==nue){SEDES.forEach(sd=>{simDatas[sd]=simDatas[sd]&&simDatas[sd]._url===((simCfgDe(sd)||{}).url)?simDatas[sd]:null})}simErr='';renderSim()},()=>{});
   if(puedeVer('lic'))unsubLC=onSnapshot(collection(db,'licencias'),snap=>{licD=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderLic()},()=>{});
@@ -1958,7 +1972,8 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 (()=>{const y=hoyD.getFullYear();$('canio').innerHTML=[y-2,y-1,y,y+1].map(a=>`<option${a===y?' selected':''}>${a}</option>`).join('')})();
 function modulo(m){
   if(m!=='ini'&&!puedeVer(m))m='ini';
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est'||m==='ests',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep',lc=m==='lic',sm=m==='sim',cp=m==='cap';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est'||m==='ests',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep',lc=m==='lic',sm=m==='sim',cp=m==='cap',cv=m==='cpv';
+  $('cpvv').hidden=!cv;if(cv)renderCpv();
   $('capv').hidden=!cp;if(cp)renderCap();
   $('simv').hidden=!sm;if(sm)renderSim();
   $('licv').hidden=!lc;if(lc)renderLic();
@@ -1974,9 +1989,9 @@ function modulo(m){
   document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp;
-  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv;
+  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||!canEdit();$('raladd').hidden=!ral||!canEdit();
   if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';$('kmllanos').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
@@ -1989,10 +2004,10 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden,lc=!$('licv').hidden,sm=!$('simv').hidden,cp=!$('capv').hidden;
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden,lc=!$('licv').hidden,sm=!$('simv').hidden,cp=!$('capv').hidden,cv=!$('cpvv').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':cp?'Capacitaciones':sm?'SIMIT':lc?'Notificación Licencia':rp?'Repuestos':ds?'Disponibilidad':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?estNomT()+' · Datos del Excel':estNomT()):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':docSec==='pi'?'PI':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!lc&&!sm&&!cp&&!cal&&$('dash').hidden);
+  $('vtit').textContent=ini?'':cv?'Calidad Preventivo':cp?'Capacitaciones':sm?'SIMIT':lc?'Notificación Licencia':rp?'Repuestos':ds?'Disponibilidad':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?estNomT()+' · Datos del Excel':estNomT()):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':docSec==='pi'?'PI':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!lc&&!sm&&!cp&&!cv&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
@@ -2195,6 +2210,7 @@ function vistaPDF(){
   if(vis('ralv'))return{el:$('ralv'),titulo:'Ralentí'};
   if(vis('docv'))return{el:$('docv'),titulo:$('vtit').textContent};
   if(vis('blv'))return{el:$('blv'),titulo:BLN[blTipo].t};
+  if(vis('cpvv'))return{el:$('cpvv'),titulo:'Calidad Preventivo'};
   if(vis('capv'))return{el:$('capv'),titulo:'Capacitaciones'};
   if(vis('simv'))return{el:$('simv'),titulo:'SIMIT'};
   if(vis('licv'))return{el:$('licv'),titulo:'Notificacion Licencia'};
@@ -5019,6 +5035,78 @@ document.addEventListener('click',async e=>{
   const a=e.target.closest('[data-piact]');if(a&&a.closest('#piw')){const i=+a.dataset.piact,id=PI_XLS[i].id;a.disabled=true;a.textContent='⟳ Actualizando…';
     piVer[id]=Date.now();await piInfo(id,true);piAbierto=i;renderPI()}
 });
+
+/* ---------- CALIDAD PREVENTIVO: Excel de la carpeta «PREVENTIVOS EXCEL» en Drive ---------- */
+let cpvGen=0,cpvCfg=null,unsubCV=null,cpvData=null,cpvCarg=false,cpvErr='',cpvF={arch:'',rut:'',mes:'__todos',q:''};
+const cpvSi=v=>/^(si|sí|s|ok|cumple|x|✓|✔)$/.test(sinTilde(String(v??'')).trim()),cpvNo=v=>/^(no|n|no cumple|nc|✗|✘)$/.test(sinTilde(String(v??'')).trim());
+function cpvHoja(t,tx,nombreArch,hoja){
+  const s=(r,c)=>String(((tx[r]||[])[c])??'').trim();
+  const hi=t.findIndex((r,i)=>i<30&&(r||[]).some(v=>/placa/.test(sinTilde(String(v??'')))));if(hi<0)return [];
+  const H=(tx[hi]||[]).map(v=>String(v??'').trim()),hn=H.map(sinTilde);
+  const iP=hn.findIndex(h=>/placa/.test(h)),iR=hn.findIndex(h=>/rutina|tipo de (mant|prev)|preventivo|servicio/.test(h)),iF=(()=>{const a=hn.findIndex(h=>/fecha.*(realiz|ejec)|fecha/.test(h));return a})();
+  // columnas de ítems: las que en sus datos tienen sobre todo SI / NO
+  const datos=[];for(let r=hi+1;r<t.length;r++)if(s(r,iP))datos.push(r);
+  const items=[];for(let c=0;c<H.length;c++){if([iP,iR,iF].includes(c))continue;let n=0,sn=0;datos.slice(0,300).forEach(r=>{const v=s(r,c);if(v){n++;if(cpvSi(v)||cpvNo(v)||/^n\/?a$/.test(sinTilde(v)))sn++}});if(n&&sn/n>=.7)items.push(c)}
+  return datos.map(r=>{const raw=(t[r]||[])[iF],f=iF>=0?(fechaAny(raw)||fechaAny(s(r,iF))):'';
+    return{arch:nombreArch,hoja,p:normP(s(r,iP))||s(r,iP),rut:(iR>=0&&s(r,iR))||String(nombreArch).replace(/\.(xlsx?|csv)$/i,''),f,no:items.filter(c=>cpvNo(s(r,c))).map(c=>H[c]||colL(c)),nItems:items.length}});
+}
+async function cpvLeer(forzar){
+  const url=cpvCfg&&cpvCfg.url;if(!url){cpvData=null;renderCpv();return}
+  const id=(String(url).match(/\/folders\/([\w-]{10,})/)||[])[1]||(/^[\w-]{20,}$/.test(url)?url:'');if(!id){cpvErr='El enlace guardado no es de una carpeta de Google Drive.';renderCpv();return}
+  if(cpvCarg&&!forzar)return;const gen=++cpvGen;if(forzar)Object.keys(docCache).forEach(k=>delete docCache[k]);cpvCarg=true;cpvErr='';renderCpv();
+  try{const it=await driveLista(id),xs=it.filter(x=>/spreadsheet|excel|sheet/.test(x.mimeType)||/\.xlsx?$/i.test(x.name));
+    if(!xs.length)throw{msg:'En la carpeta no hay archivos de Excel.'};
+    const X=await loadXLSX(),filas=[],arch=[];
+    for(const f of xs){try{const wb=X.read(await driveXlsx(f.id),{type:'array',cellDates:true,dateNF:'d/mm/yyyy'});let n=0;
+      for(const hn of wb.SheetNames){const ws=wb.Sheets[hn];if(!ws||!ws['!ref'])continue;const R=X.utils.decode_range(ws['!ref']);R.s.r=0;R.s.c=0;ws['!ref']=X.utils.encode_range(R);
+        const t=X.utils.sheet_to_json(ws,{header:1,raw:true,defval:'',blankrows:true}),tx=X.utils.sheet_to_json(ws,{header:1,raw:false,defval:'',blankrows:true,dateNF:'d/mm/yyyy'});
+        const fs=cpvHoja(t,tx,f.name,hn);n+=fs.length;filas.push(...fs)}
+      arch.push({id:f.id,name:f.name,n,mod:f.modifiedTime})}catch(x){console.error(x);arch.push({id:f.id,name:f.name,n:0,err:1})}}
+    if(gen!==cpvGen)return;cpvData={filas,arch,leido:new Date(),_url:url}}
+  catch(x){console.error(x);cpvErr=x&&x.msg?x.msg:x&&x.razon==='accessNotConfigured'?'La Google Drive API no está activada en el proyecto.':'No se pudo leer la carpeta de Drive. Revisa que esté compartida como «Cualquier persona con el vínculo».'}
+  if(gen!==cpvGen)return;cpvCarg=false;renderCpv();
+}
+function renderCpv(){
+  if(!cur||$('cpvv').hidden)return;const ed=canEdit(),adm=cur.rol==='admin';
+  $('cpvcfg').hidden=!ed;$('cpvborr').hidden=!(adm&&cpvCfg&&cpvCfg.url);if(document.activeElement!==$('cpvurl'))$('cpvurl').value=(cpvCfg&&cpvCfg.url)||'';
+  $('cpvsub').textContent=cpvCfg&&cpvCfg.url?`Carpeta «PREVENTIVOS EXCEL» guardada${cpvCfg.por?' por '+cpvCfg.por:''}${cpvData?` · leída el ${cpvData.leido.toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'})}`:''}`:'Sin carpeta de Drive guardada.';
+  if(!cpvCfg||!cpvCfg.url){$('cpvbody').innerHTML=`<p class="empty" style="margin:0">${ed?'Pega el enlace de la carpeta «PREVENTIVOS EXCEL» de Drive y pulsa «Guardar».':'Aún no hay una carpeta configurada.'}</p>`;return}
+  if(!cpvData||cpvData._url!==cpvCfg.url){$('cpvbody').innerHTML=cpvErr?`<div class="ctalw" role="alert">${esc(cpvErr)}</div>`:'<p class="empty" style="margin:0">Leyendo los Excel de preventivos…</p>';if(!cpvErr&&!cpvCarg)cpvLeer();return}
+  const D=cpvData,mk=f=>f.f?f.f.slice(0,7):'',mL=k=>{const[y,m]=k.split('-');return `${MESES[+m-1].slice(0,3)} ${y.slice(2)}`};
+  const ruts=[...new Set(D.filas.map(f=>f.rut))].sort((a,b)=>a.localeCompare(b,'es')),meses=[...new Set(D.filas.map(mk).filter(Boolean))].sort();
+  if(cpvF.rut&&!ruts.includes(cpvF.rut))cpvF.rut='';if(cpvF.mes!=='__todos'&&!meses.includes(cpvF.mes))cpvF.mes='__todos';
+  const q=normP(cpvF.q),fs=D.filas.filter(f=>(!cpvF.arch||f.arch===cpvF.arch)&&(!cpvF.rut||f.rut===cpvF.rut)&&(cpvF.mes==='__todos'||mk(f)===cpvF.mes)&&(!q||normP(f.p).includes(q)));
+  // ítems en NO con sus placas
+  const it={};fs.forEach(f=>f.no.forEach(n=>{const x=it[n]=it[n]||{n,c:0,pl:new Set()};x.c++;x.pl.add(f.p)}));const its=Object.values(it).sort((a,b)=>b.c-a.c);
+  // placas por rutina
+  const pr={};fs.forEach(f=>{const x=pr[f.rut]=pr[f.rut]||{r:f.rut,pl:new Set(),n:0};x.pl.add(f.p);x.n++});const prs=Object.values(pr).sort((a,b)=>b.pl.size-a.pl.size),mxR=Math.max(1,...prs.map(x=>x.pl.size));
+  // meses en que se realizaron las rutinas (registros por mes, apilado por rutina)
+  const RC=['#d4a017','#8a6508','#bdbdbd','#5a5a5a','#e0b84a','#3a3a3a','#f2d27a','#a67c00'],colR=r=>RC[ruts.indexOf(r)%RC.length];
+  const fsM=D.filas.filter(f=>(!cpvF.arch||f.arch===cpvF.arch)&&(!cpvF.rut||f.rut===cpvF.rut)&&(!q||normP(f.p).includes(q)));
+  const pm=meses.map(k=>{const l=fsM.filter(f=>mk(f)===k),m={};l.forEach(f=>m[f.rut]=(m[f.rut]||0)+1);return{k,t:l.length,m}}),mxM=Math.max(1,...pm.map(x=>x.t));
+  const sinF=fs.filter(f=>!f.f).length,totNo=fs.reduce((a,f)=>a+f.no.length,0);
+  $('cpvbody').innerHTML=`
+   <div class="ralbar" style="margin:0 0 12px">${D.arch.length>1?`<label>Archivo<select id="cpv-a"><option value="">Los ${D.arch.length} archivos</option>${D.arch.map(a=>`<option value="${esc(a.name)}"${a.name===cpvF.arch?' selected':''}>${esc(a.name)}</option>`).join('')}</select></label>`:''}
+     <label>Rutina<select id="cpv-r"><option value="">Todas</option>${ruts.map(r=>`<option${r===cpvF.rut?' selected':''}>${esc(r)}</option>`).join('')}</select></label>
+     <label>Mes<select id="cpv-m"><option value="__todos">Todos</option>${meses.map(k=>`<option value="${k}"${k===cpvF.mes?' selected':''}>${MESES[+k.slice(5)-1]} ${k.slice(0,4)}</option>`).join('')}</select></label>
+     <input type="search" id="cpv-q" placeholder="Buscar placa…" value="${esc(cpvF.q)}" style="width:180px;margin:0"></div>
+   <div class="kpis">${[[fs.length,'Rutinas realizadas'],[new Set(fs.map(f=>f.p)).size,'Placas'],[new Set(fs.map(f=>f.rut)).size,'Tipos de rutina'],[totNo,'Ítems en «NO»'],[its.length,'Ítems distintos con «NO»']].map(([v,l],i)=>`<div class="kpi"><b class="${i===3&&v?'badc':''}">${v}</b><span>${l}</span></div>`).join('')}</div>
+   <small class="mnota">Archivos leídos: ${D.arch.map(a=>`${esc(a.name)} (${a.err?'no se pudo leer':a.n+' registros'})`).join(' · ')}${sinF?` · ${sinF} registros sin fecha`:''}</small>
+   <div class="dc" style="margin-top:12px"><h2>Meses en que se realizaron las rutinas</h2><small>Rutinas realizadas por mes (según la fecha del Excel) · cada color es una rutina</small>
+     <div class="urleg">${ruts.map(r=>`<span><i style="background:${colR(r)}"></i>${esc(r)}</span>`).join('')}</div>
+     ${pm.length?`<div class="tscroll"><div style="min-width:${pm.length*70}px"><div class="vcols t co2st" style="height:190px">${pm.map(x=>`<div><span class="co2l"><span class="tacpm">${x.t}</span></span><span class="stk" style="height:${x.t/mxM*100}%">${ruts.filter(r=>x.m[r]).map(r=>`<i style="flex:${x.m[r]};background:${colR(r)}" title="${esc(r)}: ${x.m[r]}"></i>`).join('')}</span></div>`).join('')}</div><div class="vcl t">${pm.map(x=>`<span${x.k===cpvF.mes?' style="color:var(--acc);font-weight:800"':''}>${mL(x.k)}</span>`).join('')}</div></div></div>`:'<p class="empty">Sin fechas en los Excel.</p>'}</div>
+   <div class="dgrid" style="margin-top:14px">
+     <div class="dc"><h2>Placas por rutina</h2><small>Placas distintas en cada rutina</small>${prs.map((x,i)=>`<div class="urbar"><span class="rk">${i+1}</span><span class="nm" title="${esc(x.r)}"><b>${esc(x.r)}</b></span><span class="tr"><i style="width:${x.pl.size/mxR*100}%;background:${colR(x.r)}"></i></span><b class="co2v"><span class="tacpm">${x.pl.size} placas</span><small class="tco2">${x.n} registros</small></b></div>`).join('')||'<p class="empty">Sin datos.</p>'}</div>
+     <div class="dc"><h2>Ítems con «NO»</h2><small>Cuántas veces aparece cada ítem en «NO» y en qué placas</small>
+       <div class="cpvits">${its.map(x=>`<article class="edit"><div class="editt"><span class="edno">NO</span><b>${esc(x.n)}</b><span class="pill b">${x.c} ${x.c===1?'vez':'veces'}</span></div><div class="edpl">${[...x.pl].sort(cmpP).map(p=>`<span>${esc(p)}</span>`).join('')}</div></article>`).join('')||'<p class="empty" style="margin:0">No hay ítems en «NO» con estos filtros.</p>'}</div></div>
+   </div>`;
+  const a=$('cpv-a');if(a)a.onchange=e=>{cpvF.arch=e.target.value;renderCpv()};$('cpv-r').onchange=e=>{cpvF.rut=e.target.value;renderCpv()};$('cpv-m').onchange=e=>{cpvF.mes=e.target.value;renderCpv()};
+  $('cpv-q').oninput=e=>{cpvF.q=e.target.value;clearTimeout(window.__cpq);window.__cpq=setTimeout(()=>{renderCpv();const i=$('cpv-q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},300)};
+}
+$('cpvguar').onclick=async()=>{if(!canEdit())return;const u=$('cpvurl').value.trim();if(!/\/folders\/[\w-]{10,}/.test(u)&&!/^[\w-]{20,}$/.test(u)){$('cpvmsg').textContent='Pega el enlace de la carpeta «PREVENTIVOS EXCEL» de Google Drive.';return}
+  try{await setDoc(doc(db,'cprev','config'),{url:u,por:cur.nombre,editado:serverTimestamp()});cpvCfg={url:u,por:cur.nombre};cpvData=null;$('cpvmsg').textContent='Carpeta guardada como predeterminada.';cpvLeer(true)}catch(x){$('cpvmsg').textContent=ERR(x.code)}};
+$('cpvact').onclick=()=>{if(cpvCfg&&cpvCfg.url){$('cpvmsg').textContent='';cpvData=null;cpvLeer(true)}};
+$('cpvborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm('¿Borrar el enlace de la carpeta de preventivos?'))return;try{await deleteDoc(doc(db,'cprev','config'));cpvCfg=null;cpvData=null;$('cpvmsg').textContent='Enlace borrado.';renderCpv()}catch(x){alert(ERR(x.code))}};
 
 $('vper').onchange=()=>renderVar();
 
