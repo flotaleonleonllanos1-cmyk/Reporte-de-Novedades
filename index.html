@@ -2022,9 +2022,10 @@ async function driveLista(id){
   if(docCache[id])return docCache[id];if(String(id).startsWith('__'))return [];
   let out=[],tok='';
   do{const q=encodeURIComponent(`'${id}' in parents and trashed=false`);
-    const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=nextPageToken,files(id,name,mimeType,size,modifiedTime)&orderBy=folder,name&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true&key=${firebaseConfig.apiKey}${tok?'&pageToken='+tok:''}`);
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=nextPageToken,files(id,name,mimeType,size,modifiedTime,shortcutDetails(targetId,targetMimeType))&orderBy=folder,name&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true&key=${firebaseConfig.apiKey}${tok?'&pageToken='+tok:''}`);
     const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error((j.error&&j.error.message)||'Drive '+r.status);e.status=r.status;e.razon=j.error&&j.error.errors&&j.error.errors[0]&&j.error.errors[0].reason;throw e}
-    out=out.concat(j.files||[]);tok=j.nextPageToken||''}while(tok);
+    // los accesos directos de Drive se tratan como el archivo o carpeta al que apuntan
+    out=out.concat((j.files||[]).map(f=>f.mimeType==='application/vnd.google-apps.shortcut'&&f.shortcutDetails&&f.shortcutDetails.targetId?{...f,id:f.shortcutDetails.targetId,mimeType:f.shortcutDetails.targetMimeType||f.mimeType,atajo:true}:f));tok=j.nextPageToken||''}while(tok);
   return docCache[id]=out;
 }
 const sedeTok=()=>sede==='Yopal'?'yopal':'villa';
@@ -5055,7 +5056,7 @@ async function cpvLeer(forzar){
   const id=(String(url).match(/\/folders\/([\w-]{10,})/)||[])[1]||(/^[\w-]{20,}$/.test(url)?url:'');if(!id){cpvErr='El enlace guardado no es de una carpeta de Google Drive.';renderCpv();return}
   if(cpvCarg&&!forzar)return;const gen=++cpvGen;if(forzar)Object.keys(docCache).forEach(k=>delete docCache[k]);cpvCarg=true;cpvErr='';renderCpv();
   try{const it=await driveLista(id),xs=it.filter(x=>/spreadsheet|excel|sheet/.test(x.mimeType)||/\.xlsx?$/i.test(x.name));
-    if(!xs.length)throw{msg:'En la carpeta no hay archivos de Excel.'};
+    if(!xs.length)throw{msg:it.length?`En la carpeta no hay archivos de Excel. Se encontraron: ${it.map(x=>x.name).join(', ')}.`:'La carpeta se ve vacía desde la página. Eso pasa cuando los archivos no están compartidos: en Drive, selecciona los dos Excel → Compartir → «Cualquier persona con el vínculo» (Lector), y luego pulsa «Actualizar».'};
     const X=await loadXLSX(),filas=[],arch=[];
     for(const f of xs){try{const wb=X.read(await driveXlsx(f.id),{type:'array',cellDates:true,dateNF:'d/mm/yyyy'});let n=0;
       for(const hn of wb.SheetNames){const ws=wb.Sheets[hn];if(!ws||!ws['!ref'])continue;const R=X.utils.decode_range(ws['!ref']);R.s.r=0;R.s.c=0;ws['!ref']=X.utils.encode_range(R);
