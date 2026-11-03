@@ -347,6 +347,10 @@ html[data-theme="dark"] .chip.cal0{background:#3b1414;color:#fca5a5}html[data-th
 .simtorta .pleg{width:100%}.simtorta .pleg div{display:grid;grid-template-columns:12px 1fr auto;gap:6px;align-items:center;font-size:.8rem}.simtorta .pleg i{width:10px;height:10px;border-radius:3px}
 .simtab{min-width:980px;font-size:.84rem}.simtab th,.simtab td{text-align:center;white-space:nowrap}.simtab td:first-child,.simtab th:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
 .cpvm{cursor:pointer;transition:opacity .2s,filter .2s}.cpvm:hover{filter:brightness(1.15)}.cpvm.apag{opacity:.35}.cpvm.sel{filter:drop-shadow(0 0 8px rgba(19,224,196,.7))}
+.cpvtop{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:14px;align-items:stretch}
+.cpvkpi .kpi{padding:8px 12px}.cpvkpi .kpi b{font-size:1.25rem}.cpvkpi .kpi span{font-size:.72rem}
+.cpvcls{padding-top:14px}.cpvcls .capboard{padding:12px 8px 10px;gap:3px}.cpvcls .capic{font-size:1.5rem}.cpvcls .captit{font-size:1.02rem}.cpvcls .capn{font-size:.72rem}.cpvcls .captag{font-size:.6rem;padding:3px 8px}
+@media (max-width:760px){.cpvtop{grid-template-columns:1fr}}
 .cpvpl{display:grid;gap:4px;max-height:520px;overflow:auto;padding-right:4px;margin-top:8px}
 .cpvits{display:grid;gap:8px;max-height:520px;overflow:auto;margin-top:8px;padding-right:4px}
 .capgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px}
@@ -1096,7 +1100,7 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
 </section>
 <section id="capv" hidden aria-label="Capacitaciones">
   <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><div><h2 style="font-size:1.1rem">Capacitaciones</h2><small id="capsub"></small></div></div>
-    <div class="rpdrive" id="capcfg" hidden><label>Enlace de la carpeta de Google Drive (Checklist, Llantas, Combustible, Documentos, 5S, Preventivos llanos y Rutinas renting)<input id="capurl" inputmode="url" placeholder="https://drive.google.com/drive/folders/…"></label>
+    <div class="rpdrive" id="capcfg" hidden><label>Enlace de la carpeta de Google Drive (Checklist, Llantas, Combustible, Documentos, 5S y Rutinas renting)<input id="capurl" inputmode="url" placeholder="https://drive.google.com/drive/folders/…"></label>
       <div class="hb"><button type="button" class="btn" id="capguar">Guardar</button><button type="button" class="btn ghost" id="capact">Actualizar</button><button type="button" class="del" id="capborr" hidden>Borrar</button></div></div>
     <div class="pprog" id="capmsg" role="status"></div></div>
   <div id="capbody"></div>
@@ -4905,7 +4909,7 @@ $('simact').onclick=()=>{simSede();if(simCfg&&simCfg.url){$('simmsg').textConten
 $('simborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar el enlace de Drive del SIMIT de ${sede}?`))return;try{await deleteDoc(doc(db,'simit',sede));if(sede==='Villavicencio'&&simCfgs.config)await deleteDoc(doc(db,'simit','config')).catch(()=>{});delete simCfgs[sede];if(sede==='Villavicencio')delete simCfgs.config;simDatas[sede]=null;simCfg=null;simData=null;$('simmsg').textContent='Enlace borrado.';renderSim()}catch(x){alert(ERR(x.code))}};
 
 /* ---------- CAPACITACIONES: presentaciones por tema desde una carpeta de Drive (por sede) ---------- */
-const CAP_TEMAS=[{k:'checklist',t:'Checklist',ic:'📋'},{k:'llantas',t:'Llantas',ic:'🛞'},{k:'combustible',t:'Combustible',ic:'⛽'},{k:'documentos',t:'Documentos',ic:'📄'},{k:'5s',t:'5S',ic:'🧹'},{k:'preventivosllanos',t:'Preventivos llanos',ic:'🔧',w:['preventiv','llano']},{k:'rutinasrenting',t:'Rutinas renting',ic:'📅',w:['rutina','renting']}];
+const CAP_TEMAS=[{k:'checklist',t:'Checklist',ic:'📋'},{k:'llantas',t:'Llantas',ic:'🛞'},{k:'combustible',t:'Combustible',ic:'⛽'},{k:'documentos',t:'Documentos',ic:'📄'},{k:'5s',t:'5S',ic:'🧹'},{k:'rutinasrenting',t:'Rutinas renting',ic:'📅',w:['rutina','renting']}];
 let capCfgs={},capDatas={},unsubCP=null,capCarg=false,capErr='',capSel=null;
 const capNorm=t=>sinTilde(t||'').replace(/[^a-z0-9]/g,'');
 const capEsPpt=f=>/presentation/.test(f.mimeType)||/\.(pptx?|ppsx?|odp)$/i.test(f.name);
@@ -5079,6 +5083,22 @@ async function cpvLeer(forzar){
   catch(x){console.error(x);cpvErr=x&&x.msg?x.msg:x&&x.razon==='accessNotConfigured'?'La Google Drive API no está activada en el proyecto.':'No se pudo leer la carpeta de Drive. Revisa que esté compartida como «Cualquier persona con el vínculo».'}
   if(gen!==cpvGen)return;cpvCarg=false;renderCpv();
 }
+// Clase «Preventivos llanos» (antes en Capacitaciones): se busca la presentación en las carpetas de Drive configuradas
+let cpvPpt=undefined,cpvPptVer=false;
+async function cpvBuscarPpt(forzar){
+  if(cpvPpt!==undefined&&!forzar)return;cpvPpt=null;
+  const ids=[...new Set([cpvCfg&&cpvCfg.url,...Object.values(capCfgs||{}).map(c=>c&&c.url)].filter(Boolean).map(u=>(String(u).match(/\/folders\/([\w-]{10,})/)||[])[1]).filter(Boolean))];
+  const ok=n=>{const t=capNorm(String(n).replace(/\.(pptx?|ppsx?|odp)$/i,''));return t.includes('preventiv')&&t.includes('llano')};let hallado=null;
+  const vis=async(fid,n)=>{if(hallado)return;let it;try{it=await driveLista(fid)}catch(x){return}for(const x of it){if(hallado)return;if(x.mimeType===MIME_FOLDER){if(ok(x.name)){const d=(await driveLista(x.id)).find(capEsPpt);if(d){hallado=d;return}}if(n<3)await vis(x.id,n+1)}else if(capEsPpt(x)&&ok(x.name)){hallado=x;return}}};
+  for(const id of ids){await vis(id,0);if(hallado)break}
+  cpvPpt=hallado||false;renderCpv();
+}
+function cpvClaseHTML(){if(cpvPpt===undefined){cpvBuscarPpt();}
+  const n=cpvPpt?1:0;return `<button type="button" class="capcls cpvcls${cpvPptVer?' on':''}" id="cpvclase"${cpvPpt?'':' disabled'} aria-label="Capacitación Preventivos llanos">
+    <span class="captag">CAPACITACIÓN</span><span class="capboard"><span class="capic" aria-hidden="true">🔧</span><span class="captit">Preventivos llanos</span><span class="capn">${cpvPpt===null||cpvPpt===undefined?'Buscando…':n?'1 presentación':'Presentación no encontrada'}</span></span><span class="captiza" aria-hidden="true"></span></button>`}
+function cpvPptHTML(){if(!cpvPptVer||!cpvPpt)return '';return `<div class="dc capvis" style="margin-top:12px"><div class="chead" style="margin:0"><div><h2>🔧 Clase de Preventivos llanos</h2><small>${esc(cpvPpt.name)}</small></div>
+   <div class="hb"><button type="button" class="btn ghost" id="cpvfs">⛶ Pantalla completa</button>${cur.rol==='admin'?`<a class="btn ghost" href="https://drive.google.com/uc?export=download&id=${cpvPpt.id}" target="_blank" rel="noopener">⬇ Descargar</a>`:''}<button type="button" class="btn ghost" id="cpvcer">✕ Cerrar</button></div></div>
+   <div class="capfr" id="cpvfrw"><iframe src="${capEmbed(cpvPpt)}" title="${esc(cpvPpt.name)}" allowfullscreen allow="autoplay; fullscreen"></iframe></div></div>`}
 function renderCpv(){
   if(!cur||$('cpvv').hidden)return;const ed=canEdit(),adm=cur.rol==='admin';
   $('cpvcfg').hidden=!ed;$('cpvborr').hidden=!(adm&&cpvCfg&&cpvCfg.url);if(document.activeElement!==$('cpvurl'))$('cpvurl').value=(cpvCfg&&cpvCfg.url)||'';
@@ -5103,7 +5123,7 @@ function renderCpv(){
      <label>Rutina<select id="cpv-r"><option value="">Todas</option>${ruts.map(r=>`<option${r===cpvF.rut?' selected':''}>${esc(r)}</option>`).join('')}</select></label>
      <label>Mes<select id="cpv-m"><option value="__todos">Todos</option>${meses.map(k=>`<option value="${k}"${k===cpvF.mes?' selected':''}>${MESES[+k.slice(5)-1]} ${k.slice(0,4)}</option>`).join('')}</select></label>
      <input type="search" id="cpv-q" placeholder="Buscar placa…" value="${esc(cpvF.q)}" style="width:180px;margin:0"></div>
-   ${(()=>{const totSi=fs.reduce((a,f)=>a+(f.si||0),0),pg=totSi+totNo?totSi/(totSi+totNo)*100:null;return `<div class="kpis">${[[fs.length,'Rutinas realizadas',''],[new Set(fs.map(f=>f.p)).size,'Placas',''],[totSi,'Respuestas «SI»','okc'],[totNo,'Respuestas «NO»',totNo?'badc':''],[pg===null?'—':pg.toFixed(1)+'%','Cumplimiento general',pg>=90?'okc':pg>=75?'':'badc']].map(([v,l,k])=>`<div class="kpi"><b class="${k}">${v}</b><span>${l}</span></div>`).join('')}</div>`})()}
+   ${(()=>{const totSi=fs.reduce((a,f)=>a+(f.si||0),0),pg=totSi+totNo?totSi/(totSi+totNo)*100:null;return `<div class="cpvtop"><div class="kpis cpvkpi">${[[fs.length,'Rutinas realizadas',''],[new Set(fs.map(f=>f.p)).size,'Placas',''],[totSi,'Respuestas «SI»','okc'],[totNo,'Respuestas «NO»',totNo?'badc':''],[pg===null?'—':pg.toFixed(1)+'%','Cumplimiento general',pg>=90?'okc':pg>=75?'':'badc']].map(([v,l,k])=>`<div class="kpi"><b class="${k}">${v}</b><span>${l}</span></div>`).join('')}</div>${cpvClaseHTML()}</div>${cpvPptHTML()}`})()}
    <small class="mnota">Archivos leídos: ${D.arch.map(a=>`${esc(a.name)} (${a.err?'no se pudo leer: '+esc(a.err):a.n+' registros'})`).join(' · ')}${sinF?` · ${sinF} registros sin fecha`:''}</small>
    <div class="dgrid" style="margin-top:12px">
     <div class="dc"><h2>Rutinas por mes</h2><small>Cantidad de rutinas realizadas en cada mes · toca un mes para ver su información en todas las visuales</small>${cpvF.mes!=='__todos'?`<div class="simfil">Mostrando <b>${MESES[+cpvF.mes.slice(5)-1]} ${cpvF.mes.slice(0,4)}</b> <button type="button" data-cpvmes="__todos">✕ Ver todos los meses</button></div>`:''}
@@ -5128,11 +5148,15 @@ function renderCpv(){
   const a=$('cpv-a');if(a)a.onchange=e=>{cpvF.arch=e.target.value;renderCpv()};$('cpv-r').onchange=e=>{cpvF.rut=e.target.value;renderCpv()};$('cpv-m').onchange=e=>{cpvF.mes=e.target.value;renderCpv()};
   $('cpv-q').oninput=e=>{cpvF.q=e.target.value;clearTimeout(window.__cpq);window.__cpq=setTimeout(()=>{renderCpv();const i=$('cpv-q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},300)};
 }
-$('cpvbody').addEventListener('click',e=>{const m=e.target.closest('[data-cpvmes]');if(!m)return;const k=m.dataset.cpvmes;cpvF.mes=k==='__todos'||cpvF.mes===k?'__todos':k;renderCpv()});
+$('cpvbody').addEventListener('click',e=>{
+  if(e.target.closest('#cpvclase')&&cpvPpt){cpvPptVer=!cpvPptVer;renderCpv();if(cpvPptVer)setTimeout(()=>{const v=$('cpvfrw');if(v)v.scrollIntoView({behavior:'smooth',block:'center'})},60);return}
+  if(e.target.closest('#cpvcer')){cpvPptVer=false;renderCpv();return}
+  if(e.target.closest('#cpvfs')){const w=$('cpvfrw');if(w)(w.requestFullscreen||w.webkitRequestFullscreen||(()=>{})).call(w);return}
+  const m=e.target.closest('[data-cpvmes]');if(!m)return;const k=m.dataset.cpvmes;cpvF.mes=k==='__todos'||cpvF.mes===k?'__todos':k;renderCpv()});
 $('cpvbody').addEventListener('keydown',e=>{const m=e.target.closest('[data-cpvmes]');if(m&&(e.key==='Enter'||e.key===' ')){e.preventDefault();m.dispatchEvent(new MouseEvent('click',{bubbles:true}))}});
 $('cpvguar').onclick=async()=>{if(!canEdit())return;const u=$('cpvurl').value.trim();if(!/\/folders\/[\w-]{10,}/.test(u)&&!/^[\w-]{20,}$/.test(u)){$('cpvmsg').textContent='Pega el enlace de la carpeta «PREVENTIVOS EXCEL» de Google Drive.';return}
   try{await setDoc(doc(db,'cprev','config'),{url:u,por:cur.nombre,editado:serverTimestamp()});cpvCfg={url:u,por:cur.nombre};cpvData=null;$('cpvmsg').textContent='Carpeta guardada como predeterminada.';cpvLeer(true)}catch(x){$('cpvmsg').textContent=ERR(x.code)}};
-$('cpvact').onclick=()=>{if(cpvCfg&&cpvCfg.url){$('cpvmsg').textContent='';cpvData=null;cpvLeer(true)}};
+$('cpvact').onclick=()=>{if(cpvCfg&&cpvCfg.url){$('cpvmsg').textContent='';cpvData=null;cpvPpt=undefined;cpvLeer(true)}};
 $('cpvborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm('¿Borrar el enlace de la carpeta de preventivos?'))return;try{await deleteDoc(doc(db,'cprev','config'));cpvCfg=null;cpvData=null;$('cpvmsg').textContent='Enlace borrado.';renderCpv()}catch(x){alert(ERR(x.code))}};
 
 $('vper').onchange=()=>renderVar();
