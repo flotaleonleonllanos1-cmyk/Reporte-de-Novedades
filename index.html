@@ -4961,11 +4961,13 @@ $('simborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar el enlac
 
 /* ---------- CAPACITACIONES: presentaciones por tema desde una carpeta de Drive (por sede) ---------- */
 const CAP_TEMAS=[{k:'checklist',t:'Checklist',ic:'📋'},{k:'llantas',t:'Llantas',ic:'🛞'},{k:'combustible',t:'Combustible',ic:'⛽'},{k:'documentos',t:'Documentos',ic:'📄'},{k:'5s',t:'5S',ic:'🧹'},{k:'rutinasrenting',t:'Rutinas renting',ic:'📅',w:['rutina','renting']}];
+const CAP_DEF={Yopal:'https://drive.google.com/drive/folders/1c4svTCC5Wj0WjBZuitC6YJrbsY21Qgix'};
+const capCfgDe=sd=>capCfgs[sd]||(CAP_DEF[sd]?{url:CAP_DEF[sd],def:true}:null);
 let capCfgs={},capDatas={},unsubCP=null,capCarg=false,capErr='',capSel=null;
 const capNorm=t=>sinTilde(t||'').replace(/[^a-z0-9]/g,'');
 const capEsPpt=f=>/presentation/.test(f.mimeType)||/\.(pptx?|ppsx?|odp)$/i.test(f.name);
 async function capLeer(forzar){
-  const sd=sede,cfg=capCfgs[sd],url=cfg&&cfg.url;if(!url){capDatas[sd]=null;renderCap();return}
+  const sd=sede,cfg=capCfgDe(sd),url=cfg&&cfg.url;if(!url){capDatas[sd]=null;renderCap();return}
   const id=(String(url).match(/\/folders\/([\w-]{10,})/)||[])[1]||(/^[\w-]{20,}$/.test(url)?url:'');if(!id){capErr='El enlace guardado no es de una carpeta de Google Drive.';renderCap();return}
   if(forzar)Object.keys(docCache).forEach(k=>delete docCache[k]);capCarg=true;capErr='';renderCap();
   try{const raiz=await driveLista(id),temas={};let todos=null;
@@ -4981,14 +4983,14 @@ async function capLeer(forzar){
 }
 const capEmbed=f=>/google-apps\.presentation/.test(f.mimeType)?`https://docs.google.com/presentation/d/${f.id}/embed?start=false&loop=false&delayms=5000`:`https://drive.google.com/file/d/${f.id}/preview`;
 function renderCap(){
-  if(!cur||$('capv').hidden)return;const ed=canEdit(),adm=cur.rol==='admin',cfg=capCfgs[sede],D=capDatas[sede];
-  $('capcfg').hidden=!ed;$('capborr').hidden=!(adm&&cfg&&cfg.url);if(document.activeElement!==$('capurl'))$('capurl').value=(cfg&&cfg.url)||'';
-  $('capsub').textContent=cfg&&cfg.url?`${sede} · carpeta predeterminada guardada${cfg.por?' por '+cfg.por:''}${D?` · leída el ${D.leido.toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'})}`:''}`:`${sede} · sin carpeta de Drive guardada.`;
+  if(!cur||$('capv').hidden)return;const ed=canEdit(),adm=cur.rol==='admin',cfg=capCfgDe(sede),D=capDatas[sede];
+  $('capcfg').hidden=!ed;$('capborr').hidden=!(adm&&cfg&&cfg.url&&!cfg.def);if(document.activeElement!==$('capurl'))$('capurl').value=(cfg&&cfg.url)||'';
+  $('capsub').textContent=cfg&&cfg.url?`${sede} · ${cfg.def?'carpeta de capacitaciones de '+sede:'carpeta predeterminada guardada'}${cfg.por?' por '+cfg.por:''}${D?` · leída el ${D.leido.toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'})}`:''}`:`${sede} · sin carpeta de Drive guardada.`;
   if(!cfg||!cfg.url){$('capbody').innerHTML=`<p class="empty" style="margin:0">${ed?`Pega el enlace de la carpeta de capacitaciones de ${esc(sede)} y pulsa «Guardar».`:`Aún no hay capacitaciones configuradas para ${esc(sede)}.`}</p>`;return}
   if(!D||D._url!==cfg.url){if(capErr){$('capbody').innerHTML=`<div class="ctalw" role="alert">${esc(capErr)}</div>`;return}$('capbody').innerHTML='<p class="empty" style="margin:0">Leyendo las capacitaciones desde Google Drive…</p>';if(!capCarg)capLeer();return}
   if(capSel&&(!D.temas[capSel.k]||!D.temas[capSel.k].ppts.some(p=>p.id===capSel.id)))capSel=null;
   const T=capSel&&CAP_TEMAS.find(x=>x.k===capSel.k),tm=capSel&&D.temas[capSel.k],pp=tm&&tm.ppts.find(p=>p.id===capSel.id);
-  $('capbody').innerHTML=`<div class="capgrid">${CAP_TEMAS.map(x=>{const t=D.temas[x.k],n=t?t.ppts.length:0;return `<button type="button" class="capcls${capSel&&capSel.k===x.k?' on':''}" data-capk="${x.k}"${!n?' disabled':''} aria-label="Capacitación ${esc(x.t)}">
+  $('capbody').innerHTML=`<div class="capgrid">${CAP_TEMAS.filter(x=>D.temas[x.k]).map(x=>{const t=D.temas[x.k],n=t?t.ppts.length:0;return `<button type="button" class="capcls${capSel&&capSel.k===x.k?' on':''}" data-capk="${x.k}"${!n?' disabled':''} aria-label="Capacitación ${esc(x.t)}">
       <span class="captag">CAPACITACIÓN</span><span class="capboard"><span class="capic" aria-hidden="true">${x.ic}</span><span class="captit">${esc(x.t)}</span><span class="capn">${t?(n?`${n} presentaci${n===1?'ón':'ones'}`:'Sin presentación'):'Carpeta no encontrada'}</span></span><span class="captiza" aria-hidden="true"></span></button>`}).join('')}</div>
     ${pp?`<div class="dc capvis" style="margin-top:14px"><div class="chead" style="margin:0"><div><h2>${T.ic} Clase de ${esc(T.t)}</h2><small>${esc(pp.name)}</small></div>
       <div class="hb">${tm.ppts.length>1?`<select id="cap-pp" aria-label="Presentación">${tm.ppts.map(p=>`<option value="${p.id}"${p.id===pp.id?' selected':''}>${esc(p.name)}</option>`).join('')}</select>`:''}<button type="button" class="btn ghost" id="capfs">⛶ Pantalla completa</button>${adm?`<a class="btn ghost" href="https://drive.google.com/uc?export=download&id=${pp.id}" target="_blank" rel="noopener">⬇ Descargar</a>`:''}<button type="button" class="btn ghost" id="capcer">✕ Cerrar</button></div></div>
@@ -5001,7 +5003,7 @@ $('capbody').addEventListener('click',e=>{const b=e.target.closest('[data-capk]'
   capSel={k:b.dataset.capk,id:t.ppts[0].id};renderCap();setTimeout(()=>{const v=document.querySelector('.capvis');if(v)v.scrollIntoView({behavior:'smooth',block:'start'})},60)});
 $('capguar').onclick=async()=>{if(!canEdit())return;const u=$('capurl').value.trim();if(!/\/folders\/[\w-]{10,}/.test(u)&&!/^[\w-]{20,}$/.test(u)){$('capmsg').textContent='Pega el enlace de una carpeta de Google Drive.';return}
   try{await setDoc(doc(db,'capac',sede),{url:u,sede,por:cur.nombre,editado:serverTimestamp()});capCfgs[sede]={url:u,por:cur.nombre};capDatas[sede]=null;capSel=null;$('capmsg').textContent='Carpeta guardada como predeterminada.';capLeer(true)}catch(x){$('capmsg').textContent=ERR(x.code)}};
-$('capact').onclick=()=>{if(capCfgs[sede]&&capCfgs[sede].url){$('capmsg').textContent='';capDatas[sede]=null;capLeer(true)}};
+$('capact').onclick=()=>{if(capCfgDe(sede)){$('capmsg').textContent='';capDatas[sede]=null;capLeer(true)}};
 $('capborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar el enlace de Drive de capacitaciones de ${sede}?`))return;try{await deleteDoc(doc(db,'capac',sede));delete capCfgs[sede];capDatas[sede]=null;capSel=null;$('capmsg').textContent='Enlace borrado.';renderCap()}catch(x){alert(ERR(x.code))}};
 
 /* ---------- Portada después del ingreso: barras 3D (Módulo 1 a 4) y camión ---------- */
