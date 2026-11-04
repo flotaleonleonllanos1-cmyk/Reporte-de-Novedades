@@ -1122,6 +1122,9 @@ html.enfoque .shell{--sw:0px}
     <div class="grp">
       <button type="button" class="mi" data-m="lav" aria-pressed="false" aria-expanded="false" title="Lavadero"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 32" width="26" height="30"><path d="M14 3c4 6 8 10 8 15a8 8 0 0 1-16 0c0-5 4-9 8-15z" fill="#e6c35c" stroke="rgba(255,255,255,.75)" stroke-width="1"/><path d="M10 18a4 4 0 0 0 4 4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M23 5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#fff" class="brillo"/><path d="M5 9l.7 1.4 1.4.7-1.4.7L5 13l-.7-1.4L2.9 11l1.4-.7z" fill="#fff" class="brillo"/></svg></span><span class="lbl">Lavadero</span></button>
     </div>
+    <div class="grp">
+      <button type="button" class="mi" data-m="bpr" aria-pressed="false" aria-expanded="false" title="Buenas Prácticas"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 28" width="24" height="24"><rect x="3" y="4" width="22" height="15" rx="2" fill="#f5f5f5" stroke="rgba(255,255,255,.85)"/><path d="M7 15l4-5 3 3 3-4 4 6" stroke="#0e9c86" stroke-width="1.8" fill="none" stroke-linejoin="round"/><path d="M14 19v4M9 24h10" stroke="#f5f5f5" stroke-width="1.8" stroke-linecap="round"/><circle cx="22" cy="7" r="4.2" fill="#13e0c4" stroke="#fff" class="brillo"/><path d="M20.2 7l1.3 1.3 2.4-2.6" stroke="#063c38" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></span><span class="lbl">Buenas Prácticas</span></button>
+    </div>
   </nav>
   <div class="sidefoot">
     <button type="button" class="si" id="adminb" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Admin</span></button>
@@ -1158,6 +1161,13 @@ html.enfoque .shell{--sw:0px}
 </div>
 <div id="list"></div>
 </div>
+<section id="bprv" hidden aria-label="Buenas Prácticas">
+  <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><div><h2 style="font-size:1.1rem">Buenas Prácticas</h2><small id="bprsub"></small></div></div>
+    <div class="rpdrive" id="bprcfg" hidden><label>Enlace de Google Drive del PowerPoint (o de su carpeta)<input id="bprurl" inputmode="url" placeholder="https://drive.google.com/…"></label>
+      <div class="hb"><button type="button" class="btn" id="bprguar">Guardar</button><button type="button" class="del" id="bprborr" hidden>Borrar</button></div></div>
+    <div class="pprog" id="bprmsg" role="status"></div></div>
+  <div id="bprbody"></div>
+</section>
 <section id="cpvv" hidden aria-label="Calidad Preventivo">
   <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><div><h2 style="font-size:1.1rem">Calidad Preventivo</h2><small id="cpvsub"></small></div></div>
     <div class="rpdrive" id="cpvcfg" hidden><label>Enlace de la carpeta «PREVENTIVOS EXCEL» de Google Drive<input id="cpvurl" inputmode="url" placeholder="https://drive.google.com/drive/folders/…"></label>
@@ -1659,7 +1669,7 @@ const DOM='@novedades-leon.app';
 const mail=u=>u.trim().toLowerCase()+DOM;
 const okUser=u=>/^[a-z0-9._-]{3,30}$/.test(u);
 const ROLES={admin:'Administrador',editor:'Editor',visual:'Visual',inactivo:'Sin acceso'};
-const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['ests','Estándar de Flota Safety'],['disp','Arranque de Flota'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['lic','Notificación Licencia'],['sim','SIMIT'],['cap','Capacitaciones'],['var','Varadas'],['cpv','Calidad Preventivo'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero']];
+const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['ests','Estándar de Flota Safety'],['disp','Arranque de Flota'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['lic','Notificación Licencia'],['sim','SIMIT'],['cap','Capacitaciones'],['var','Varadas'],['cpv','Calidad Preventivo'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero'],['bpr','Buenas Prácticas']];
 const puedeSede=x=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.sedes)||!cur.sedes.length||cur.sedes.includes(x));
 const sedesHTML=(pre,sel)=>`<div class="mudchk">${SEDES.map(x=>`<label><input type="checkbox" data-${pre}="${x}"${!sel||!sel.length||sel.includes(x)?' checked':''}> ${x}</label>`).join('')}</div>`;
 function aplicarSedes(){const ok=SEDES.filter(puedeSede);$('sede').innerHTML=ok.map(x=>`<option${x===sede?' selected':''}>${x}</option>`).join('');$('sede').disabled=ok.length<2;$('sede').title=ok.length<2?'Tu usuario solo tiene acceso a esta sede':'';
@@ -1823,6 +1833,8 @@ function salir(){
   if(unsubSM){unsubSM();unsubSM=null}
   if(unsubCP){unsubCP();unsubCP=null}
   if(unsubCV){unsubCV();unsubCV=null}
+  if(unsubBP){unsubBP();unsubBP=null}
+  bprCfg=null;bprLista=null;
   cpvCfg=null;cpvData=null;
   capCfgs={};capDatas={};capSel=null;
   simCfgs={};simDatas={};simCfg=null;simData=null;
@@ -1873,6 +1885,7 @@ async function entrar(user){
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
   unsubED=[];[['std','estdata','est'],['safety','estdata_safety','ests']].forEach(([v,c,m])=>{if(puedeVer(m))unsubED.push(onSnapshot(collection(db,c),snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());estStore[v].ed=o;if(estVar===v){edDatos=o;renderED();if(!$('estv').hidden&&estVista==='plant')renderEst()}},()=>{}))});
+  if(puedeVer('bpr'))unsubBP=onSnapshot(doc(db,'bprac','config'),d=>{const n=d.exists()?d.data():null;if((n&&n.url)!==(bprCfg&&bprCfg.url)){bprLista=null;bprErr=''}bprCfg=n;renderBpr()},()=>{});
   if(puedeVer('cpv'))unsubCV=onSnapshot(doc(db,'cprev','config'),d=>{const n=d.exists()?d.data():null;if((n&&n.url)!==(cpvCfg&&cpvCfg.url)){cpvData=null;cpvErr=''}cpvCfg=n;renderCpv()},()=>{});
   if(puedeVer('cap'))unsubCP=onSnapshot(collection(db,'capac'),snap=>{capCfgs={};snap.docs.forEach(d=>capCfgs[d.id]=d.data());capErr='';renderCap()},()=>{});
   if(puedeVer('sim'))unsubSM=onSnapshot(collection(db,'simit'),snap=>{const ant=JSON.stringify(Object.fromEntries(Object.entries(simCfgs).map(([k,v])=>[k,v&&v.url])));simCfgs={};snap.docs.forEach(d=>simCfgs[d.id]=d.data());SEDES.forEach(sd=>{const a=simCfgDe(sd);if(simDatas[sd]&&!(a&&a.url))simDatas[sd]=null});const nue=JSON.stringify(Object.fromEntries(Object.entries(simCfgs).map(([k,v])=>[k,v&&v.url])));if(ant!==nue){SEDES.forEach(sd=>{simDatas[sd]=simDatas[sd]&&simDatas[sd]._url===((simCfgDe(sd)||{}).url)?simDatas[sd]:null})}simErr='';renderSim()},()=>{});
@@ -2048,7 +2061,8 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 function modulo(m){
   if(m!=='ini'&&!puedeVer(m))m='ini';
   document.documentElement.classList.toggle('en-ini',m==='ini');
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est'||m==='ests',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep',lc=m==='lic',sm=m==='sim',cp=m==='cap',cv=m==='cpv';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est'||m==='ests',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep',lc=m==='lic',sm=m==='sim',cp=m==='cap',cv=m==='cpv',bp=m==='bpr';
+  $('bprv').hidden=!bp;if(bp)renderBpr();
   $('cpvv').hidden=!cv;if(cv)renderCpv();
   $('capv').hidden=!cp;if(cp)renderCap();
   $('simv').hidden=!sm;if(sm)renderSim();
@@ -2065,9 +2079,9 @@ function modulo(m){
   document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv;
-  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp;
+  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp||!canEdit();$('raladd').hidden=!ral||!canEdit();
   if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';$('kmllanos').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
@@ -2080,10 +2094,10 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden,lc=!$('licv').hidden,sm=!$('simv').hidden,cp=!$('capv').hidden,cv=!$('cpvv').hidden;
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden,lc=!$('licv').hidden,sm=!$('simv').hidden,cp=!$('capv').hidden,cv=!$('cpvv').hidden,bp=!$('bprv').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':cv?'Calidad Preventivo':cp?'Capacitaciones':sm?'SIMIT':lc?'Notificación Licencia':rp?'Repuestos':ds?'Arranque de Flota':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?estNomT()+' · Datos del Excel':estNomT()):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':docSec==='pi'?'PI':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!lc&&!sm&&!cp&&!cv&&!cal&&$('dash').hidden);
+  $('vtit').textContent=ini?'':bp?'Buenas Prácticas':cv?'Calidad Preventivo':cp?'Capacitaciones':sm?'SIMIT':lc?'Notificación Licencia':rp?'Repuestos':ds?'Arranque de Flota':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?estNomT()+' · Datos del Excel':estNomT()):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':docSec==='pi'?'PI':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!lc&&!sm&&!cp&&!cv&&!bp&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
@@ -2287,6 +2301,7 @@ function vistaPDF(){
   if(vis('ralv'))return{el:$('ralv'),titulo:'Ralentí'};
   if(vis('docv'))return{el:$('docv'),titulo:$('vtit').textContent};
   if(vis('blv'))return{el:$('blv'),titulo:BLN[blTipo].t};
+  if(vis('bprv'))return{el:$('bprv'),titulo:'Buenas Practicas'};
   if(vis('cpvv'))return{el:$('cpvv'),titulo:'Calidad Preventivo'};
   if(vis('capv'))return{el:$('capv'),titulo:'Capacitaciones'};
   if(vis('simv'))return{el:$('simv'),titulo:'SIMIT'};
@@ -5046,7 +5061,7 @@ const PANELES={0:{t:'COMPLIANCE',items:[{t:'DOCUMENTOS',m:'doc',sec:'veh'},{t:'E
   2:{t:'FLEET MANAGEMENT',items:[{t:'CALIBRACIONES VILLAVICENCIO',m:'cal',sede:'Villavicencio'},{t:'CALIBRACIONES YOPAL',m:'cal',sede:'Yopal'},{t:'CAPACITACIONES VILLAVICENCIO',m:'cap',sede:'Villavicencio'},{t:'CAPACITACIONES YOPAL',m:'cap',sede:'Yopal'}]},
   3:{t:'FLEET AUTONOMY & IMPROVEMENTS',items:[{t:'CO₂ VILLAVICENCIO',m:'urea',sede:'Villavicencio'},{t:'CO₂ YOPAL',m:'urea',sede:'Yopal'},{t:'RALENTÍ VILLAVICENCIO',m:'ral',sede:'Villavicencio'},{t:'RALENTÍ YOPAL',m:'ral',sede:'Yopal'}]},
   4:{t:'VARIOS DE FLOTA',items:[{t:'LAVADERO VILLAVICENCIO',m:'lav',sede:'Villavicencio'},{t:'LAVADERO YOPAL',m:'lav',sede:'Yopal'},{t:'BARRIDOS VILLAVICENCIO',m:'bar',sede:'Villavicencio'},{t:'BARRIDOS YOPAL',m:'bar',sede:'Yopal'},
-    {t:'KILOMETRAJES VILLAVICENCIO',m:'km',sede:'Villavicencio'},{t:'KILOMETRAJES YOPAL',m:'km',sede:'Yopal'},{t:'NOVEDADES DE FLOTA VILLAVICENCIO',m:'nov',sede:'Villavicencio'},{t:'NOVEDADES DE FLOTA YOPAL',m:'nov',sede:'Yopal'}]}};
+    {t:'KILOMETRAJES VILLAVICENCIO',m:'km',sede:'Villavicencio'},{t:'KILOMETRAJES YOPAL',m:'km',sede:'Yopal'},{t:'NOVEDADES DE FLOTA VILLAVICENCIO',m:'nov',sede:'Villavicencio'},{t:'NOVEDADES DE FLOTA YOPAL',m:'nov',sede:'Yopal'},{t:'BUENAS PRÁCTICAS',m:'bpr'}]}};
 let portPanel=null;
 const panelItems=n=>(PANELES[n]?PANELES[n].items:[]).filter(x=>puedeVer(x.m)&&(!x.sede||puedeSede(x.sede)));
 function portadaComp(n){if(n===undefined)n=portPanel;const P=PANELES[n],ls=panelItems(n),cl=['p1','p2','p3','p4'];
@@ -5231,6 +5246,38 @@ $('cpvguar').onclick=async()=>{if(!canEdit())return;const u=$('cpvurl').value.tr
   try{await setDoc(doc(db,'cprev','config'),{url:u,por:cur.nombre,editado:serverTimestamp()});cpvCfg={url:u,por:cur.nombre};cpvData=null;$('cpvmsg').textContent='Carpeta guardada como predeterminada.';cpvLeer(true)}catch(x){$('cpvmsg').textContent=ERR(x.code)}};
 $('cpvact').onclick=()=>{if(cpvCfg&&cpvCfg.url){$('cpvmsg').textContent='';cpvData=null;cpvPpt=undefined;cpvLeer(true)}};
 $('cpvborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm('¿Borrar el enlace de la carpeta de preventivos?'))return;try{await deleteDoc(doc(db,'cprev','config'));cpvCfg=null;cpvData=null;$('cpvmsg').textContent='Enlace borrado.';renderCpv()}catch(x){alert(ERR(x.code))}};
+
+/* ---------- BUENAS PRÁCTICAS: PowerPoint desde un enlace de Drive (archivo o carpeta) ---------- */
+let bprCfg=null,unsubBP=null,bprLista=null,bprSel=null,bprErr='',bprCarg=false;
+const bprId=u=>{u=String(u||'');const f=u.match(/\/folders\/([\w-]{10,})/);if(f)return{t:'carpeta',id:f[1]};const d=u.match(/\/d\/([\w-]{10,})/)||u.match(/[?&]id=([\w-]{10,})/);return d?{t:'archivo',id:d[1]}:null};
+async function bprLeer(){
+  const x=bprId(bprCfg&&bprCfg.url);if(!x){bprLista=null;renderBpr();return}bprCarg=true;bprErr='';renderBpr();
+  try{if(x.t==='carpeta'){const pp=[];const vis=async(fid,n)=>{for(const f of await driveLista(fid)){if(f.mimeType===MIME_FOLDER){if(n<2)await vis(f.id,n+1)}else if(capEsPpt(f))pp.push(f)}};await vis(x.id,0);
+      if(!pp.length)throw{msg:'En esa carpeta de Drive no hay presentaciones de PowerPoint.'};bprLista=pp.sort((a,b)=>a.name.localeCompare(b.name,'es',{numeric:true}))}
+    else{const r=await fetch(`https://www.googleapis.com/drive/v3/files/${x.id}?fields=id,name,mimeType&supportsAllDrives=true&key=${firebaseConfig.apiKey}`),j=await r.json().catch(()=>({}));
+      bprLista=[r.ok?j:{id:x.id,name:'Buenas prácticas',mimeType:/presentation\/d\//.test(bprCfg.url)?'application/vnd.google-apps.presentation':''}]}
+    if(!bprSel||!bprLista.some(f=>f.id===bprSel))bprSel=bprLista[0].id}
+  catch(e){console.error(e);bprErr=e&&e.msg?e.msg:'No se pudo leer el enlace de Drive. Revisa que esté compartido como «Cualquier persona con el vínculo».';bprLista=null}
+  bprCarg=false;renderBpr();
+}
+function renderBpr(){
+  if(!cur||$('bprv').hidden)return;const ed=canEdit(),adm=cur.rol==='admin';
+  $('bprcfg').hidden=!ed;$('bprborr').hidden=!(adm&&bprCfg&&bprCfg.url);if(document.activeElement!==$('bprurl'))$('bprurl').value=(bprCfg&&bprCfg.url)||'';
+  $('bprsub').textContent=bprCfg&&bprCfg.url?`Enlace predeterminado guardado${bprCfg.por?' por '+bprCfg.por:''}`:'Sin enlace de Drive guardado.';
+  const w=$('bprbody');
+  if(!bprCfg||!bprCfg.url){w.innerHTML=`<p class="empty" style="margin:0">${ed?'Pega el enlace de Drive del PowerPoint de Buenas Prácticas (o de su carpeta) y pulsa «Guardar».':'Aún no hay una presentación de Buenas Prácticas.'}</p>`;return}
+  if(bprErr){w.innerHTML=`<div class="ctalw" role="alert">${esc(bprErr)}</div>`;return}
+  if(!bprLista){w.innerHTML='<p class="empty" style="margin:0">Cargando la presentación…</p>';if(!bprCarg)bprLeer();return}
+  const f=bprLista.find(x=>x.id===bprSel)||bprLista[0];
+  w.innerHTML=`<div class="dc capvis"><div class="chead" style="margin:0"><div><h2>📘 Buenas prácticas</h2><small>${esc(f.name||'')}</small></div>
+    <div class="hb">${bprLista.length>1?`<select id="bprpp" aria-label="Presentación">${bprLista.map(x=>`<option value="${x.id}"${x.id===f.id?' selected':''}>${esc(x.name)}</option>`).join('')}</select>`:''}<button type="button" class="btn ghost" id="bprfs">⛶ Pantalla completa</button>${adm?`<a class="btn ghost" href="https://drive.google.com/uc?export=download&id=${f.id}" target="_blank" rel="noopener">⬇ Descargar</a>`:''}</div></div>
+    <div class="capfr" id="bprfr"><iframe src="${capEmbed(f)}" title="Buenas prácticas" allowfullscreen allow="autoplay; fullscreen"></iframe></div></div>`;
+  const s=$('bprpp');if(s)s.onchange=e=>{bprSel=e.target.value;renderBpr()};
+  $('bprfs').onclick=()=>{const e=$('bprfr');(e.requestFullscreen||e.webkitRequestFullscreen||(()=>{})).call(e)};
+}
+$('bprguar').onclick=async()=>{if(!canEdit())return;const u=$('bprurl').value.trim();if(!bprId(u)){$('bprmsg').textContent='Pega un enlace de Google Drive (del PowerPoint o de su carpeta).';return}
+  try{await setDoc(doc(db,'bprac','config'),{url:u,por:cur.nombre,editado:serverTimestamp()});bprCfg={url:u,por:cur.nombre};bprLista=null;bprErr='';$('bprmsg').textContent='Enlace guardado como predeterminado.';renderBpr()}catch(x){$('bprmsg').textContent=ERR(x.code)}};
+$('bprborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm('¿Borrar el enlace de Drive de Buenas Prácticas?'))return;try{await deleteDoc(doc(db,'bprac','config'));bprCfg=null;bprLista=null;$('bprmsg').textContent='Enlace borrado.';renderBpr()}catch(x){alert(ERR(x.code))}};
 
 $('vper').onchange=()=>renderVar();
 
