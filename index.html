@@ -985,7 +985,8 @@ html.en-ini .contenido .topbar{background:transparent!important}
 /* Portada · panel COMPLIANCE (botones horizontales) */
 .pcomp{display:grid;justify-items:center;gap:16px;width:min(980px,94vw)}
 .pcompt{margin:0;color:#13e0c4;font-weight:900;letter-spacing:.3em;font-size:.9rem}
-.portin{width:min(1000px,100%)!important}.pbtnsh{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%}.pbtnsh.dos{grid-template-columns:repeat(2,minmax(0,1fr));width:min(700px,100%)}@media (max-width:700px){.pbtnsh{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.portin{width:min(1000px,100%)!important}.pbtnsh{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%}.pbtnsh.cuatro{grid-template-columns:repeat(4,minmax(0,1fr))}.pbtnsh.cuatro .pbtn{font-size:clamp(.74rem,1.3vw,.9rem)}@media (max-width:900px){.pbtnsh.cuatro{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pbtnsh.dos{grid-template-columns:repeat(2,minmax(0,1fr));width:min(700px,100%)}@media (max-width:700px){.pbtnsh{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .pbtnsh .pbtn{height:68px;font-size:clamp(.82rem,1.6vw,1rem);letter-spacing:.08em;padding:0 12px}
 .patras{width:200px;height:52px;background:linear-gradient(180deg,#3a3a3a 0%,#1f1f1f 55%,#111 100%);color:#fff;font-size:.95rem;letter-spacing:.12em;margin-top:6px}
 
@@ -5034,11 +5035,13 @@ function portadaSVG(){ // 4 botones brillantes (estilo vidrio) con los nombres d
 function mostrarPortada(){const p=$('portada');if(!p)return;$('portsvg').innerHTML=portadaSVG();{const t=document.querySelector('.portsub');if(t)t.textContent='Elige un módulo para ingresar'}p.hidden=false;p.classList.remove('sale')}
 // Paneles de la portada: COMPLIANCE y FLEET RELIABILITY abren sus módulos; los demás llevan al menú
 const PANELES={0:{t:'COMPLIANCE',items:[{t:'DOCUMENTOS',m:'doc',sec:'veh'},{t:'ESTÁNDAR DE FLOTA',m:'est'},{t:'ESTÁNDAR DE FLOTA SAFETY',m:'ests'},{t:'RESIDUOS LLANOS',m:'res'},{t:'PI',m:'doc',sec:'pi'},{t:'SIMIT',m:'sim'}]},
-  1:{t:'FLEET RELIABILITY',items:[{t:'CALIDAD PREVENTIVO VILLAVICENCIO',m:'cpv',sede:'Villavicencio'},{t:'CALIDAD PREVENTIVO YOPAL',m:'cpv',sede:'Yopal'},{t:'REPUESTOS VILLAVICENCIO',m:'rep',sede:'Villavicencio'},{t:'REPUESTOS YOPAL',m:'rep',sede:'Yopal'}]}};
+  1:{t:'FLEET RELIABILITY',items:[{t:'CALIDAD PREVENTIVO VILLAVICENCIO',m:'cpv',sede:'Villavicencio'},{t:'CALIDAD PREVENTIVO YOPAL',m:'cpv',sede:'Yopal'},{t:'REPUESTOS VILLAVICENCIO',m:'rep',sede:'Villavicencio'},{t:'REPUESTOS YOPAL',m:'rep',sede:'Yopal'},
+    {t:'ARRANQUE DE FLOTA VILLAVICENCIO',m:'disp',sede:'Villavicencio'},{t:'ARRANQUE DE FLOTA YOPAL',m:'disp',sede:'Yopal'},{t:'VARADAS VILLAVICENCIO',m:'var',sede:'Villavicencio'},{t:'VARADAS YOPAL',m:'var',sede:'Yopal'}]},
+  2:{t:'FLEET MANAGEMENT',items:[{t:'CALIBRACIONES VILLAVICENCIO',m:'cal',sede:'Villavicencio'},{t:'CALIBRACIONES YOPAL',m:'cal',sede:'Yopal'},{t:'CAPACITACIONES VILLAVICENCIO',m:'cap',sede:'Villavicencio'},{t:'CAPACITACIONES YOPAL',m:'cap',sede:'Yopal'}]}};
 let portPanel=null;
 const panelItems=n=>(PANELES[n]?PANELES[n].items:[]).filter(x=>puedeVer(x.m)&&(!x.sede||puedeSede(x.sede)));
 function portadaComp(n){if(n===undefined)n=portPanel;const P=PANELES[n],ls=panelItems(n),cl=['p1','p2','p3','p4'];
-  return `<div class="pcomp"><p class="pcompt">${P.t}</p><div class="pbtnsh${ls.length%3&&ls.length%2===0?' dos':''}" role="group" aria-label="Módulos de ${P.t}">${ls.map((x,i)=>`<button type="button" class="pslice pbtn ${cl[i%4]}" data-portm="${i}" style="--d:${i*.06}s"><span>${esc(x.t)}</span></button>`).join('')||`<p class="portsub">No tienes módulos de ${P.t} asignados.</p>`}</div>
+  return `<div class="pcomp"><p class="pcompt">${P.t}</p><div class="pbtnsh${ls.length===8?' cuatro':ls.length%3&&ls.length%2===0?' dos':''}" role="group" aria-label="Módulos de ${P.t}">${ls.map((x,i)=>`<button type="button" class="pslice pbtn ${cl[i%4]}" data-portm="${i}" style="--d:${i*.06}s"><span>${esc(x.t)}</span></button>`).join('')||`<p class="portsub">No tienes módulos de ${P.t} asignados.</p>`}</div>
     <button type="button" class="pbtn patras" id="portatras"><span>‹ ATRÁS</span></button></div>`}
 function cambiarSede(sd){const s=$('sede');if(!sd||!s||s.value===sd||![...s.options].some(o=>o.value===sd))return;s.value=sd;s.dispatchEvent(new Event('change'))}
 function elegirPanel(i){const p=$('portada');if(!p||p.classList.contains('sale'))return;
