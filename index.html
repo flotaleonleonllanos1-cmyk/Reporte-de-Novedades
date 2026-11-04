@@ -981,6 +981,13 @@ html.en-ini .contenido .topbar{background:transparent!important}
 .arrop{display:flex;align-items:center;gap:10px;background:none;border:0;color:var(--ink);font:inherit;text-align:left;cursor:pointer;flex:1;min-width:0}
 .arrop .licic{display:inline-grid!important;width:28px!important;height:32px!important;font-size:.55rem!important;border-radius:5px}
 .arrtx{display:grid;min-width:0}.arrtx b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.arrtx small{color:var(--mut);font-size:.78rem}
+
+/* Portada · panel COMPLIANCE (botones horizontales) */
+.pcomp{display:grid;justify-items:center;gap:16px;width:min(980px,94vw)}
+.pcompt{margin:0;color:#13e0c4;font-weight:900;letter-spacing:.3em;font-size:.9rem}
+.portin{width:min(1000px,100%)!important}.pbtnsh{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%}@media (max-width:700px){.pbtnsh{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pbtnsh .pbtn{height:68px;font-size:clamp(.82rem,1.6vw,1rem);letter-spacing:.08em;padding:0 12px}
+.patras{width:200px;height:52px;background:linear-gradient(180deg,#3a3a3a 0%,#1f1f1f 55%,#111 100%);color:#fff;font-size:.95rem;letter-spacing:.12em;margin-top:6px}
 </style>
 </head>
 <body>
@@ -5012,12 +5019,25 @@ function portadaSVG(){ // 4 botones brillantes (estilo vidrio) con los nombres d
   const B=[{n:'COMPLIANCE',c:'p1'},{n:'FLEET RELIABILITY',c:'p2'},{n:'FLEET MANAGEMENT',c:'p3'},{n:'FLEET AUTONOMY & IMPROVEMENTS',c:'p4'}];
   return `<div class="pbtns" role="group" aria-label="Módulos de ingreso">${B.map((b,i)=>`<button type="button" class="pslice pbtn ${b.c}" data-port="${i}" style="--d:${i*.09}s"><span>${esc(b.n)}</span></button>`).join('')}</div>`;
 }
-function mostrarPortada(){const p=$('portada');if(!p)return;$('portsvg').innerHTML=portadaSVG();p.hidden=false;p.classList.remove('sale')}
+function mostrarPortada(){const p=$('portada');if(!p)return;$('portsvg').innerHTML=portadaSVG();{const t=document.querySelector('.portsub');if(t)t.textContent='Elige un módulo para ingresar'}p.hidden=false;p.classList.remove('sale')}
+// COMPLIANCE abre un segundo panel con sus módulos; los demás botones llevan al menú
+const PORT_COMP=[{t:'DOCUMENTOS',m:'doc',sec:'veh'},{t:'ESTÁNDAR DE FLOTA',m:'est'},{t:'ESTÁNDAR DE FLOTA SAFETY',m:'ests'},{t:'RESIDUOS LLANOS',m:'res'},{t:'PI',m:'doc',sec:'pi'},{t:'SIMIT',m:'sim'}];
+function portadaComp(){const ls=PORT_COMP.filter(x=>puedeVer(x.m)),cl=['p1','p2','p3','p4'];
+  return `<div class="pcomp"><p class="pcompt">COMPLIANCE</p><div class="pbtnsh" role="group" aria-label="Módulos de Compliance">${ls.map((x,i)=>`<button type="button" class="pslice pbtn ${cl[i%4]}" data-portm="${i}" style="--d:${i*.06}s"><span>${esc(x.t)}</span></button>`).join('')||'<p class="portsub">No tienes módulos de Compliance asignados.</p>'}</div>
+    <button type="button" class="pbtn patras" id="portatras"><span>‹ ATRÁS</span></button></div>`}
+function salirPortada(fn){const p=$('portada');p.classList.add('sale');setTimeout(()=>{p.hidden=true;fn()},450)}
 function elegirPanel(i){const p=$('portada');if(!p||p.classList.contains('sale'))return;
   p.querySelectorAll('.pslice').forEach(g=>{const k=+g.dataset.port;g.classList.toggle('sel',k===i);g.classList.toggle('apag',k!==i)});
-  setTimeout(()=>{p.classList.add('sale');setTimeout(()=>{p.hidden=true;modulo('ini');if(innerWidth<=900){document.querySelector('.shell').classList.add('abierto');$('velo').hidden=false}
-    const m=document.querySelector('.menu');if(m){m.classList.add('menuluz');setTimeout(()=>m.classList.remove('menuluz'),1600)}},450)},650)}
-document.addEventListener('click',e=>{const s=e.target.closest('[data-port]');if(s)elegirPanel(+s.dataset.port)});
+  if(i===0){setTimeout(()=>{$('portsvg').innerHTML=portadaComp();document.querySelector('.portsub').textContent='Elige un módulo de Compliance'},350);return}
+  setTimeout(()=>salirPortada(()=>{modulo('ini');if(innerWidth<=900){document.querySelector('.shell').classList.add('abierto');$('velo').hidden=false}
+    const m=document.querySelector('.menu');if(m){m.classList.add('menuluz');setTimeout(()=>m.classList.remove('menuluz'),1600)}}),650)}
+function elegirComp(i){const p=$('portada');if(!p||p.classList.contains('sale'))return;const ls=PORT_COMP.filter(x=>puedeVer(x.m)),x=ls[i];if(!x)return;
+  p.querySelectorAll('[data-portm]').forEach(g=>{const k=+g.dataset.portm;g.classList.toggle('sel',k===i);g.classList.toggle('apag',k!==i)});
+  setTimeout(()=>salirPortada(()=>{if(x.sec){docSec=x.sec;modulo('doc');renderDoc(true)}else modulo(x.m)}),550)}
+document.addEventListener('click',e=>{
+  if(e.target.closest('#portatras')){$('portsvg').innerHTML=portadaSVG();document.querySelector('.portsub').textContent='Elige un módulo para ingresar';return}
+  const c=e.target.closest('[data-portm]');if(c){elegirComp(+c.dataset.portm);return}
+  const s=e.target.closest('[data-port]');if(s)elegirPanel(+s.dataset.port)});
 document.addEventListener('keydown',e=>{const s=e.target.closest&&e.target.closest('[data-port]');if(s&&(e.key==='Enter'||e.key===' ')){e.preventDefault();elegirPanel(+s.dataset.port)}});
 
 
