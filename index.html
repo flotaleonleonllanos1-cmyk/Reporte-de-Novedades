@@ -1016,6 +1016,19 @@ html.enfoque .shell{--sw:0px}
 .leonfl{position:absolute;left:10px;bottom:0;width:clamp(110px,15vw,230px);height:auto;z-index:2;pointer-events:none;user-select:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45))}
 .leonfl.lg{position:fixed}
 @media (max-width:700px){.leonfl{width:90px;opacity:.95}}
+
+/* Arranque de flota: tarjetas cuadradas brillantes */
+.arrgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-top:12px}
+.arrtile{position:relative;display:flex;flex-direction:column;gap:3px;min-height:170px;padding:14px 12px 10px;border-radius:16px;cursor:pointer;color:#eafffb;
+  background:linear-gradient(180deg,#0a4f4b 0%,#0b6f69 35%,#10a89c 75%,#3ff0de 100%);border:1px solid rgba(110,255,240,.55);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.18),inset 0 -10px 22px rgba(120,255,240,.25),0 8px 18px rgba(0,0,0,.4),0 0 0 3px rgba(0,0,0,.25);transition:transform .15s,box-shadow .15s}
+.arrtile:hover{transform:translateY(-3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.22),inset 0 -10px 22px rgba(120,255,240,.35),0 12px 24px rgba(0,0,0,.45),0 0 16px rgba(19,224,196,.45)}
+.arrtile.on{outline:2px solid #fff;outline-offset:2px}
+.arrpdf{align-self:flex-start;background:#e02424;color:#fff;font-size:.62rem;font-weight:900;border-radius:5px;padding:4px 6px;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.arrnm{font-size:.86rem;line-height:1.25;margin-top:4px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.arrtile small{font-size:.72rem;color:#d7fffa;opacity:.92}.arrtile .arror{opacity:.75}
+.arrac{display:flex;gap:6px;margin-top:auto;padding-top:6px}.arrb{flex:1;font:inherit;font-size:.7rem;font-weight:800;border-radius:8px;padding:5px 4px;cursor:pointer;background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.arrb.del{background:rgba(120,10,10,.45);text-decoration:none}
 </style>
 </head>
 <body>
@@ -4568,6 +4581,24 @@ async function arrSubir(file,meta,btn){ // guarda el PDF en partes: primero la f
   for(let i=0;i<partes.length;i++){if(btn)btn.textContent=`Subiendo ${i+1} de ${partes.length}…`;await setDoc(doc(db,'arranque',ref.id,'partes','p'+String(i).padStart(3,'0')),{d:partes[i]})}
   await updateDoc(ref,{estado:'listo'});return ref.id}
 function arrLinkUrl(t){return `${location.origin}${location.pathname}?a=${t}`}
+// Gráficas: barras verticales por mes y por taller, y torta del total del año por taller
+let arrAnio='';
+function arrGraficas(ls){
+  const T=arrTall_(sede),C=['#13e0c4','#0a7a9a','#9be15d','#f2c94c','#bdbdbd'],col=t=>C[T.indexOf(t)%C.length]||'#8c8c8c';
+  const anios=[...new Set(ls.map(x=>String(x.fecha||'').slice(0,4)).filter(Boolean))].sort().reverse();if(!anios.includes(arrAnio))arrAnio=anios[0]||String(new Date().getFullYear());
+  const la=ls.filter(x=>String(x.fecha||'').startsWith(arrAnio)),pm=Array.from({length:12},(_,m)=>{const o={};T.forEach(t=>o[t]=la.filter(x=>x.taller===t&&+String(x.fecha).slice(5,7)===m+1).length);return o});
+  const mx=Math.max(1,...pm.flatMap(o=>Object.values(o))),W=760,Hh=240,L=30,B=30,Tp=22,cw=(W-L-10)/12,bw=Math.min(18,(cw-8)/T.length);
+  let g=`<svg viewBox="0 0 ${W} ${Hh}" width="100%" style="min-width:560px;height:auto" role="img" aria-label="Arranques por mes y taller">`;
+  [0,.5,1].forEach(f=>{const v=Math.round(mx*f),y=Tp+(Hh-Tp-B)*(1-f);g+=`<line x1="${L}" x2="${W-6}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${L-6}" y="${y+4}" text-anchor="end" font-size="10" fill="var(--mut)">${v}</text>`});
+  pm.forEach((o,m)=>{const cx=L+m*cw+cw/2,x0=cx-bw*T.length/2;T.forEach((t,k)=>{const n=o[t],h=(Hh-Tp-B)*n/mx,y=Hh-B-h;if(n)g+=`<rect x="${x0+k*bw}" y="${y}" width="${bw-2}" height="${h}" rx="3" fill="${col(t)}"><title>${MESES[m]} · ${t}: ${n}</title></rect><text x="${x0+k*bw+bw/2-1}" y="${y-4}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${col(t)}">${n}</text>`});
+    g+=`<text x="${cx}" y="${Hh-10}" text-anchor="middle" font-size="10.5" fill="var(--mut)">${MESES[m].slice(0,3)}</text>`});
+  g+=`<line x1="${L}" x2="${W-6}" y1="${Hh-B}" y2="${Hh-B}" stroke="var(--mut)"/></svg>`;
+  const tot=T.map(t=>({t,n:la.filter(x=>x.taller===t).length})),sum=tot.reduce((a,x)=>a+x.n,0);let a0=-Math.PI/2,sl='';const R=80,c=95;
+  tot.forEach(x=>{if(!x.n)return;const f=x.n/sum;if(f>=.9999){sl+=`<circle cx="${c}" cy="${c}" r="${R}" fill="${col(x.t)}"/>`;return}const a1=a0+f*2*Math.PI,l=f>.5?1:0;sl+=`<path d="M${c},${c}L${(c+R*Math.cos(a0)).toFixed(1)},${(c+R*Math.sin(a0)).toFixed(1)}A${R},${R} 0 ${l} 1 ${(c+R*Math.cos(a1)).toFixed(1)},${(c+R*Math.sin(a1)).toFixed(1)}Z" fill="${col(x.t)}" stroke="var(--card)" stroke-width="2"><title>${x.t}: ${x.n}</title></path>`;const am=(a0+a1)/2;sl+=`<text x="${(c+R*.62*Math.cos(am)).toFixed(1)}" y="${(c+R*.62*Math.sin(am)+5).toFixed(1)}" text-anchor="middle" font-size="14" font-weight="900" fill="#111">${x.n}</text>`;a0=a1});
+  return `<div class="dgrid" style="margin-bottom:14px"><div class="dc"><div class="chead" style="margin:0"><div><h2>Arranques por mes y taller</h2><small>Cantidad de PDF de arranque de flota en cada mes de ${arrAnio}</small></div>${anios.length>1?`<label style="margin:0">Año<select id="arranio" style="width:auto;margin:0">${anios.map(a=>`<option${a===arrAnio?' selected':''}>${a}</option>`).join('')}</select></label>`:''}</div>
+     <div class="urleg">${T.map(t=>`<span><i style="background:${col(t)}"></i>${t}</span>`).join('')}</div><div class="tscroll">${g}</div></div>
+   <div class="dc"><h2>Total del año ${arrAnio}</h2><small>Arranques de flota por taller</small>${sum?`<div class="pie"><svg viewBox="0 0 190 190" style="width:190px;height:190px">${sl}<circle cx="${c}" cy="${c}" r="32" fill="var(--card)"/><text x="${c}" y="${c+6}" text-anchor="middle" font-size="18" font-weight="900" fill="var(--ink)">${sum}</text></svg><div class="pleg">${tot.map(x=>`<div><i style="background:${col(x.t)}"></i><span>${x.t}</span><b>${x.n} · ${sum?Math.round(x.n/sum*100):0}%</b></div>`).join('')}</div></div>`:'<p class="empty">Sin arranques en el año.</p>'}</div></div>`;
+}
 function renderDisp(){
   if(!cur||$('dispv').hidden)return;const ed=canEdit(),adm=cur.rol==='admin',L=arrLinks[sede];
   const ls=arrD.filter(x=>x.sede===sede&&x.estado!=='subiendo').sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||''))||(b.creado?.seconds||0)-(a.creado?.seconds||0));
@@ -4585,14 +4616,18 @@ function renderDisp(){
    ${ed?`<div class="dc arrlink" style="margin-bottom:14px"><div class="chead" style="margin:0"><div><h2>🔗 Enlace para el taller</h2><small>El taller abre este enlace, escribe la fecha de arranque, elige el taller, carga el PDF y pulsa «Enviar». El PDF queda guardado aquí.</small></div></div>
      ${L&&L.activo?`<div class="arrurl"><input readonly id="arrurl" value="${esc(arrLinkUrl(L.id))}"><button type="button" class="btn" id="arrcopy">Copiar enlace</button><a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('Flota Llanos · Arranque de flota '+sede+': '+arrLinkUrl(L.id))}">WhatsApp</a>${adm?'<button type="button" class="del" id="arrdes">Desactivar</button>':''}</div>`
        :`<button type="button" class="btn" id="arrgen">Crear enlace para el taller</button>`}</div>`:''}
+   ${arrGraficas(ls)}
    <div class="dc"><div class="chead" style="margin:0"><div><h2>PDF de arranque de flota</h2><small>Toca un PDF para abrirlo aquí mismo</small></div>
      <div class="hb"><select id="arrft" aria-label="Taller"><option value="">Todos los talleres</option>${arrTall_(sede).map(t=>`<option${t===arrTall?' selected':''}>${t}</option>`).join('')}</select>
      <select id="arrfm" aria-label="Mes"><option value="">Todos los meses</option>${meses.map(k=>`<option value="${k}"${k===arrMes?' selected':''}>${MESES[+k.slice(5)-1]} ${k.slice(0,4)}</option>`).join('')}</select>
      <input type="search" id="arrq" placeholder="Buscar…" value="${esc(arrQ)}" style="width:160px;margin:0"></div></div>
-     <div class="arrlist">${vis.map(x=>`<div class="arrit${x.id===arrVer?' on':''}"><button type="button" class="arrop" data-arrver="${x.id}"><span class="dic p licic">PDF</span><span class="arrtx"><b>${esc(x.archivo||'PDF')}</b><small>${x.fecha?fd(x.fecha):'—'} · ${esc(x.taller==='OTRO'&&x.otro?x.otro:x.taller||'')} · ${x.origen==='taller'?'<span class="pill b">Enviado por el taller</span>':'Cargado por '+esc(x.por||'')}${x.tam?' · '+tam(x.tam):''}</small></span></button>
-       <div class="hb">${adm?`<button type="button" class="btn ghost" data-arrdl="${x.id}">Descargar</button><button type="button" class="del" data-arrdel="${x.id}">Borrar</button>`:''}</div></div>`).join('')||`<p class="empty" style="margin:0">${ls.length?'Ningún PDF coincide con los filtros.':'Aún no hay PDF de arranque de flota en '+esc(sede)+'.'}</p>`}</div>
+     <div class="arrgrid">${vis.map(x=>`<div class="arrtile${x.id===arrVer?' on':''}" data-arrver="${x.id}" role="button" tabindex="0" title="Abrir ${esc(x.archivo||'PDF')}">
+       <span class="arrpdf">PDF</span><b class="arrnm">${esc(x.archivo||'PDF')}</b>
+       <small>${x.fecha?fd(x.fecha):'—'}</small><small>${esc(x.taller==='OTRO'&&x.otro?x.otro:x.taller||'')}</small><small class="arror">${x.origen==='taller'?'Enviado por el taller':'Cargado por '+esc(x.por||'')}${x.tam?' · '+tam(x.tam):''}</small>
+       ${adm?`<span class="arrac"><button type="button" class="arrb" data-arrdl="${x.id}">Descargar</button><button type="button" class="arrb del" data-arrdel="${x.id}">Borrar</button></span>`:''}</div>`).join('')||`<p class="empty" style="margin:0">${ls.length?'Ningún PDF coincide con los filtros.':'Aún no hay PDF de arranque de flota en '+esc(sede)+'.'}</p>`}</div>
      ${sel?`<div class="pivis"><div class="chead" style="margin:0"><b>${esc(sel.archivo||'PDF')}</b><div class="hb"><button type="button" class="btn ghost" id="arrfs">⛶ Pantalla completa</button><button type="button" class="btn ghost" id="arrcer">✕ Cerrar</button></div></div><div class="pifr" id="arrfrw"><p class="empty" style="margin:20px">Abriendo el PDF…</p></div></div>`:''}</div>`;
   if(sel)arrPdfBlob(sel).then(b=>{const w=$('arrfrw');if(w&&arrVer===sel.id)w.innerHTML=`<iframe src="${URL.createObjectURL(b)}#toolbar=${adm?1:0}" title="PDF"></iframe>`}).catch(()=>{const w=$('arrfrw');if(w)w.innerHTML='<p class="empty" style="margin:20px">No se pudo abrir el PDF.</p>'});
+  const an=$('arranio');if(an)an.onchange=e=>{arrAnio=e.target.value;renderDisp()};
   const ft=$('arrft');ft.onchange=e=>{arrTall=e.target.value;renderDisp()};$('arrfm').onchange=e=>{arrMes=e.target.value;renderDisp()};
   $('arrq').oninput=e=>{arrQ=e.target.value;clearTimeout(window.__arq);window.__arq=setTimeout(()=>{renderDisp();const i=$('arrq');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},300)};
   const t=$('arrtal');if(t)t.onchange=()=>{$('arrotw').hidden=t.value!=='OTRO'};
@@ -4607,8 +4642,9 @@ function renderDisp(){
   const fs=$('arrfs');if(fs)fs.onclick=()=>{const w=$('arrfrw');(w.requestFullscreen||w.webkitRequestFullscreen||(()=>{})).call(w)};
   const ce=$('arrcer');if(ce)ce.onclick=()=>{arrVer=null;renderDisp()};
 }
+$('dispbody').addEventListener('keydown',e=>{const t=e.target.closest('.arrtile');if(t&&(e.key==='Enter'||e.key===' ')&&e.target===t){e.preventDefault();t.click()}});
 $('dispbody').addEventListener('click',async e=>{
-  const v=e.target.closest('[data-arrver]');if(v){arrVer=arrVer===v.dataset.arrver?null:v.dataset.arrver;renderDisp();if(arrVer)setTimeout(()=>{const w=$('arrfrw');if(w)w.scrollIntoView({behavior:'smooth',block:'center'})},80);return}
+  const v=!e.target.closest('[data-arrdl],[data-arrdel]')&&e.target.closest('[data-arrver]');if(v){arrVer=arrVer===v.dataset.arrver?null:v.dataset.arrver;renderDisp();if(arrVer)setTimeout(()=>{const w=$('arrfrw');if(w)w.scrollIntoView({behavior:'smooth',block:'center'})},80);return}
   const dl=e.target.closest('[data-arrdl]');if(dl&&cur.rol==='admin'){const x=arrD.find(y=>y.id===dl.dataset.arrdl);if(!x)return;const u=URL.createObjectURL(await arrPdfBlob(x)),a=document.createElement('a');a.href=u;a.download=x.archivo||'arranque.pdf';document.body.appendChild(a);a.click();a.remove();return}
   const de=e.target.closest('[data-arrdel]');if(de&&cur.rol==='admin'){const x=arrD.find(y=>y.id===de.dataset.arrdel);if(!x||!confirm(`¿Borrar «${x.archivo}»?`))return;
     try{const sn=await getDocs(collection(db,'arranque',x.id,'partes'));for(const p of sn.docs)await deleteDoc(doc(db,'arranque',x.id,'partes',p.id));await deleteDoc(doc(db,'arranque',x.id));if(arrVer===x.id)arrVer=null}catch(er){alert(ERR(er.code))}}
