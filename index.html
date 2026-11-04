@@ -1002,6 +1002,10 @@ html.enfoque .shell{--sw:0px}
 .pcta{display:flex;align-items:center;gap:8px;background:none;border:0;color:#f2d27a;font:inherit;font-size:.88rem;font-weight:700;cursor:pointer;padding:4px 8px;border-radius:8px;text-align:left}
 .pcta:hover{background:rgba(255,255,255,.08);color:#fff}.pcta .ic{width:16px;height:16px}.pcta[hidden]{display:none}
 .pbtn.p5{background:linear-gradient(180deg,#2f6f9c 0%,#0b4f7a 55%,#063456 100%);color:#eef8ff;text-shadow:0 2px 3px rgba(0,0,0,.45)}
+
+/* Admin abierto desde la portada: solo el menú de usuarios sobre el fondo de la portada */
+#adm.desdeport::backdrop{background:radial-gradient(circle at 50% 30%,#1c3b3d,#0a1414 70%)}
+#adm.desdeport{border:1px solid rgba(19,224,196,.35);box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 1px rgba(19,224,196,.15)}
 </style>
 </head>
 <body>
@@ -5089,7 +5093,8 @@ function pintarEnfSub(){const w=$('enfsub');if(!w)return;const on=document.docum
   w.onclick=e=>{const t=e.target.closest('[data-enfi]');if(!t)return;sub.querySelectorAll('.si')[+t.dataset.enfi].click();setTimeout(pintarEnfSub,60)}}
 setInterval(()=>{if(document.documentElement.classList.contains('enfoque'))pintarEnfSub()},800);
 $('atrasb').onclick=()=>{const p=$('portada');if(!p)return;if(portPanel===null)portPanel=0;$('portsvg').innerHTML=portadaComp(portPanel);const t=document.querySelector('.portsub');if(t)t.textContent='Elige un módulo de '+PANELES[portPanel].t.replace(/\b\w+/g,w=>w[0]+w.slice(1).toLowerCase());p.classList.remove('sale');p.hidden=false};
-$('padmin').onclick=()=>salirPortada(()=>{document.documentElement.classList.remove('enfoque');$('atrasb').hidden=true;$('adminb').click()});
+$('padmin').onclick=()=>{if(!cur||cur.rol!=='admin')return;$('adm').classList.add('desdeport');$('adminb').click()};
+$('adm').addEventListener('close',()=>$('adm').classList.remove('desdeport'));
 $('ppw').onclick=()=>$('pwb').click();
 $('pout').onclick=()=>$('out').click();
 function salirPortada(fn){const p=$('portada');p.classList.add('sale');setTimeout(()=>{p.hidden=true;fn()},450)}
