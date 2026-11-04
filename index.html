@@ -988,6 +988,14 @@ html.en-ini .contenido .topbar{background:transparent!important}
 .portin{width:min(1000px,100%)!important}.pbtnsh{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%}@media (max-width:700px){.pbtnsh{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .pbtnsh .pbtn{height:68px;font-size:clamp(.82rem,1.6vw,1rem);letter-spacing:.08em;padding:0 12px}
 .patras{width:200px;height:52px;background:linear-gradient(180deg,#3a3a3a 0%,#1f1f1f 55%,#111 100%);color:#fff;font-size:.95rem;letter-spacing:.12em;margin-top:6px}
+
+/* Modo Compliance: solo la visual del módulo, sin el menú lateral */
+html.enfoque .side,html.enfoque #sidemob,html.enfoque #velo{display:none!important}
+html.enfoque .contenido{margin-left:0!important;width:100%!important;max-width:none!important}
+html.enfoque .shell{--sw:0px}
+.btn.atrasb,.atrasb{background:linear-gradient(180deg,#3a3a3a,#111)!important;color:#fff!important;border:1px solid rgba(255,255,255,.25)!important;font-weight:800;letter-spacing:.08em;box-shadow:0 4px 10px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.25)}
+.atrasb[hidden]{display:none!important}
+.enfsub{margin:0 0 0 10px}.enfsub[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -1118,6 +1126,8 @@ html.en-ini .contenido .topbar{background:transparent!important}
 <div class="contenido">
 <div class="topbar">
   <button type="button" class="sidemob" id="sidemob" aria-label="Abrir menú"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <button type="button" class="btn atrasb" id="atrasb" hidden>‹ ATRÁS</button>
+  <div class="tabs enfsub" id="enfsub" hidden></div>
   <h1 id="vtit">Novedades / Solucionadas</h1>
   <button class="btn ghost" id="pdfv" hidden title="Descargar esta vista en PDF">⬇ PDF</button>
   <button class="btn" id="add">+ Añadir novedad</button>
@@ -1780,6 +1790,7 @@ async function checkSetup(){
   $('lst').textContent='Acceso restringido';$('lbtn').disabled=false;
 }
 function salir(){
+  document.documentElement.classList.remove('enfoque');{const a=$('atrasb');if(a)a.hidden=true}
   {const p=$('portada');if(p)p.hidden=true}
   if(unsub){unsub();unsub=null}
   if(unsubU){unsubU();unsubU=null}
@@ -5025,15 +5036,23 @@ const PORT_COMP=[{t:'DOCUMENTOS',m:'doc',sec:'veh'},{t:'ESTÁNDAR DE FLOTA',m:'e
 function portadaComp(){const ls=PORT_COMP.filter(x=>puedeVer(x.m)),cl=['p1','p2','p3','p4'];
   return `<div class="pcomp"><p class="pcompt">COMPLIANCE</p><div class="pbtnsh" role="group" aria-label="Módulos de Compliance">${ls.map((x,i)=>`<button type="button" class="pslice pbtn ${cl[i%4]}" data-portm="${i}" style="--d:${i*.06}s"><span>${esc(x.t)}</span></button>`).join('')||'<p class="portsub">No tienes módulos de Compliance asignados.</p>'}</div>
     <button type="button" class="pbtn patras" id="portatras"><span>‹ ATRÁS</span></button></div>`}
+// ‹ ATRÁS (modo Compliance): vuelve al panel de Compliance
+// En modo Compliance, las opciones del submenú del módulo (p. ej. Plantilla / Datos del Excel) se muestran arriba
+function pintarEnfSub(){const w=$('enfsub');if(!w)return;const on=document.documentElement.classList.contains('enfoque'),b=document.querySelector('.menu .mi[aria-pressed="true"]');
+  const sub=on&&b&&b.dataset.m!=='doc'?b.closest('.grp').querySelector('.sub'):null;w.hidden=!sub;if(!sub){w.innerHTML='';return}
+  w.innerHTML=[...sub.querySelectorAll('.si')].map((x,i)=>`<button type="button" class="tab" data-enfi="${i}" aria-pressed="${x.getAttribute('aria-current')==='true'}">${esc(x.textContent)}</button>`).join('');
+  w.onclick=e=>{const t=e.target.closest('[data-enfi]');if(!t)return;sub.querySelectorAll('.si')[+t.dataset.enfi].click();setTimeout(pintarEnfSub,60)}}
+setInterval(()=>{if(document.documentElement.classList.contains('enfoque'))pintarEnfSub()},800);
+$('atrasb').onclick=()=>{const p=$('portada');if(!p)return;$('portsvg').innerHTML=portadaComp();const t=document.querySelector('.portsub');if(t)t.textContent='Elige un módulo de Compliance';p.classList.remove('sale');p.hidden=false};
 function salirPortada(fn){const p=$('portada');p.classList.add('sale');setTimeout(()=>{p.hidden=true;fn()},450)}
 function elegirPanel(i){const p=$('portada');if(!p||p.classList.contains('sale'))return;
   p.querySelectorAll('.pslice').forEach(g=>{const k=+g.dataset.port;g.classList.toggle('sel',k===i);g.classList.toggle('apag',k!==i)});
   if(i===0){setTimeout(()=>{$('portsvg').innerHTML=portadaComp();document.querySelector('.portsub').textContent='Elige un módulo de Compliance'},350);return}
-  setTimeout(()=>salirPortada(()=>{modulo('ini');if(innerWidth<=900){document.querySelector('.shell').classList.add('abierto');$('velo').hidden=false}
+  setTimeout(()=>salirPortada(()=>{document.documentElement.classList.remove('enfoque');$('atrasb').hidden=true;modulo('ini');if(innerWidth<=900){document.querySelector('.shell').classList.add('abierto');$('velo').hidden=false}
     const m=document.querySelector('.menu');if(m){m.classList.add('menuluz');setTimeout(()=>m.classList.remove('menuluz'),1600)}}),650)}
 function elegirComp(i){const p=$('portada');if(!p||p.classList.contains('sale'))return;const ls=PORT_COMP.filter(x=>puedeVer(x.m)),x=ls[i];if(!x)return;
   p.querySelectorAll('[data-portm]').forEach(g=>{const k=+g.dataset.portm;g.classList.toggle('sel',k===i);g.classList.toggle('apag',k!==i)});
-  setTimeout(()=>salirPortada(()=>{if(x.sec){docSec=x.sec;modulo('doc');renderDoc(true)}else modulo(x.m)}),550)}
+  setTimeout(()=>salirPortada(()=>{document.documentElement.classList.add('enfoque');$('atrasb').hidden=false;cerrarMenuMovil();if(x.sec){docSec=x.sec;modulo('doc');renderDoc(true)}else modulo(x.m)}),550)}
 document.addEventListener('click',e=>{
   if(e.target.closest('#portatras')){$('portsvg').innerHTML=portadaSVG();document.querySelector('.portsub').textContent='Elige un módulo para ingresar';return}
   const c=e.target.closest('[data-portm]');if(c){elegirComp(+c.dataset.portm);return}
