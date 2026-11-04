@@ -941,6 +941,8 @@ html.est-safety #estv .dc{border-top-color:#dc2626!important}html.est-safety .es
 .pifr{position:relative;width:100%;height:min(78vh,760px);margin-top:10px;border-radius:10px;overflow:hidden;background:#fff}.pifr iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 
 /* ===== Portada: 4 botones brillantes ===== */
+.ralmesw{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-weight:700;font-size:.85rem}.ralmesw[hidden]{display:none}.ralmesw select{width:auto;margin:0}
+#raltabs{align-items:center;flex-wrap:wrap}
 .pbtns{display:grid;gap:16px;width:min(520px,92vw);margin-top:10px}
 .pbtn{position:relative;overflow:hidden;height:74px;border-radius:14px;font:inherit;font-weight:900;font-size:clamp(.95rem,2.6vw,1.2rem);letter-spacing:.12em;cursor:pointer;
   border:2px solid rgba(0,0,0,.45);box-shadow:0 10px 22px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.55),inset 0 -6px 12px rgba(0,0,0,.25);
@@ -1253,6 +1255,7 @@ html.en-ini .contenido .topbar{background:transparent!important}
     <button class="tab" data-rv="disp" aria-pressed="true">Por dispositivo</button>
     <button class="tab" data-rv="cons" aria-pressed="false">Consolidado de todos los dispositivos</button>
     <button class="tab" data-rv="dir" aria-pressed="false">📍 Dispositivos en una dirección</button>
+    <label class="ralmesw">Mes<select id="ralmes" aria-label="Mes"><option value="">Todos los meses</option></select></label>
   </div>
   <div class="raldir" id="raldirw" hidden>
     <label class="raldq">Dirección<input id="raldir" autocomplete="off" placeholder="Escribe la dirección"></label>
@@ -3649,7 +3652,7 @@ async function cargarLeaflet(){
   return cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js','https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'],'L');
 }
 function ralMsg(t){$('ralmsg').hidden=!t;$('ralmsg').innerHTML=t||''}
-let ralVista='disp',ralOrden='n';
+let ralVista='disp',ralOrden='n',ralMes='';
 function durSeg(t,hdr){
   t=String(t??'').trim().toLowerCase().replace(/\u00a0/g,' ');if(!t||t==='-'||t==='—')return null;const h=sinTilde(hdr||'');
   t=t.replace(/\s*(a\.?\s*m\.?|p\.?\s*m\.?)$/,m=>{if(/^12:/.test(t.trim()))return '';return ''}).replace(/^12:(\d{2}:\d{2})$/,'0:$1').trim();
@@ -3704,7 +3707,12 @@ async function renderRal(){
   if(durMal)$('ralcolsn').textContent=($('ralcolsn').textContent+` La columna «${D.cols[cc.dur]}» no tiene un formato de duración reconocible (por ejemplo «${String((D.filas.find(r=>String(r[cc.dur]||'').trim())||[])[cc.dur]).slice(0,30)}»); se muestra tal como viene.${canEdit()?' Si no es la columna correcta, usa «Elegir columnas».':''}`).trim();
   const U=porDis?{uno:'dispositivo',Uno:'Dispositivo',Varios:'Dispositivos',todos:'todos los dispositivos'}:{uno:'placa',Uno:'Placa',Varios:'Placas',todos:'todas las placas'};
   const key=r=>porDis?String(r[cc.dis]||'').trim().replace(/\s+/g,' ')||'Sin dispositivo':cc.pla>=0?normP(r[cc.pla])||String(r[cc.pla]||'').trim()||'Sin placa':'Sin placa';
-  const ev=D.filas.map((r,i)=>({i,r,k:key(r),c:coordsFila(r,cc),ini:cc.fec>=0?String(r[cc.fec]||''):'',ms:cc.fec>=0?iniMs(r[cc.fec]):NaN,dur:(()=>{let d=cc.dur>=0?durSeg(r[cc.dur],hD):null;if(d===null&&cc.fin>=0&&cc.fec>=0){const a1=iniMs(r[cc.fec]),b1=iniMs(r[cc.fin]);if(!isNaN(a1)&&!isNaN(b1)&&b1>=a1)d=Math.round((b1-a1)/1000)}return d})(),durT:cc.dur>=0?String(r[cc.dur]||'').trim():'',ubi:cc.ubi>=0?String(r[cc.ubi]||''):''}));
+  const evAll=D.filas.map((r,i)=>({i,r,k:key(r),c:coordsFila(r,cc),ini:cc.fec>=0?String(r[cc.fec]||''):'',ms:cc.fec>=0?iniMs(r[cc.fec]):NaN,dur:(()=>{let d=cc.dur>=0?durSeg(r[cc.dur],hD):null;if(d===null&&cc.fin>=0&&cc.fec>=0){const a1=iniMs(r[cc.fec]),b1=iniMs(r[cc.fin]);if(!isNaN(a1)&&!isNaN(b1)&&b1>=a1)d=Math.round((b1-a1)/1000)}return d})(),durT:cc.dur>=0?String(r[cc.dur]||'').trim():'',ubi:cc.ubi>=0?String(r[cc.ubi]||''):''}));
+  // Mes: los meses que trae el Excel (según la fecha de inicio); filtra todas las vistas
+  const mkR=e=>{if(isNaN(e.ms))return'';const d=new Date(e.ms);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
+  {const cnt={};evAll.forEach(e=>{const k=mkR(e);if(k)cnt[k]=(cnt[k]||0)+1});const ms=Object.keys(cnt).sort().reverse();if(ralMes&&!ms.includes(ralMes))ralMes='';
+   $('ralmes').innerHTML=`<option value="">Todos los meses (${evAll.length})</option>`+ms.map(k=>`<option value="${k}"${k===ralMes?' selected':''}>${MESES[+k.slice(5)-1]} ${k.slice(0,4)} (${cnt[k]})</option>`).join('');$('ralmes').parentElement.hidden=!ms.length}
+  const ev=ralMes?evAll.filter(e=>mkR(e)===ralMes):evAll;
   // consolidado por dispositivo
   ev.forEach(e=>{delete e._cerca});
   const agrupar=lst=>{const G={};lst.forEach(e=>{const g=G[e.k]=G[e.k]||{k:e.k,n:0,tot:0,cd:0,max:null,pri:NaN,ult:NaN,priT:'',ultT:'',conC:0};g.n++;if(e.c)g.conC++;
@@ -3785,6 +3793,7 @@ $('raltodas').onclick=()=>{if(ralVista==='dir'){ralDirSel='';renderRal();return}
 const ralBuscarDir=()=>{ralDirSel='';try{localStorage.setItem('ral-dir2-'+sede,$('raldir').value.trim())}catch(x){}renderRal()};
 $('raldirb').onclick=ralBuscarDir;$('raldirdef').onclick=()=>{$('raldir').value=dirDef();ralBuscarDir()};$('raldir').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ralBuscarDir()}});
 let ralRadPrev='100';$('ralcerca').onchange=()=>renderRal();$('ralrad').oninput=()=>{clearTimeout(window.__rrt);window.__rrt=setTimeout(()=>{if($('ralrad').value!==ralRadPrev){ralRadPrev=$('ralrad').value;if($('ralcerca').checked)renderRal()}},500)};
+$('ralmes').onchange=e=>{ralMes=e.target.value;renderRal()};
 $('raltabs').onclick=e=>{const b=e.target.closest('[data-rv]');if(!b)return;ralVista=b.dataset.rv;renderRal()};
 document.querySelector('.ralord').onclick=e=>{const b=e.target.closest('[data-ro]');if(!b)return;ralOrden=b.dataset.ro;renderRal()};
 $('raltab').onclick=e=>{if(e.target.closest('a'))return;const g=e.target.closest('tr[data-rg]');if(g){ralPlaca=g.dataset.rg;ralVista='disp';renderRal();window.scrollTo({top:0,behavior:'smooth'});return}
