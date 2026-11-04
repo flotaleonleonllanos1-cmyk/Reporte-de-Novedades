@@ -1849,6 +1849,8 @@ function salir(){
   if(unsubCV){unsubCV();unsubCV=null}
   if(unsubBP){unsubBP();unsubBP=null}
   if(unsubCK){unsubCK();unsubCK=null}
+  if(unsubCE){unsubCE();unsubCE=null}
+  chkEst=undefined;chkEstCache=null;
   chkMeta=undefined;chkHtml=null;
   bprCfg=null;bprLista=null;
   cpvCfg=null;cpvData=null;
@@ -1901,6 +1903,7 @@ async function entrar(user){
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
   unsubED=[];[['std','estdata','est'],['safety','estdata_safety','ests']].forEach(([v,c,m])=>{if(puedeVer(m))unsubED.push(onSnapshot(collection(db,c),snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());estStore[v].ed=o;if(estVar===v){edDatos=o;renderED();if(!$('estv').hidden&&estVista==='plant')renderEst()}},()=>{}))});
+  if(puedeVer('chk'))unsubCE=onSnapshot(doc(db,'chkhtml','estado'),d=>{chkEst=d.exists()?d.data():null},()=>{chkEst=null});
   if(puedeVer('chk'))unsubCK=onSnapshot(doc(db,'chkhtml','actual'),d=>{const n=d.exists()?d.data():null;if(!n||!chkMeta||n.fecha!==chkMeta.fecha||n.nPartes!==chkMeta.nPartes)chkHtml=null;chkMeta=n;renderChk()},()=>{chkMeta=null;renderChk()});
   if(puedeVer('bpr'))unsubBP=onSnapshot(doc(db,'bprac','config'),d=>{const n=d.exists()?d.data():null;if((n&&n.url)!==(bprCfg&&bprCfg.url)){bprLista=null;bprErr=''}bprCfg=n;renderBpr()},()=>{});
   if(puedeVer('cpv'))unsubCV=onSnapshot(doc(db,'cprev','config'),d=>{const n=d.exists()?d.data():null;if((n&&n.url)!==(cpvCfg&&cpvCfg.url)){cpvData=null;cpvErr=''}cpvCfg=n;renderCpv()},()=>{});
@@ -5280,6 +5283,37 @@ async function bprLeer(){
   catch(e){console.error(e);bprErr=e&&e.msg?e.msg:'No se pudo leer el enlace de Drive. Revisa que esté compartido como «Cualquier persona con el vínculo».';bprLista=null}
   bprCarg=false;renderBpr();
 }
+// Guardar la información cargada en el tablero: los archivos (Excel, etc.) elegidos en sus campos de archivo
+// y los valores de sus filtros; al abrirlo de nuevo se vuelven a cargar solos
+let chkEst=undefined,chkArchivos={},unsubCE=null,chkEstCache=null;
+const chkClave=(el,i)=>el.id||el.name||('e'+i);
+function chkEnganchar(fr){let d;try{d=fr.contentDocument}catch(x){return}if(!d)return;chkArchivos={};
+  const fins=()=>[...d.querySelectorAll('input[type=file]')];
+  d.addEventListener('change',e=>{const t=e.target;if(t&&t.type==='file'&&t.files&&t.files.length&&!t.__rep){const i=fins().indexOf(t);chkArchivos[chkClave(t,i)]=[...t.files]}},true);
+  chkRestaurar(fr)}
+async function chkRestaurar(fr){const E=chkEst;if(!E)return;let d;try{d=fr.contentDocument}catch(x){return}
+  try{if(!chkEstCache||chkEstCache.fecha!==E.fecha){const fs=[];for(const f of E.files||[]){const sn=await getDocs(collection(db,'chkhtml','estado','partes'));
+        const ps=sn.docs.filter(x=>x.id.startsWith(f.fid+'_')).map(x=>({id:x.id,d:x.data().d})).sort((a,b)=>a.id.localeCompare(b.id,'en',{numeric:true})).slice(0,f.n);
+        const bin=atob(ps.map(p=>p.d).join('')),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);fs.push({...f,file:new File([u],f.name,{type:f.type||''})})}
+      chkEstCache={fecha:E.fecha,fs}}
+    const fins=[...d.querySelectorAll('input[type=file]')],grupos={};chkEstCache.fs.forEach(f=>(grupos[f.key]=grupos[f.key]||[]).push(f.file));
+    for(const k of Object.keys(grupos)){const el=fins.find((x,i)=>chkClave(x,i)===k);if(!el)continue;const dt=new DataTransfer();grupos[k].forEach(f=>dt.items.add(f));
+      el.__rep=true;el.files=dt.files;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));el.__rep=false;chkArchivos[k]=grupos[k];await new Promise(r=>setTimeout(r,400))}
+    if(E.vals)setTimeout(()=>{const els=[...d.querySelectorAll('input:not([type=file]),select,textarea')];Object.entries(E.vals).forEach(([k,v])=>{const el=els.find((x,i)=>chkClave(x,i)===k);if(!el)return;
+      if(el.type==='checkbox'||el.type==='radio'){if(el.checked!==v){el.checked=v;el.dispatchEvent(new Event('change',{bubbles:true}))}}else if(el.value!==v){el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}})},1200)}
+  catch(x){console.error(x);const m=$('chkmsg');if(m)m.textContent='No se pudo volver a cargar la información guardada.'}}
+async function chkGuardarEstado(btn){if(!canEdit())return;const fr=document.querySelector('#chkfr iframe');let d;try{d=fr.contentDocument}catch(x){}const m=$('chkmsg');
+  if(!d){m.textContent='Este tablero no permite guardar su información desde aquí.';return}
+  const t0=btn.textContent;btn.disabled=true;btn.textContent='Guardando…';
+  try{const files=[];let n=0;for(const [k,lst] of Object.entries(chkArchivos))for(const f of lst){const fid='f'+(n++);
+      const b64=await new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(String(x.result).split(',')[1]||'');x.onerror=j;x.readAsDataURL(f)});const ps=[];for(let i=0;i<b64.length;i+=CHK_PARTE)ps.push(b64.slice(i,i+CHK_PARTE));
+      for(let i=0;i<ps.length;i++){btn.textContent=`Guardando ${f.name.slice(0,18)}… ${i+1}/${ps.length}`;await setDoc(doc(db,'chkhtml','estado','partes',`${fid}_${i}`),{d:ps[i]})}
+      files.push({key:k,fid,name:f.name.slice(0,180),type:f.type||'',size:f.size,n:ps.length})}
+    const vals={};[...d.querySelectorAll('input:not([type=file]),select,textarea')].forEach((el,i)=>{if(['button','submit','reset','password','hidden'].includes(el.type))return;vals[chkClave(el,i)]=el.type==='checkbox'||el.type==='radio'?el.checked:String(el.value).slice(0,2000)});
+    await setDoc(doc(db,'chkhtml','estado'),{files,vals,por:cur.nombre,uid:cur.uid,fecha:ahoraDT(),editado:serverTimestamp()});
+    chkMsg=`✔ Información guardada${files.length?` (${files.length} archivo${files.length===1?'':'s'}: ${files.map(f=>f.name).join(', ')})`:''}. Se cargará sola cada vez que se abra el tablero.`;m.textContent=chkMsg;setTimeout(()=>{chkMsg=''},6000)}
+  catch(x){console.error(x);m.textContent='No se pudo guardar. '+(x&&x.code?ERR(x.code):'')}
+  btn.disabled=false;btn.textContent=t0}
 // CHECKLIST: tablero HTML que se sube desde la página (se guarda en partes) o, si no hay, «checklist.html» del sitio
 const CHK_URL='checklist.html',CHK_PARTE=450000;let chkMeta=undefined,chkHtml=null,chkBlob='',chkOk=null,unsubCK=null,chkMsg='';
 async function chkCargarHtml(){if(!chkMeta||!chkMeta.nPartes){chkHtml=null;return}
@@ -5290,10 +5324,10 @@ function renderChk(){if(!cur||$('chkv').hidden)return;const w=$('chkbody'),ed=ca
   if(chkMeta&&chkHtml===null){w.innerHTML='<p class="empty" style="margin:0">Cargando el tablero de checklist…</p>';chkCargarHtml().then(renderChk).catch(e=>{console.error(e);chkHtml='';renderChk()});return}
   if(!chkMeta&&chkOk===null){fetch(CHK_URL,{method:'HEAD',cache:'no-store'}).then(r=>{chkOk=r.ok;renderChk()}).catch(()=>{chkOk=false;renderChk()})}
   const src=chkMeta&&chkBlob?chkBlob:(!chkMeta&&chkOk?`${CHK_URL}?v=${Date.now()}`:'');
-  w.innerHTML=`<div class="dc capvis"><div class="chead" style="margin:0"><div><h2>Checklist</h2><small>${chkMeta?`${esc(chkMeta.nombre||'tablero.html')} · subido por ${esc(chkMeta.por||'')}${chkMeta.fecha?' · '+dtTxt(chkMeta.fecha):''}`:src?'Tablero publicado en el sitio':'Sin tablero cargado'}</small></div>
-    <div class="hb">${ed?`<button type="button" class="btn" id="chkup">${chkMeta?'Reemplazar HTML':'Subir archivo HTML'}</button>`:''}${src?`<button type="button" class="btn ghost" id="chkre">⟳ Actualizar</button><button type="button" class="btn ghost" id="chkfs">⛶ Pantalla completa</button>`:''}${adm&&chkMeta?'<button type="button" class="del" id="chkdel">Quitar</button>':''}</div></div>
+  w.innerHTML=`<div class="dc capvis"><div class="chead" style="margin:0"><div><h2>Checklist</h2><small>${chkMeta?`${esc(chkMeta.nombre||'tablero.html')} · subido por ${esc(chkMeta.por||'')}${chkMeta.fecha?' · '+dtTxt(chkMeta.fecha):''}${chkEst&&chkEst.fecha?` · información guardada el ${dtTxt(chkEst.fecha)} por ${esc(chkEst.por||'')}`:''}`:src?'Tablero publicado en el sitio':'Sin tablero cargado'}</small></div>
+    <div class="hb">${ed?`<button type="button" class="btn" id="chkup">${chkMeta?'Reemplazar HTML':'Subir archivo HTML'}</button>`:''}${src&&ed?`<button type="button" class="btn" id="chkguar">💾 Guardar</button>`:''}${src?`<button type="button" class="btn ghost" id="chkre">⟳ Actualizar</button><button type="button" class="btn ghost" id="chkfs">⛶ Pantalla completa</button>`:''}${adm&&chkMeta?'<button type="button" class="del" id="chkdel">Quitar</button>':''}</div></div>
     <input type="file" id="chkfile" accept=".html,.htm,text/html" hidden><div class="pprog" id="chkmsg" role="status">${esc(chkMsg)}</div>
-    ${src?`<div class="chkfr" id="chkfr"><iframe src="${src}" title="Checklist" allow="fullscreen; clipboard-read; clipboard-write; downloads"></iframe></div>`
+    ${src?`<div class="chkfr" id="chkfr"><iframe ${chkMeta&&chkHtml?'':`src="${src}"`} title="Checklist" allow="fullscreen; clipboard-read; clipboard-write; downloads"></iframe></div>`
       :`<p class="empty" style="margin:10px 0 0">${ed?'Pulsa «Subir archivo HTML» y elige el tablero (por ejemplo «dashboard_checklist_bavaria_corregido.html»). Quedará guardado aquí para todos.':'Aún no hay un tablero de checklist. Pídele al administrador que lo suba.'}</p>`}</div>`;
   const up=$('chkup');if(up)up.onclick=()=>$('chkfile').click();
   $('chkfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!canEdit())return;if(!/\.html?$/i.test(f.name)&&!/html/.test(f.type)){chkMsg='El archivo debe ser .html';renderChk();return}
@@ -5304,6 +5338,8 @@ function renderChk(){if(!cur||$('chkv').hidden)return;const w=$('chkbody'),ed=ca
       chkHtml=null;await setDoc(doc(db,'chkhtml','actual'),{nombre:f.name.slice(0,180),tam:f.size,nPartes:ps.length,por:cur.nombre,uid:cur.uid,fecha:ahoraDT(),editado:serverTimestamp()});chkMsg='✔ Tablero guardado.';setTimeout(()=>{chkMsg=''},4000)}
     catch(x){console.error(x);chkMsg='No se pudo subir. '+(x&&x.code?ERR(x.code):'')}renderChk()};
   const re=$('chkre');if(re)re.onclick=()=>{chkHtml=null;chkOk=null;renderChk()};
+  const fr=document.querySelector('#chkfr iframe');if(fr){fr.onload=()=>chkEnganchar(fr);if(chkMeta&&chkHtml)fr.srcdoc=chkHtml}
+  const gu=$('chkguar');if(gu)gu.onclick=()=>chkGuardarEstado(gu);
   const fs=$('chkfs');if(fs)fs.onclick=()=>{const e=$('chkfr');(e.requestFullscreen||e.webkitRequestFullscreen||(()=>{})).call(e)};
   const dl=$('chkdel');if(dl)dl.onclick=async()=>{if(!confirm('¿Quitar el tablero de checklist subido?'))return;try{const sn=await getDocs(collection(db,'chkhtml','actual','partes'));for(const p of sn.docs)await deleteDoc(doc(db,'chkhtml','actual','partes',p.id));await deleteDoc(doc(db,'chkhtml','actual'))}catch(x){alert(ERR(x.code))}};
 }
