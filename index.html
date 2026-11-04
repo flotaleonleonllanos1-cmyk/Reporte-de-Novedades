@@ -1010,6 +1010,8 @@ html.enfoque .shell{--sw:0px}
 .logogl{position:absolute;top:12px;right:16px;width:clamp(82px,10vw,140px);height:auto;z-index:3;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));pointer-events:none;user-select:none}
 .logogl.lg{position:fixed}
 @media (max-width:600px){.logogl{width:70px;top:8px;right:8px}}
+
+.chkfr{position:relative;width:100%;height:calc(100vh - 190px);min-height:520px;margin-top:10px;border-radius:10px;overflow:hidden;background:#fff;border:1px solid var(--line)}.chkfr iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 </style>
 </head>
 <body>
@@ -1133,6 +1135,9 @@ html.enfoque .shell{--sw:0px}
     <div class="grp">
       <button type="button" class="mi" data-m="bpr" aria-pressed="false" aria-expanded="false" title="Buenas Prácticas"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 28" width="24" height="24"><rect x="3" y="4" width="22" height="15" rx="2" fill="#f5f5f5" stroke="rgba(255,255,255,.85)"/><path d="M7 15l4-5 3 3 3-4 4 6" stroke="#0e9c86" stroke-width="1.8" fill="none" stroke-linejoin="round"/><path d="M14 19v4M9 24h10" stroke="#f5f5f5" stroke-width="1.8" stroke-linecap="round"/><circle cx="22" cy="7" r="4.2" fill="#13e0c4" stroke="#fff" class="brillo"/><path d="M20.2 7l1.3 1.3 2.4-2.6" stroke="#063c38" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></span><span class="lbl">Buenas Prácticas</span></button>
     </div>
+    <div class="grp">
+      <button type="button" class="mi" data-m="chk" aria-pressed="false" aria-expanded="false" title="Checklist"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 28" width="24" height="24"><rect x="5" y="3" width="18" height="22" rx="2.5" fill="#f5f5f5" stroke="rgba(255,255,255,.85)"/><rect x="10" y="1.5" width="8" height="4" rx="1.5" fill="#0e9c86"/><path d="M8.5 11l1.8 1.8 3-3.2M8.5 17l1.8 1.8 3-3.2" stroke="#0e9c86" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M15.5 11.5h4M15.5 17.5h4" stroke="#5a5a5a" stroke-width="1.6" stroke-linecap="round"/></svg></span><span class="lbl">Checklist</span></button>
+    </div>
   </nav>
   <div class="sidefoot">
     <button type="button" class="si" id="adminb" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Admin</span></button>
@@ -1169,6 +1174,7 @@ html.enfoque .shell{--sw:0px}
 </div>
 <div id="list"></div>
 </div>
+<section id="chkv" hidden aria-label="Checklist"><div id="chkbody"></div></section>
 <section id="bprv" hidden aria-label="Buenas Prácticas">
   <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><div><h2 style="font-size:1.1rem">Buenas Prácticas</h2><small id="bprsub"></small></div></div>
     <div class="rpdrive" id="bprcfg" hidden><label>Enlace de Google Drive del PowerPoint (o de su carpeta)<input id="bprurl" inputmode="url" placeholder="https://drive.google.com/…"></label>
@@ -1677,7 +1683,7 @@ const DOM='@novedades-leon.app';
 const mail=u=>u.trim().toLowerCase()+DOM;
 const okUser=u=>/^[a-z0-9._-]{3,30}$/.test(u);
 const ROLES={admin:'Administrador',editor:'Editor',visual:'Visual',inactivo:'Sin acceso'};
-const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['ests','Estándar de Flota Safety'],['disp','Arranque de Flota'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['lic','Notificación Licencia'],['sim','SIMIT'],['cap','Capacitaciones'],['var','Varadas'],['cpv','Calidad Preventivo'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero'],['bpr','Buenas Prácticas']];
+const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['ests','Estándar de Flota Safety'],['disp','Arranque de Flota'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['lic','Notificación Licencia'],['sim','SIMIT'],['cap','Capacitaciones'],['var','Varadas'],['cpv','Calidad Preventivo'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero'],['bpr','Buenas Prácticas'],['chk','Checklist']];
 const puedeSede=x=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.sedes)||!cur.sedes.length||cur.sedes.includes(x));
 const sedesHTML=(pre,sel)=>`<div class="mudchk">${SEDES.map(x=>`<label><input type="checkbox" data-${pre}="${x}"${!sel||!sel.length||sel.includes(x)?' checked':''}> ${x}</label>`).join('')}</div>`;
 function aplicarSedes(){const ok=SEDES.filter(puedeSede);$('sede').innerHTML=ok.map(x=>`<option${x===sede?' selected':''}>${x}</option>`).join('');$('sede').disabled=ok.length<2;$('sede').title=ok.length<2?'Tu usuario solo tiene acceso a esta sede':'';
@@ -2069,7 +2075,8 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 function modulo(m){
   if(m!=='ini'&&!puedeVer(m))m='ini';
   document.documentElement.classList.toggle('en-ini',m==='ini');
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est'||m==='ests',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep',lc=m==='lic',sm=m==='sim',cp=m==='cap',cv=m==='cpv',bp=m==='bpr';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est'||m==='ests',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep',lc=m==='lic',sm=m==='sim',cp=m==='cap',cv=m==='cpv',bp=m==='bpr',ck=m==='chk';
+  $('chkv').hidden=!ck;if(ck)renderChk();
   $('bprv').hidden=!bp;if(bp)renderBpr();
   $('cpvv').hidden=!cv;if(cv)renderCpv();
   $('capv').hidden=!cp;if(cp)renderCap();
@@ -2087,9 +2094,9 @@ function modulo(m){
   document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp;
-  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp||ck)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp||ck;
+  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp||ck||!canEdit();$('raladd').hidden=!ral||!canEdit();
   if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';$('kmllanos').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
@@ -2102,10 +2109,10 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden,lc=!$('licv').hidden,sm=!$('simv').hidden,cp=!$('capv').hidden,cv=!$('cpvv').hidden,bp=!$('bprv').hidden;
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden,lc=!$('licv').hidden,sm=!$('simv').hidden,cp=!$('capv').hidden,cv=!$('cpvv').hidden,bp=!$('bprv').hidden,ck=!$('chkv').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':bp?'Buenas Prácticas':cv?'Calidad Preventivo':cp?'Capacitaciones':sm?'SIMIT':lc?'Notificación Licencia':rp?'Repuestos':ds?'Arranque de Flota':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?estNomT()+' · Datos del Excel':estNomT()):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':docSec==='pi'?'PI':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!lc&&!sm&&!cp&&!cv&&!bp&&!cal&&$('dash').hidden);
+  $('vtit').textContent=ini?'':ck?'Checklist':bp?'Buenas Prácticas':cv?'Calidad Preventivo':cp?'Capacitaciones':sm?'SIMIT':lc?'Notificación Licencia':rp?'Repuestos':ds?'Arranque de Flota':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?estNomT()+' · Datos del Excel':estNomT()):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':docSec==='pi'?'PI':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!lc&&!sm&&!cp&&!cv&&!bp&&!ck&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
@@ -2309,6 +2316,7 @@ function vistaPDF(){
   if(vis('ralv'))return{el:$('ralv'),titulo:'Ralentí'};
   if(vis('docv'))return{el:$('docv'),titulo:$('vtit').textContent};
   if(vis('blv'))return{el:$('blv'),titulo:BLN[blTipo].t};
+  if(vis('chkv'))return{el:$('chkv'),titulo:'Checklist'};
   if(vis('bprv'))return{el:$('bprv'),titulo:'Buenas Practicas'};
   if(vis('cpvv'))return{el:$('cpvv'),titulo:'Calidad Preventivo'};
   if(vis('capv'))return{el:$('capv'),titulo:'Capacitaciones'};
@@ -5063,7 +5071,7 @@ function portadaSVG(){ // 4 botones brillantes (estilo vidrio) con los nombres d
 }
 function mostrarPortada(){const p=$('portada');if(!p)return;$('padmin').hidden=!cur||cur.rol!=='admin';$('portsvg').innerHTML=portadaSVG();{const t=document.querySelector('.portsub');if(t)t.textContent='Elige un módulo para ingresar'}p.hidden=false;p.classList.remove('sale')}
 // Paneles de la portada: COMPLIANCE y FLEET RELIABILITY abren sus módulos; los demás llevan al menú
-const PANELES={0:{t:'COMPLIANCE',items:[{t:'DOCUMENTOS',m:'doc',sec:'veh'},{t:'ESTÁNDAR DE FLOTA',m:'est'},{t:'ESTÁNDAR DE FLOTA SAFETY',m:'ests'},{t:'RESIDUOS LLANOS',m:'res'},{t:'PI',m:'doc',sec:'pi'},{t:'SIMIT',m:'sim'}]},
+const PANELES={0:{t:'COMPLIANCE',items:[{t:'DOCUMENTOS',m:'doc',sec:'veh'},{t:'ESTÁNDAR DE FLOTA',m:'est'},{t:'ESTÁNDAR DE FLOTA SAFETY',m:'ests'},{t:'RESIDUOS LLANOS',m:'res'},{t:'PI',m:'doc',sec:'pi'},{t:'SIMIT',m:'sim'},{t:'CHECKLIST',m:'chk'}]},
   1:{t:'FLEET RELIABILITY',items:[{t:'CALIDAD PREVENTIVO VILLAVICENCIO',m:'cpv',sede:'Villavicencio'},{t:'CALIDAD PREVENTIVO YOPAL',m:'cpv',sede:'Yopal'},{t:'REPUESTOS VILLAVICENCIO',m:'rep',sede:'Villavicencio'},{t:'REPUESTOS YOPAL',m:'rep',sede:'Yopal'},
     {t:'ARRANQUE DE FLOTA VILLAVICENCIO',m:'disp',sede:'Villavicencio'},{t:'ARRANQUE DE FLOTA YOPAL',m:'disp',sede:'Yopal'},{t:'VARADAS VILLAVICENCIO',m:'var',sede:'Villavicencio'},{t:'VARADAS YOPAL',m:'var',sede:'Yopal'}]},
   2:{t:'FLEET MANAGEMENT',items:[{t:'CALIBRACIONES VILLAVICENCIO',m:'cal',sede:'Villavicencio'},{t:'CALIBRACIONES YOPAL',m:'cal',sede:'Yopal'},{t:'CAPACITACIONES VILLAVICENCIO',m:'cap',sede:'Villavicencio'},{t:'CAPACITACIONES YOPAL',m:'cap',sede:'Yopal'}]},
@@ -5269,6 +5277,14 @@ async function bprLeer(){
   catch(e){console.error(e);bprErr=e&&e.msg?e.msg:'No se pudo leer el enlace de Drive. Revisa que esté compartido como «Cualquier persona con el vínculo».';bprLista=null}
   bprCarg=false;renderBpr();
 }
+// CHECKLIST: el tablero «checklist.html» publicado en el mismo sitio, dentro de la página
+const CHK_URL='checklist.html';let chkOk=null;
+function renderChk(){if(!cur||$('chkv').hidden)return;const w=$('chkbody');
+  if(chkOk===null){w.innerHTML='<p class="empty" style="margin:0">Cargando el tablero de checklist…</p>';fetch(CHK_URL,{method:'HEAD',cache:'no-store'}).then(r=>{chkOk=r.ok;renderChk()}).catch(()=>{chkOk=false;renderChk()});return}
+  if(!chkOk){w.innerHTML=`<div class="dc"><h2>Checklist</h2><p class="empty" style="margin:8px 0 0">Aún no se encuentra el tablero. ${cur.rol==='admin'?'Sube a GitHub, junto a <b>index.html</b>, el archivo del tablero con el nombre <b>checklist.html</b> y vuelve a abrir este botón.':'Pídele al administrador que publique el tablero de checklist.'}</p></div>`;return}
+  w.innerHTML=`<div class="dc capvis"><div class="chead" style="margin:0"><div><h2>Checklist</h2><small>Tablero de checklist</small></div><div class="hb"><button type="button" class="btn ghost" id="chkre">⟳ Actualizar</button><button type="button" class="btn ghost" id="chkfs">⛶ Pantalla completa</button></div></div>
+    <div class="chkfr" id="chkfr"><iframe src="${CHK_URL}?v=${Date.now()}" title="Checklist"></iframe></div></div>`;
+  $('chkre').onclick=()=>{chkOk=null;renderChk()};$('chkfs').onclick=()=>{const e=$('chkfr');(e.requestFullscreen||e.webkitRequestFullscreen||(()=>{})).call(e)}}
 function renderBpr(){
   if(!cur||$('bprv').hidden)return;const ed=canEdit(),adm=cur.rol==='admin';
   $('bprcfg').hidden=!ed;$('bprborr').hidden=!(adm&&bprCfg&&bprCfg.url);if(document.activeElement!==$('bprurl'))$('bprurl').value=(bprCfg&&bprCfg.url)||'';
