@@ -997,6 +997,11 @@ html.enfoque .shell{--sw:0px}
 .btn.atrasb,.atrasb{background:linear-gradient(180deg,#3a3a3a,#111)!important;color:#fff!important;border:1px solid rgba(255,255,255,.25)!important;font-weight:800;letter-spacing:.08em;box-shadow:0 4px 10px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.25)}
 .atrasb[hidden]{display:none!important}
 .enfsub{margin:0 0 0 10px}.enfsub[hidden]{display:none!important}
+
+.portcta{position:absolute;top:16px;left:18px;display:grid;gap:6px;z-index:2}
+.pcta{display:flex;align-items:center;gap:8px;background:none;border:0;color:#f2d27a;font:inherit;font-size:.88rem;font-weight:700;cursor:pointer;padding:4px 8px;border-radius:8px;text-align:left}
+.pcta:hover{background:rgba(255,255,255,.08);color:#fff}.pcta .ic{width:16px;height:16px}.pcta[hidden]{display:none}
+.pbtn.p5{background:linear-gradient(180deg,#2f6f9c 0%,#0b4f7a 55%,#063456 100%);color:#eef8ff;text-shadow:0 2px 3px rgba(0,0,0,.45)}
 </style>
 </head>
 <body>
@@ -1141,6 +1146,7 @@ html.enfoque .shell{--sw:0px}
   <button class="btn" id="vadd" hidden>+ Reportar varada</button>
 </div>
 <div id="portada" class="portada" hidden role="dialog" aria-label="Elige un panel para ingresar">
+  <div class="portcta" aria-label="Cuenta"><button type="button" class="pcta" id="padmin" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="2"/></svg>Admin</button><button type="button" class="pcta" id="ppw"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z" fill="none" stroke="currentColor" stroke-width="2"/></svg>Mi contraseña</button><button type="button" class="pcta" id="pout"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h4v16h-4M10 17l5-5-5-5M15 12H4" fill="none" stroke="currentColor" stroke-width="2"/></svg>Cerrar sesión</button></div>
   <div class="portin"><h1 class="porttit">FLOTA LLANOS</h1><p class="portsub">Elige un módulo para ingresar</p><div id="portsvg"></div></div>
 </div>
 <section id="inicio" class="inicio" hidden aria-label="Inicio"><h2 class="flotabig" aria-label="Flota Llanos"><span aria-hidden="true" class="flw"><span class="pal"><span style="--i:0">F</span><span style="--i:1">L</span><span style="--i:2">O</span><span style="--i:3">T</span><span style="--i:4">A</span></span><span class="pal"><span style="--i:6">L</span><span style="--i:7">L</span><span style="--i:8">A</span><span style="--i:9">N</span><span style="--i:10">O</span><span style="--i:11">S</span></span></span></h2></section>
@@ -5029,15 +5035,18 @@ $('capborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm(`¿Borrar el enlac
 /* ---------- Portada después del ingreso: barras 3D (Módulo 1 a 4) y camión ---------- */
 const PORT=[{n:'COMPLIANCE',f:'#3b8fe6',s:'#1f5fa8',t:'#7fb8f2'},{n:'FLEET RELIABILITY',f:'#2fbf8f',s:'#1a8462',t:'#6fe0b8'},{n:'FLEET MANAGEMENT',f:'#f59e2a',s:'#c06f0e',t:'#ffc56d'},{n:'FLEET AUTONOMY & IMPROVEMENTS',f:'#f0533a',s:'#b0321e',t:'#ff8b74'}];
 function portadaSVG(){ // 4 botones brillantes (estilo vidrio) con los nombres de los módulos
-  const B=[{n:'COMPLIANCE',c:'p1'},{n:'FLEET RELIABILITY',c:'p2'},{n:'FLEET MANAGEMENT',c:'p3'},{n:'FLEET AUTONOMY & IMPROVEMENTS',c:'p4'}];
+  const B=[{n:'COMPLIANCE',c:'p1'},{n:'FLEET RELIABILITY',c:'p2'},{n:'FLEET MANAGEMENT',c:'p3'},{n:'FLEET AUTONOMY & IMPROVEMENTS',c:'p4'},{n:'VARIOS DE FLOTA',c:'p5'}];
   return `<div class="pbtns" role="group" aria-label="Módulos de ingreso">${B.map((b,i)=>`<button type="button" class="pslice pbtn ${b.c}" data-port="${i}" style="--d:${i*.09}s"><span>${esc(b.n)}</span></button>`).join('')}</div>`;
 }
-function mostrarPortada(){const p=$('portada');if(!p)return;$('portsvg').innerHTML=portadaSVG();{const t=document.querySelector('.portsub');if(t)t.textContent='Elige un módulo para ingresar'}p.hidden=false;p.classList.remove('sale')}
+function mostrarPortada(){const p=$('portada');if(!p)return;$('padmin').hidden=!cur||cur.rol!=='admin';$('portsvg').innerHTML=portadaSVG();{const t=document.querySelector('.portsub');if(t)t.textContent='Elige un módulo para ingresar'}p.hidden=false;p.classList.remove('sale')}
 // Paneles de la portada: COMPLIANCE y FLEET RELIABILITY abren sus módulos; los demás llevan al menú
 const PANELES={0:{t:'COMPLIANCE',items:[{t:'DOCUMENTOS',m:'doc',sec:'veh'},{t:'ESTÁNDAR DE FLOTA',m:'est'},{t:'ESTÁNDAR DE FLOTA SAFETY',m:'ests'},{t:'RESIDUOS LLANOS',m:'res'},{t:'PI',m:'doc',sec:'pi'},{t:'SIMIT',m:'sim'}]},
   1:{t:'FLEET RELIABILITY',items:[{t:'CALIDAD PREVENTIVO VILLAVICENCIO',m:'cpv',sede:'Villavicencio'},{t:'CALIDAD PREVENTIVO YOPAL',m:'cpv',sede:'Yopal'},{t:'REPUESTOS VILLAVICENCIO',m:'rep',sede:'Villavicencio'},{t:'REPUESTOS YOPAL',m:'rep',sede:'Yopal'},
     {t:'ARRANQUE DE FLOTA VILLAVICENCIO',m:'disp',sede:'Villavicencio'},{t:'ARRANQUE DE FLOTA YOPAL',m:'disp',sede:'Yopal'},{t:'VARADAS VILLAVICENCIO',m:'var',sede:'Villavicencio'},{t:'VARADAS YOPAL',m:'var',sede:'Yopal'}]},
-  2:{t:'FLEET MANAGEMENT',items:[{t:'CALIBRACIONES VILLAVICENCIO',m:'cal',sede:'Villavicencio'},{t:'CALIBRACIONES YOPAL',m:'cal',sede:'Yopal'},{t:'CAPACITACIONES VILLAVICENCIO',m:'cap',sede:'Villavicencio'},{t:'CAPACITACIONES YOPAL',m:'cap',sede:'Yopal'}]}};
+  2:{t:'FLEET MANAGEMENT',items:[{t:'CALIBRACIONES VILLAVICENCIO',m:'cal',sede:'Villavicencio'},{t:'CALIBRACIONES YOPAL',m:'cal',sede:'Yopal'},{t:'CAPACITACIONES VILLAVICENCIO',m:'cap',sede:'Villavicencio'},{t:'CAPACITACIONES YOPAL',m:'cap',sede:'Yopal'}]},
+  3:{t:'FLEET AUTONOMY & IMPROVEMENTS',items:[{t:'CO₂ VILLAVICENCIO',m:'urea',sede:'Villavicencio'},{t:'CO₂ YOPAL',m:'urea',sede:'Yopal'},{t:'RALENTÍ VILLAVICENCIO',m:'ral',sede:'Villavicencio'},{t:'RALENTÍ YOPAL',m:'ral',sede:'Yopal'}]},
+  4:{t:'VARIOS DE FLOTA',items:[{t:'LAVADERO VILLAVICENCIO',m:'lav',sede:'Villavicencio'},{t:'LAVADERO YOPAL',m:'lav',sede:'Yopal'},{t:'BARRIDOS VILLAVICENCIO',m:'bar',sede:'Villavicencio'},{t:'BARRIDOS YOPAL',m:'bar',sede:'Yopal'},
+    {t:'KILOMETRAJES VILLAVICENCIO',m:'km',sede:'Villavicencio'},{t:'KILOMETRAJES YOPAL',m:'km',sede:'Yopal'},{t:'NOVEDADES DE FLOTA VILLAVICENCIO',m:'nov',sede:'Villavicencio'},{t:'NOVEDADES DE FLOTA YOPAL',m:'nov',sede:'Yopal'}]}};
 let portPanel=null;
 const panelItems=n=>(PANELES[n]?PANELES[n].items:[]).filter(x=>puedeVer(x.m)&&(!x.sede||puedeSede(x.sede)));
 function portadaComp(n){if(n===undefined)n=portPanel;const P=PANELES[n],ls=panelItems(n),cl=['p1','p2','p3','p4'];
@@ -5065,6 +5074,9 @@ function pintarEnfSub(){const w=$('enfsub');if(!w)return;const on=document.docum
   w.onclick=e=>{const t=e.target.closest('[data-enfi]');if(!t)return;sub.querySelectorAll('.si')[+t.dataset.enfi].click();setTimeout(pintarEnfSub,60)}}
 setInterval(()=>{if(document.documentElement.classList.contains('enfoque'))pintarEnfSub()},800);
 $('atrasb').onclick=()=>{const p=$('portada');if(!p)return;if(portPanel===null)portPanel=0;$('portsvg').innerHTML=portadaComp(portPanel);const t=document.querySelector('.portsub');if(t)t.textContent='Elige un módulo de '+PANELES[portPanel].t.replace(/\b\w+/g,w=>w[0]+w.slice(1).toLowerCase());p.classList.remove('sale');p.hidden=false};
+$('padmin').onclick=()=>salirPortada(()=>{document.documentElement.classList.remove('enfoque');$('atrasb').hidden=true;$('adminb').click()});
+$('ppw').onclick=()=>$('pwb').click();
+$('pout').onclick=()=>$('out').click();
 function salirPortada(fn){const p=$('portada');p.classList.add('sale');setTimeout(()=>{p.hidden=true;fn()},450)}
 document.addEventListener('keydown',e=>{const s=e.target.closest&&e.target.closest('[data-port]');if(s&&(e.key==='Enter'||e.key===' ')){e.preventDefault();elegirPanel(+s.dataset.port)}});
 
