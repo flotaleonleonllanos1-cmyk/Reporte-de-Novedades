@@ -1036,6 +1036,7 @@ html.enfoque .shell{--sw:0px}
 .arrnovl{display:grid;gap:4px;max-height:300px;overflow:auto;padding-right:4px}
 .arrnovi{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start;padding:6px 8px;border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:.84rem;font-weight:600;background:var(--card)}
 .arrnovi:hover{border-color:#13e0c4}.arrnovi.on{background:rgba(19,224,196,.12);border-color:#13e0c4}.arrnovi input{margin:2px 0 0;width:auto}
+.arrnovf{display:block;font-size:.7rem;font-weight:500;color:var(--mut);margin-top:2px}
 .arrnovi b{font-size:.72rem;background:rgba(19,224,196,.18);color:#13e0c4;border-radius:999px;padding:1px 8px}
 </style>
 </head>
@@ -4591,7 +4592,7 @@ async function arrSubir(file,meta,btn){ // guarda el PDF en partes: primero la f
 function arrLinkUrl(t){return `${location.origin}${location.pathname}?a=${t}`}
 // NOVEDADES: se leen del texto de cada PDF (una sola vez; se guardan en el registro) y se listan para filtrar los PDF
 let arrNovSel=new Set(),arrNovQ='',arrNovProc=false,arrNovLoc={};
-const NOV_RX=/^(se\s+(realiza|realizo|realizó|encuentra|encontro|encontró|evidencia|cambia|cambio|cambió|hace|hizo|reporta|detecta|observa|ajusta|revisa|reviso|revisó|reemplaza|instala|corrige|corrigio|requiere|recomienda|solicita|programa|efectua|efectúa)|requiere|pendiente|falla|fuga|cambio de|revisi[oó]n de|recomendaci[oó]n|novedad(es)?\s*:|observaci[oó]n(es)?\s*:)/i;
+const NOV_RX=/^(se\s+(realiza|realizo|realizó|encuentra|encontro|encontró|evidencia|cambia|cambio|cambió|hace|hizo|reporta|detecta|observa|ajusta|revisa|reviso|revisó|reemplaza|instala|corrige|corrigio|requiere|recomienda|solicita|programa|efectua|efectúa)|requiere|pendiente|falla|fuga|cambio de|revisi[oó]n de|recomendaci[oó]n|novedad(es)?\s*:|observaci[oó]n(es)?\s*:|[A-Z]{3}\s?-?\d{3}[A-Z]?\s+[a-záéíóúñ]{3,})/i;
 async function arrTextoPdf(blob){
   const P=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'],'pdfjsLib');P.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   const pdf=await P.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise,lineas=[];
@@ -4602,20 +4603,27 @@ async function arrTextoPdf(blob){
   lineas.forEach(l=>{const n=sinTilde(l);if(/^(novedad|observaci|hallazgo|comentario)/.test(n)&&l.length<40){enBloque=6;return}
     const ok=(NOV_RX.test(l)||enBloque>0)&&l.length>=8&&l.length<=220&&!/^(fecha|placa|taller|firma|nombre|cedula|cédula|página|pagina)\b/i.test(l);if(enBloque>0)enBloque--;
     if(ok){const t=l.replace(/^(novedad(es)?|observaci[oó]n(es)?)\s*:\s*/i,'').trim();if(t.length>=6)out.push(t.charAt(0).toUpperCase()+t.slice(1))}});
-  return [...new Set(out)].slice(0,60);
+  // fecha del reporte: la línea con «fecha» o la primera fecha del documento
+  const MES={enero:1,febrero:2,marzo:3,abril:4,mayo:5,junio:6,julio:7,agosto:8,septiembre:9,setiembre:9,octubre:10,noviembre:11,diciembre:12};
+  const fx=l=>{let m=l.match(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})\b/);if(m&&+m[2]<=12)return `${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+    m=l.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);if(m)return `${m[1]}-${m[2]}-${m[3]}`;
+    m=sinTilde(l).match(/\b(\d{1,2})\s+de\s+([a-z]+)\s+(?:de\s+|del\s+)?(\d{4})\b/);if(m&&MES[m[2]])return `${m[3]}-${String(MES[m[2]]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;return ''};
+  let fecha='';for(const l of lineas){if(/fecha/i.test(l)){fecha=fx(l);if(fecha)break}}if(!fecha)for(const l of lineas){fecha=fx(l);if(fecha)break}
+  return {novs:[...new Set(out)].slice(0,80),fecha};
 }
-async function arrProcesarNov(ls){if(arrNovProc)return;const pend=ls.filter(x=>!Array.isArray(x.novs)&&!arrNovLoc[x.id]);if(!pend.length)return;arrNovProc=true;
-  for(const x of pend){try{const nv=await arrTextoPdf(await arrPdfBlob(x));arrNovLoc[x.id]=nv;if(canEdit())updateDoc(doc(db,'arranque',x.id),{novs:nv}).catch(()=>{})}catch(e){console.error(e);arrNovLoc[x.id]=[]}
+async function arrProcesarNov(ls){if(arrNovProc)return;const pend=ls.filter(x=>!(Array.isArray(x.novs)&&x.novv===2)&&!arrNovLoc[x.id]);if(!pend.length)return;arrNovProc=true;
+  for(const x of pend){try{const r=await arrTextoPdf(await arrPdfBlob(x));arrNovLoc[x.id]={novs:r.novs,fpdf:r.fecha};if(canEdit())updateDoc(doc(db,'arranque',x.id),{novs:r.novs,fpdf:r.fecha||'',novv:2}).catch(()=>{})}catch(e){console.error(e);arrNovLoc[x.id]={novs:[],fpdf:''}}
     if(!$('dispv').hidden)renderDisp()}
   arrNovProc=false;if(!$('dispv').hidden)renderDisp()}
-const arrNovDe=x=>Array.isArray(x.novs)?x.novs:(arrNovLoc[x.id]||null);
+const arrNovDe=x=>Array.isArray(x.novs)&&x.novv===2?x.novs:(arrNovLoc[x.id]?arrNovLoc[x.id].novs:null);
+const arrFechaPdf=x=>(x.novv===2?x.fpdf:(arrNovLoc[x.id]||{}).fpdf)||x.fecha||'';
 function arrNovHTML(ls){
-  const idx={};let falt=0;ls.forEach(x=>{const nv=arrNovDe(x);if(!nv){falt++;return}nv.forEach(t=>{const k=sinTilde(t).toLowerCase();(idx[k]=idx[k]||{t,ids:new Set()}).ids.add(x.id)})});
+  const idx={};let falt=0;ls.forEach(x=>{const nv=arrNovDe(x);if(!nv){falt++;return}nv.forEach(t=>{const k=sinTilde(t).toLowerCase();const e=(idx[k]=idx[k]||{t,ids:new Set(),fs:new Set()});e.ids.add(x.id);const f=arrFechaPdf(x);if(f)e.fs.add(f)})});
   if(falt)setTimeout(()=>arrProcesarNov(ls),50);
-  const q=sinTilde(arrNovQ.trim()).toLowerCase(),its=Object.entries(idx).filter(([k])=>!q||k.includes(q)).sort((a,b)=>b[1].ids.size-a[1].ids.size||a[1].t.localeCompare(b[1].t,'es'));
+  const q=sinTilde(arrNovQ.trim()).toLowerCase(),its=Object.entries(idx).filter(([k])=>!q||k.includes(q)).sort((a,b)=>String([...b[1].fs].sort().pop()||'').localeCompare(String([...a[1].fs].sort().pop()||''))||b[1].ids.size-a[1].ids.size);
   return `<div class="dc arrnov"><div class="chead" style="margin:0"><div><h2>Novedades</h2><small>${Object.keys(idx).length} novedad${Object.keys(idx).length===1?'':'es'} en los PDF${falt?` · analizando ${ls.length-falt} de ${ls.length}…`:''}</small></div>${arrNovSel.size?`<button type="button" class="btn ghost" id="arrnovx">✕ Limpiar</button>`:''}</div>
     <input type="search" id="arrnovq" placeholder="Buscar novedad…" value="${esc(arrNovQ)}" style="margin:8px 0">
-    <div class="arrnovl" role="listbox" aria-multiselectable="true">${its.map(([k,v])=>`<label class="arrnovi${arrNovSel.has(k)?' on':''}"><input type="checkbox" data-arrnov="${esc(k)}"${arrNovSel.has(k)?' checked':''}><span>${esc(v.t)}</span><b>${v.ids.size}</b></label>`).join('')||`<p class="empty" style="margin:0">${falt?'Leyendo los PDF…':'No se encontraron novedades en los PDF.'}</p>`}</div></div>`;
+    <div class="arrnovl" role="listbox" aria-multiselectable="true">${its.map(([k,v])=>`<label class="arrnovi${arrNovSel.has(k)?' on':''}"><input type="checkbox" data-arrnov="${esc(k)}"${arrNovSel.has(k)?' checked':''}><span>${esc(v.t)}<small class="arrnovf">${[...v.fs].sort().reverse().map(f=>fd(f)).join(' · ')}</small></span><b>${v.ids.size}</b></label>`).join('')||`<p class="empty" style="margin:0">${falt?'Leyendo los PDF…':'No se encontraron novedades en los PDF.'}</p>`}</div></div>`;
 }
 const arrNovIds=ls=>{if(!arrNovSel.size)return null;const st=new Set();ls.forEach(x=>{const nv=arrNovDe(x)||[];if(nv.some(t=>arrNovSel.has(sinTilde(t).toLowerCase())))st.add(x.id)});return st};
 // Gráficas: barras verticales por mes y por taller, y torta del total del año por taller
@@ -4661,7 +4669,7 @@ function renderDisp(){
      <input type="search" id="arrq" placeholder="Buscar…" value="${esc(arrQ)}" style="width:160px;margin:0"></div></div>
      <div class="arrgrid">${vis.map(x=>`<div class="arrtile${x.id===arrVer?' on':''}" data-arrver="${x.id}" role="button" tabindex="0" title="Abrir ${esc(x.archivo||'PDF')}">
        <span class="arrpdf">PDF</span><b class="arrnm">${esc(x.archivo||'PDF')}</b>
-       <small>${x.fecha?fd(x.fecha):'—'}</small><small>${esc(x.taller==='OTRO'&&x.otro?x.otro:x.taller||'')}</small><small class="arror">${x.origen==='taller'?'Enviado por el taller':'Cargado por '+esc(x.por||'')}${x.tam?' · '+tam(x.tam):''}</small>
+       <small>${x.fecha?fd(x.fecha):'—'}${arrFechaPdf(x)&&arrFechaPdf(x)!==x.fecha?` · Reporte: ${fd(arrFechaPdf(x))}`:''}</small><small>${esc(x.taller==='OTRO'&&x.otro?x.otro:x.taller||'')}</small><small class="arror">${x.origen==='taller'?'Enviado por el taller':'Cargado por '+esc(x.por||'')}${x.tam?' · '+tam(x.tam):''}</small>
        ${adm?`<span class="arrac"><button type="button" class="arrb" data-arrdl="${x.id}">Descargar</button><button type="button" class="arrb del" data-arrdel="${x.id}">Borrar</button></span>`:''}</div>`).join('')||`<p class="empty" style="margin:0">${ls.length?'Ningún PDF coincide con los filtros.':'Aún no hay PDF de arranque de flota en '+esc(sede)+'.'}</p>`}</div>
      ${sel?`<div class="pivis"><div class="chead" style="margin:0"><b>${esc(sel.archivo||'PDF')}</b><div class="hb"><button type="button" class="btn ghost" id="arrfs">⛶ Pantalla completa</button><button type="button" class="btn ghost" id="arrcer">✕ Cerrar</button></div></div><div class="pifr" id="arrfrw"><p class="empty" style="margin:20px">Abriendo el PDF…</p></div></div>`:''}</div>`;
   if(sel)arrPdfBlob(sel).then(b=>{const w=$('arrfrw');if(w&&arrVer===sel.id)w.innerHTML=`<iframe src="${URL.createObjectURL(b)}#toolbar=${adm?1:0}" title="PDF"></iframe>`}).catch(()=>{const w=$('arrfrw');if(w)w.innerHTML='<p class="empty" style="margin:20px">No se pudo abrir el PDF.</p>'});
