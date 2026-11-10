@@ -1057,6 +1057,7 @@ html.enfoque .shell{--sw:0px}
 .leaflet-container{isolation:isolate;z-index:0}
 .portada{z-index:5000!important}
 
+.llchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;max-height:150px;overflow:auto}.llchips span{font-size:.78rem;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--soft);border:1px solid var(--line)}
 .llgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:12px}
 .llcard{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card);display:grid;gap:6px;box-shadow:0 6px 14px rgba(0,0,0,.25)}
 .llhd{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.llhd b{font-size:1.1rem;color:var(--acc)}.llhd span{font-size:.78rem;color:var(--mut)}
@@ -1964,7 +1965,7 @@ async function entrar(user){
   unsubED=[];[['std','estdata','est'],['safety','estdata_safety','ests']].forEach(([v,c,m])=>{if(puedeVer(m))unsubED.push(onSnapshot(collection(db,c),snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());estStore[v].ed=o;if(estVar===v){edDatos=o;renderED();if(!$('estv').hidden&&estVista==='plant')renderEst()}},()=>{}))});
   if(puedeVer('lla')){unsubLL=onSnapshot(collection(db,'llantas'),snap=>{llD=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderLla()},()=>{});
     unsubLC2=onSnapshot(collection(db,'llcfg'),snap=>{llCfg={};snap.docs.forEach(d=>llCfg[d.id]=d.data());renderLla()},()=>{});
-    if(canEdit())unsubLK=onSnapshot(collection(db,'lllinks'),snap=>{llLinks={};snap.docs.forEach(d=>{const x={id:d.id,...d.data()};if(x.activo)llLinks[x.sede]=x});renderLla()},()=>{})}
+    if(canEdit())unsubLK=onSnapshot(collection(db,'lllinks'),snap=>{llLinks={};llLinksTodos={};snap.docs.forEach(d=>{const x={id:d.id,...d.data()};llLinksTodos[d.id]=x;if(x.activo)llLinks[x.sede]=x});renderLla()},()=>{})}
   if(puedeVer('chk'))unsubCE=onSnapshot(doc(db,'chkhtml','estado'),d=>{chkEst=d.exists()?d.data():null},()=>{chkEst=null});
   if(puedeVer('chk'))unsubCK=onSnapshot(doc(db,'chkhtml','actual'),d=>{const n=d.exists()?d.data():null;if(!n||!chkMeta||n.fecha!==chkMeta.fecha||n.nPartes!==chkMeta.nPartes)chkHtml=null;chkMeta=n;renderChk()},()=>{chkMeta=null;renderChk()});
   if(puedeVer('bpr'))unsubBP=onSnapshot(doc(db,'bprac','config'),d=>{const n=d.exists()?d.data():null;if((n&&n.url)!==(bprCfg&&bprCfg.url)){bprLista=null;bprErr=''}bprCfg=n;renderBpr()},()=>{});
@@ -5492,20 +5493,29 @@ $('bprborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm('¿Borrar el enlac
 
 /* ---------- LLANTAS: fotos enviadas desde un enlace (placa, nombre y 2 fotos) ---------- */
 let llD=[],llCfg={},llLinks={},unsubLL=null,unsubLC2=null,unsubLK=null,llQ='',llPl='',llMes='',llMsg='';
-function llLinkUrl(t){return `${location.origin}${location.pathname}?l=${t}`}
+// Enlaces fijos por sede (no cambian) y página «llantas.html» con su vista previa (título LLANTAS e imagen de llanta)
+const LL_TOK={Villavicencio:'llv7f3a9c2e1b5d4a60c',Yopal:'lly2c8e5b1f9a4d7e30c'};
+function llLinkUrl(t){return `${location.origin}${location.pathname.replace(/[^/]*$/,'')}llantas.html?l=${t}`}
+// Placas: las mismas registradas en Calibraciones (listas de «Cantidad de placas» y placas con calibraciones) de la sede
+function llPlacasCal(sd){const st=new Set();Object.values(metas||{}).filter(m=>(m.sede||'')===sd).forEach(m=>{(m.placas||[]).forEach(p=>st.add(normP(p)||p));Object.values(m.placasMes||{}).forEach(l=>(l||[]).forEach(p=>st.add(normP(p)||p)))});
+  (typeof cals!=='undefined'?cals:[]).filter(c=>(c.sede||SEDES[0])===sd).forEach(c=>{const p=normP(c.placa);if(p)st.add(p)});return [...st].filter(Boolean).sort(cmpP)}
+let llSync={};
+function llSincronizar(sd){if(!canEdit())return;const nue=llPlacasCal(sd),act=((llCfg[sd]||{}).placas||[]);if(!nue.length||nue.join(',')===act.join(',')||llSync[sd]===nue.join(','))return;llSync[sd]=nue.join(',');
+  setDoc(doc(db,'llcfg',sd),{placas:nue,origen:'calibraciones',editado:serverTimestamp()}).catch(e=>console.error(e))}
+function llAsegurarEnlace(sd){if(!canEdit()||llLinksTodos[LL_TOK[sd]]||llSync['l'+sd])return;llSync['l'+sd]=1;setDoc(doc(db,'lllinks',LL_TOK[sd]),{sede:sd,activo:true,fijo:true,por:cur.nombre,creado:serverTimestamp()}).catch(e=>console.error(e))}
+let llLinksTodos={};
 const llPlacas=sd=>((llCfg[sd]||{}).placas||[]).slice().sort(cmpP);
 function renderLla(){
-  if(!cur||$('llav').hidden)return;const ed=canEdit(),adm=cur.rol==='admin',L=llLinks[sede],pls=llPlacas(sede);
+  if(!cur||$('llav').hidden)return;const ed=canEdit(),adm=cur.rol==='admin';llSincronizar(sede);llAsegurarEnlace(sede);const pls=llPlacas(sede),url=llLinkUrl(LL_TOK[sede]);
   const ls=llD.filter(x=>x.sede===sede).sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||''))||(b.creado?.seconds||0)-(a.creado?.seconds||0));
   const meses=[...new Set(ls.map(x=>String(x.fecha||'').slice(0,7)).filter(Boolean))].sort().reverse();if(llMes&&!meses.includes(llMes))llMes='';
   const q=sinTilde(llQ.trim()),vis=ls.filter(x=>(!llPl||x.placa===llPl)&&(!llMes||String(x.fecha||'').startsWith(llMes))&&(!q||sinTilde(`${x.placa} ${x.nombre}`).includes(q)));
   $('llabody').innerHTML=`
    <div class="dgrid" style="margin-bottom:14px">
-    ${ed?`<div class="dc arrlink"><h2>🔗 Enlace para enviar fotos</h2><small>Quien abra el enlace elige la placa, escribe su nombre, sube 2 fotos y pulsa «Enviar». Llegan aquí con la fecha y hora del envío.</small>
-      ${L&&L.activo?`<div class="arrurl"><input readonly id="llurl" value="${esc(llLinkUrl(L.id))}"><button type="button" class="btn" id="llcopy">Copiar enlace</button><a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('Flota Llanos · Llantas '+sede+': '+llLinkUrl(L.id))}">WhatsApp</a>${adm?'<button type="button" class="del" id="lldes">Desactivar</button>':''}</div>`
-        :`<div style="margin-top:10px"><button type="button" class="btn" id="llgen">Crear enlace</button></div>`}</div>`:''}
-    ${adm?`<div class="dc"><h2>Placas del enlace · ${esc(sede)}</h2><small>Escribe o pega las placas (una por línea o separadas por coma). Son las que aparecen para elegir en el enlace.</small>
-      <textarea id="llpls" rows="4" style="margin-top:8px;font-family:inherit" placeholder="TRK494&#10;LJV124&#10;PSX831">${esc(pls.join('\n'))}</textarea><div class="hb" style="margin-top:6px"><button type="button" class="btn" id="llplg">Guardar placas</button><small class="mnota">${pls.length} placa${pls.length===1?'':'s'}</small></div></div>`:''}
+    ${ed?`<div class="dc arrlink"><h2>🔗 Enlace de Llantas · ${esc(sede)}</h2><small>Enlace fijo de la sede (siempre es el mismo). Quien lo abra elige la placa, escribe su nombre, toma o sube 2 fotos (con marca de agua) y pulsa «Enviar».</small>
+      <div class="arrurl"><input readonly id="llurl" value="${esc(url)}"><button type="button" class="btn" id="llcopy">Copiar enlace</button><a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('LLANTAS · Flota Llanos '+sede+': '+url)}">WhatsApp</a></div></div>`:''}
+    <div class="dc"><h2>Placas del enlace · ${esc(sede)}</h2><small>Son las mismas placas registradas en <b>Calibraciones</b> de ${esc(sede)} · ${pls.length} placa${pls.length===1?'':'s'}</small>
+      <div class="llchips">${pls.map(p=>`<span>${esc(p)}</span>`).join('')||'<p class="empty" style="margin:0">Aún no hay placas en Calibraciones.</p>'}</div></div>
    </div>
    <div class="dc"><div class="chead" style="margin:0"><div><h2>Llantas · ${esc(sede)}</h2><small>${ls.length} registro${ls.length===1?'':'s'} recibido${ls.length===1?'':'s'} · del más reciente al más antiguo</small></div>
      <div class="hb"><select id="llfp" style="width:auto;margin:0" aria-label="Placa"><option value="">Todas las placas</option>${[...new Set([...pls,...ls.map(x=>x.placa)])].sort(cmpP).map(p=>`<option${p===llPl?' selected':''}>${esc(p)}</option>`).join('')}</select>
@@ -5517,11 +5527,7 @@ function renderLla(){
        ${adm?`<div class="hb" style="justify-content:flex-end"><button type="button" class="del" data-lldel="${x.id}">Borrar</button></div>`:''}</article>`).join('')||`<p class="empty" style="margin:0">${ls.length?'Ningún registro coincide con los filtros.':'Aún no hay registros de llantas en '+esc(sede)+'.'}</p>`}</div></div>`;
   $('llfp').onchange=e=>{llPl=e.target.value;renderLla()};$('llfm').onchange=e=>{llMes=e.target.value;renderLla()};
   $('llq').oninput=e=>{llQ=e.target.value;clearTimeout(window.__llq);window.__llq=setTimeout(()=>{renderLla();const i=$('llq');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},300)};
-  const g=$('llgen');if(g)g.onclick=async()=>{const tk=Array.from(crypto.getRandomValues(new Uint8Array(12)),v=>v.toString(16).padStart(2,'0')).join('');try{await setDoc(doc(db,'lllinks',tk),{sede,activo:true,por:cur.nombre,creado:serverTimestamp()})}catch(x){alert(ERR(x.code))}};
   const c=$('llcopy');if(c)c.onclick=async()=>{try{await navigator.clipboard.writeText($('llurl').value);c.textContent='¡Copiado!';setTimeout(()=>c.textContent='Copiar enlace',1500)}catch(x){$('llurl').select()}};
-  const d=$('lldes');if(d)d.onclick=async()=>{if(!confirm('¿Desactivar el enlace? Ya no se podrán enviar fotos con ese enlace.'))return;try{await updateDoc(doc(db,'lllinks',L.id),{activo:false})}catch(x){alert(ERR(x.code))}};
-  const pg=$('llplg');if(pg)pg.onclick=async()=>{const arr=[...new Set($('llpls').value.split(/[\n,;]+/).map(v=>normP(v)||v.trim().toUpperCase()).filter(Boolean))].slice(0,500);
-    try{await setDoc(doc(db,'llcfg',sede),{placas:arr,por:cur.nombre,editado:serverTimestamp()});llMsg=`✔ ${arr.length} placas guardadas.`;renderLla();setTimeout(()=>{llMsg=''},4000)}catch(x){alert(ERR(x.code))}};
 }
 $('llabody').addEventListener('click',async e=>{const im=e.target.closest('[data-llimg]');if(im){$('bigimg').src=im.src;$('big').showModal();return}
   const b=e.target.closest('[data-lldel]');if(b&&cur.rol==='admin'){if(!confirm('¿Borrar este registro de llantas?'))return;try{await deleteDoc(doc(db,'llantas',b.dataset.lldel))}catch(x){alert(ERR(x.code))}}});
@@ -5539,14 +5545,18 @@ async function vistaLlantas(t){
     <label>Nombre<input id="llnom" required maxlength="80" placeholder="Tu nombre completo" autocomplete="name"></label>
     <div class="llpfs">${fot(1,'Foto 1')}${fot(2,'Foto 2')}</div>
     <button type="submit" class="btn" id="llsend">Enviar</button><div class="pprog" id="llmsg" role="status"></div></form></div></div>`;
-  const F={1:'',2:''};
-  const tomar=async(k,f)=>{if(!f)return;try{F[k]=await imgJpeg(f,1100,.62);if(F[k].length>470000)F[k]=await imgJpeg(f,900,.55);$('pv'+k).innerHTML=`<img src="${F[k]}" alt="Foto ${k}">`}catch(x){$('llmsg').textContent='No se pudo leer la imagen.'}};
+  const F={1:null,2:null};
+  const tomar=async(k,f)=>{if(!f)return;$('pv'+k).textContent='Leyendo…';let pos=null;try{pos=await posicionRapida()}catch(x){}
+    F[k]={f,pos,t:new Date()};$('pv'+k).innerHTML=`<img src="${URL.createObjectURL(f)}" alt="Foto ${k}">`};
+  const conMarca=async(k,pl,nm)=>{const x=F[k],d=x.t,p=n=>String(n).padStart(2,'0');
+    const ls=[`FLOTA LLANOS · LLANTAS · FOTO ${k} · ${pl}`,`${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())} · ${L.sede}`,x.pos?`Ubicación: ${x.pos.lat.toFixed(5)}, ${x.pos.lng.toFixed(5)}`:'Ubicación no disponible',`Tomada por: ${nm}`];
+    let u=await marcaAgua(x.f,ls);if(u.length>470000){const b=await (await fetch(u)).blob();u=await imgJpeg(new File([b],'f.jpg',{type:'image/jpeg'}),1000,.6)}return u};
   [1,2].forEach(k=>{$('c'+k).onchange=e=>tomar(k,e.target.files[0]);$('g'+k).onchange=e=>tomar(k,e.target.files[0])});
   P.querySelectorAll('[data-llcam]').forEach(b=>b.onclick=()=>$('c'+b.dataset.llcam).click());P.querySelectorAll('[data-llgal]').forEach(b=>b.onclick=()=>$('g'+b.dataset.llgal).click());
   $('llf').onsubmit=async e=>{e.preventDefault();const m=$('llmsg'),b=$('llsend'),pl=$('llpl').value,nm=$('llnom').value.trim();
     if(!pl){m.textContent='Elige la placa.';return}if(!nm){m.textContent='Escribe tu nombre.';return}if(!F[1]||!F[2]){m.textContent='Sube las dos fotos.';return}
-    b.disabled=true;b.textContent='Enviando…';
-    try{await addDoc(collection(db,'llantas'),{sede:L.sede,placa:pl,nombre:nm,foto1:F[1],foto2:F[2],fecha:ahoraDT(),token:t,creado:serverTimestamp()});
+    b.disabled=true;b.textContent='Aplicando marca de agua…';
+    try{const f1=await conMarca(1,pl,nm),f2=await conMarca(2,pl,nm);b.textContent='Enviando…';await addDoc(collection(db,'llantas'),{sede:L.sede,placa:pl,nombre:nm,foto1:f1,foto2:f2,fecha:ahoraDT(),token:t,creado:serverTimestamp()});
       P.innerHTML=`<div class="pubw">${cab}<div class="pubc"><p style="margin:0;font-size:1.05rem"><b>✔ Fotos enviadas.</b></p><p class="empty" style="margin:10px 0 0">Placa ${esc(pl)} · ${esc(nm)}. ¡Gracias!</p><button type="button" class="btn" id="llotra" style="margin-top:12px">Enviar otro registro</button></div></div>`;
       $('llotra').onclick=()=>vistaLlantas(t)}
     catch(x){console.error(x);m.textContent='No se pudo enviar. Intenta de nuevo.';b.disabled=false;b.textContent='Enviar'}};
