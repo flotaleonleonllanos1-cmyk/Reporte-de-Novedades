@@ -2422,7 +2422,7 @@ async function descargarCalFotos(btn){
 }
 async function descargarVistaPDF(){
   if(!$('calv').hidden&&cmes){return descargarCalFotos($('pdfv'))}
-  if(!cur||cur.rol!=='admin')return;if(!$('licv').hidden){licUnirTodos($('pdfv'));return}const V=vistaPDF();if(!V)return;const b=$('pdfv'),t=b.textContent;b.disabled=true;b.textContent='Preparando PDF…';
+  if(!cur||cur.rol!=='admin')return;if(!$('licv').hidden){licUnirTodos($('pdfv'));return}if(!$('llav').hidden){llDescargarPDF($('pdfv'));return}const V=vistaPDF();if(!V)return;const b=$('pdfv'),t=b.textContent;b.disabled=true;b.textContent='Preparando PDF…';
   let h2c;try{h2c=await cargarScript(['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'],'html2canvas')}
   catch(x){b.disabled=false;b.textContent=t;if(confirm('No se pudo preparar el PDF directamente (revisa tu conexión). ¿Quieres usar la opción de imprimir y elegir «Guardar como PDF»?'))window.print();return}
   document.documentElement.classList.add('pdfcap');expandirTodo(true);
@@ -5524,13 +5524,28 @@ function renderLla(){
      <div class="pprog" role="status">${esc(llMsg)}</div>
      <div class="llgrid">${vis.map(x=>`<article class="llcard"><div class="llhd"><b>${esc(x.placa)}</b><span>${x.fecha?dtTxt(x.fecha):'—'}</span></div><small>Registró: <b>${esc(x.nombre||'—')}</b></small>
        <div class="llfotos">${[['foto1','Foto 1'],['foto2','Foto 2']].map(([k,l])=>x[k]?`<figure><img src="${x[k]}" alt="${l} ${esc(x.placa)}" data-llimg><figcaption>${l}</figcaption></figure>`:`<figure class="vac"><span>Sin foto</span><figcaption>${l}</figcaption></figure>`).join('')}</div>
-       ${adm?`<div class="hb" style="justify-content:flex-end"><button type="button" class="del" data-lldel="${x.id}">Borrar</button></div>`:''}</article>`).join('')||`<p class="empty" style="margin:0">${ls.length?'Ningún registro coincide con los filtros.':'Aún no hay registros de llantas en '+esc(sede)+'.'}</p>`}</div></div>`;
+       ${adm?`<div class="hb" style="justify-content:flex-end"><button type="button" class="btn ghost" data-llpdf="${x.id}">PDF</button><button type="button" class="del" data-lldel="${x.id}">Borrar</button></div>`:''}</article>`).join('')||`<p class="empty" style="margin:0">${ls.length?'Ningún registro coincide con los filtros.':'Aún no hay registros de llantas en '+esc(sede)+'.'}</p>`}</div></div>`;
   $('llfp').onchange=e=>{llPl=e.target.value;renderLla()};$('llfm').onchange=e=>{llMes=e.target.value;renderLla()};
   $('llq').oninput=e=>{llQ=e.target.value;clearTimeout(window.__llq);window.__llq=setTimeout(()=>{renderLla();const i=$('llq');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},300)};
   const c=$('llcopy');if(c)c.onclick=async()=>{try{await navigator.clipboard.writeText($('llurl').value);c.textContent='¡Copiado!';setTimeout(()=>c.textContent='Copiar enlace',1500)}catch(x){$('llurl').select()}};
 }
 $('llabody').addEventListener('click',async e=>{const im=e.target.closest('[data-llimg]');if(im){$('bigimg').src=im.src;$('big').showModal();return}
+  const pp=e.target.closest('[data-llpdf]');if(pp&&cur.rol==='admin'){const a=llD.find(x=>x.id===pp.dataset.llpdf);if(!a)return;const t0=pp.textContent;pp.disabled=true;pp.textContent='…';
+    try{const blob=await crearPDF([{titulo:`FLOTA LLANOS · Llantas · ${a.placa}`,sub:`${a.fecha?dtTxt(a.fecha):'—'} · Sede ${a.sede} · Registró ${a.nombre||'—'}`,fotos:[{label:'FOTO 1',src:a.foto1||''},{label:'FOTO 2',src:a.foto2||''}],pie:`Generado el ${new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'})} por ${cur.nombre}`}]);
+      const el=document.createElement('a');el.href=URL.createObjectURL(blob);el.download=`llantas_${a.placa}_${String(a.fecha).slice(0,10)}.pdf`;document.body.appendChild(el);el.click();el.remove()}catch(x){alert('No se pudo generar el PDF.')}pp.disabled=false;pp.textContent=t0;return}
   const b=e.target.closest('[data-lldel]');if(b&&cur.rol==='admin'){if(!confirm('¿Borrar este registro de llantas?'))return;try{await deleteDoc(doc(db,'llantas',b.dataset.lldel))}catch(x){alert(ERR(x.code))}}});
+// ⬇ PDF de Llantas: una hoja por registro con sus dos fotos (los registros que se ven con los filtros)
+async function llDescargarPDF(btn){if(!cur||cur.rol!=='admin')return;
+  const ls=llD.filter(x=>x.sede===sede).sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||''))||(b.creado?.seconds||0)-(a.creado?.seconds||0));
+  const q=sinTilde(llQ.trim()),vis=ls.filter(x=>(!llPl||x.placa===llPl)&&(!llMes||String(x.fecha||'').startsWith(llMes))&&(!q||sinTilde(`${x.placa} ${x.nombre}`).includes(q)));
+  if(!vis.length){alert('No hay registros de llantas para el PDF.');return}
+  const t0=btn.textContent;btn.disabled=true;btn.textContent='Preparando…';
+  try{const gen=new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'});
+    const blob=await crearPDF(vis.map((a,i)=>({titulo:`FLOTA LLANOS · Llantas · ${a.placa}`,sub:`${a.fecha?dtTxt(a.fecha):'—'} · Sede ${a.sede} · Registró ${a.nombre||'—'}`,
+      fotos:[{label:'FOTO 1',src:a.foto1||''},{label:'FOTO 2',src:a.foto2||''}],pie:`Generado el ${gen} por ${cur.nombre} · Registro ${i+1} de ${vis.length}`})));
+    const el=document.createElement('a');el.href=URL.createObjectURL(blob);el.download=vis.length===1?`llantas_${vis[0].placa}_${String(vis[0].fecha).slice(0,10)}.pdf`:`llantas_${sede}${llMes?'_'+llMes:''}${llPl?'_'+llPl:''}.pdf`;
+    document.body.appendChild(el);el.click();el.remove();setTimeout(()=>URL.revokeObjectURL(el.href),4000)}
+  catch(x){console.error(x);alert('No se pudo generar el PDF.')}btn.disabled=false;btn.textContent=t0}
 // Vista pública del enlace (sin iniciar sesión)
 async function vistaLlantas(t){
   $('login').hidden=true;$('app').hidden=true;const P=$('pub');P.hidden=false;
