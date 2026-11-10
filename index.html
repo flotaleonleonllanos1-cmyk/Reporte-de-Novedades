@@ -1056,6 +1056,16 @@ html.enfoque .shell{--sw:0px}
 /* Los mapas (Leaflet) no deben quedar por encima de la portada */
 .leaflet-container{isolation:isolate;z-index:0}
 .portada{z-index:5000!important}
+
+.llgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:12px}
+.llcard{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card);display:grid;gap:6px;box-shadow:0 6px 14px rgba(0,0,0,.25)}
+.llhd{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.llhd b{font-size:1.1rem;color:var(--acc)}.llhd span{font-size:.78rem;color:var(--mut)}
+.llfotos{display:grid;grid-template-columns:1fr 1fr;gap:8px}.llfotos figure{margin:0;border-radius:10px;overflow:hidden;background:#111;border:1px solid var(--line)}
+.llfotos img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;cursor:zoom-in}.llfotos figcaption{font-size:.72rem;text-align:center;padding:3px;color:var(--mut)}
+.llfotos .vac span{display:grid;place-items:center;aspect-ratio:3/4;color:var(--mut);font-size:.8rem}
+.llpfs{display:grid;grid-template-columns:1fr 1fr;gap:10px}.llpf{display:grid;gap:6px}.llpf>span{font-weight:700;font-size:.9rem}
+.llpv{aspect-ratio:3/4;border:2px dashed var(--line);border-radius:10px;display:grid;place-items:center;color:var(--mut);font-size:.85rem;overflow:hidden;background:rgba(0,0,0,.15)}.llpv img{width:100%;height:100%;object-fit:cover}
+.llpf .btn{padding:7px 8px;font-size:.8rem}
 </style>
 </head>
 <body>
@@ -1182,6 +1192,9 @@ html.enfoque .shell{--sw:0px}
     <div class="grp">
       <button type="button" class="mi" data-m="chk" aria-pressed="false" aria-expanded="false" title="Checklist"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 28" width="24" height="24"><rect x="5" y="3" width="18" height="22" rx="2.5" fill="#f5f5f5" stroke="rgba(255,255,255,.85)"/><rect x="10" y="1.5" width="8" height="4" rx="1.5" fill="#0e9c86"/><path d="M8.5 11l1.8 1.8 3-3.2M8.5 17l1.8 1.8 3-3.2" stroke="#0e9c86" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M15.5 11.5h4M15.5 17.5h4" stroke="#5a5a5a" stroke-width="1.6" stroke-linecap="round"/></svg></span><span class="lbl">Checklist</span></button>
     </div>
+    <div class="grp">
+      <button type="button" class="mi" data-m="lla" aria-pressed="false" aria-expanded="false" title="Llantas"><span class="docico" aria-hidden="true"><svg viewBox="0 0 28 28" width="24" height="24"><circle cx="14" cy="14" r="11" fill="#1f1f1f" stroke="#f5f5f5" stroke-width="1.5"/><circle cx="14" cy="14" r="5.5" fill="#bdbdbd" stroke="#f5f5f5"/><circle cx="14" cy="14" r="1.8" fill="#555"/><path d="M14 3v4M14 21v4M3 14h4M21 14h4M6.2 6.2l2.8 2.8M19 19l2.8 2.8M21.8 6.2L19 9M9 19l-2.8 2.8" stroke="#3a3a3a" stroke-width="1.4"/><circle cx="22" cy="6" r="4" fill="#13e0c4" class="brillo"/></svg></span><span class="lbl">Llantas</span></button>
+    </div>
   </nav>
   <div class="sidefoot">
     <button type="button" class="si" id="adminb" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Admin</span></button>
@@ -1218,6 +1231,7 @@ html.enfoque .shell{--sw:0px}
 </div>
 <div id="list"></div>
 </div>
+<section id="llav" hidden aria-label="Llantas"><div id="llabody"></div></section>
 <section id="chkv" hidden aria-label="Checklist"><div id="chkbody"></div></section>
 <section id="bprv" hidden aria-label="Buenas Prácticas">
   <div class="dc" style="margin-bottom:14px"><div class="chead" style="margin:0"><div><h2 style="font-size:1.1rem">Buenas Prácticas</h2><small id="bprsub"></small></div></div>
@@ -1727,7 +1741,7 @@ const DOM='@novedades-leon.app';
 const mail=u=>u.trim().toLowerCase()+DOM;
 const okUser=u=>/^[a-z0-9._-]{3,30}$/.test(u);
 const ROLES={admin:'Administrador',editor:'Editor',visual:'Visual',inactivo:'Sin acceso'};
-const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['ests','Estándar de Flota Safety'],['disp','Arranque de Flota'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['lic','Notificación Licencia'],['sim','SIMIT'],['cap','Capacitaciones'],['var','Varadas'],['cpv','Calidad Preventivo'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero'],['bpr','Buenas Prácticas'],['chk','Checklist']];
+const MODS=[['nov','Novedades / Solucionadas'],['cal','Calibraciones'],['est','Estándar de Flota'],['ests','Estándar de Flota Safety'],['disp','Arranque de Flota'],['res','Residuos Llanos'],['urea','CO₂ (dióxido de carbono)'],['rep','Repuestos'],['lic','Notificación Licencia'],['sim','SIMIT'],['cap','Capacitaciones'],['var','Varadas'],['cpv','Calidad Preventivo'],['km','Kilometrajes'],['ral','Ralentí'],['doc','Documentos'],['bar','Barridos'],['lav','Lavadero'],['bpr','Buenas Prácticas'],['chk','Checklist'],['lla','Llantas']];
 const puedeSede=x=>!!cur&&(cur.rol==='admin'||!Array.isArray(cur.sedes)||!cur.sedes.length||cur.sedes.includes(x));
 const sedesHTML=(pre,sel)=>`<div class="mudchk">${SEDES.map(x=>`<label><input type="checkbox" data-${pre}="${x}"${!sel||!sel.length||sel.includes(x)?' checked':''}> ${x}</label>`).join('')}</div>`;
 function aplicarSedes(){const ok=SEDES.filter(puedeSede);$('sede').innerHTML=ok.map(x=>`<option${x===sede?' selected':''}>${x}</option>`).join('');$('sede').disabled=ok.length<2;$('sede').title=ok.length<2?'Tu usuario solo tiene acceso a esta sede':'';
@@ -1893,6 +1907,7 @@ function salir(){
   if(unsubCV){unsubCV();unsubCV=null}
   if(unsubBP){unsubBP();unsubBP=null}
   if(unsubCK){unsubCK();unsubCK=null}
+  [unsubLL,unsubLC2,unsubLK].forEach(f=>f&&f());unsubLL=unsubLC2=unsubLK=null;llD=[];llCfg={};llLinks={};
   if(unsubCE){unsubCE();unsubCE=null}
   chkEst=undefined;chkEstCache=null;
   chkMeta=undefined;chkHtml=null;
@@ -1947,6 +1962,9 @@ async function entrar(user){
   if(puedeVer('doc'))unsubFC=onSnapshot(collection(db,'fotoscond'),snap=>{fotosCond={};snap.docs.forEach(d=>fotosCond[d.id]=d.data());if(!$('docv').hidden&&docSec==='con'&&docRuta.length>=3)renderDoc()},()=>{});
   if(puedeVer('doc'))unsubT=onSnapshot(collection(db,'ctiempo'),snap=>{ctDatos={};snap.docs.forEach(d=>ctDatos[d.id]=d.data());renderCT();if(!$('docv').hidden&&docSec==='veh'&&docRuta.length)pintarDocPlaca(docRuta[docRuta.length-1])},()=>{});
   unsubED=[];[['std','estdata','est'],['safety','estdata_safety','ests']].forEach(([v,c,m])=>{if(puedeVer(m))unsubED.push(onSnapshot(collection(db,c),snap=>{const o={};snap.docs.forEach(d=>o[d.id]=d.data());estStore[v].ed=o;if(estVar===v){edDatos=o;renderED();if(!$('estv').hidden&&estVista==='plant')renderEst()}},()=>{}))});
+  if(puedeVer('lla')){unsubLL=onSnapshot(collection(db,'llantas'),snap=>{llD=snap.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));renderLla()},()=>{});
+    unsubLC2=onSnapshot(collection(db,'llcfg'),snap=>{llCfg={};snap.docs.forEach(d=>llCfg[d.id]=d.data());renderLla()},()=>{});
+    if(canEdit())unsubLK=onSnapshot(collection(db,'lllinks'),snap=>{llLinks={};snap.docs.forEach(d=>{const x={id:d.id,...d.data()};if(x.activo)llLinks[x.sede]=x});renderLla()},()=>{})}
   if(puedeVer('chk'))unsubCE=onSnapshot(doc(db,'chkhtml','estado'),d=>{chkEst=d.exists()?d.data():null},()=>{chkEst=null});
   if(puedeVer('chk'))unsubCK=onSnapshot(doc(db,'chkhtml','actual'),d=>{const n=d.exists()?d.data():null;if(!n||!chkMeta||n.fecha!==chkMeta.fecha||n.nPartes!==chkMeta.nPartes)chkHtml=null;chkMeta=n;renderChk()},()=>{chkMeta=null;renderChk()});
   if(puedeVer('bpr'))unsubBP=onSnapshot(doc(db,'bprac','config'),d=>{const n=d.exists()?d.data():null;if((n&&n.url)!==(bprCfg&&bprCfg.url)){bprLista=null;bprErr=''}bprCfg=n;renderBpr()},()=>{});
@@ -2080,9 +2098,9 @@ function pintarPublica(t,v,msg){
   };
   $('pubtecb').onclick=()=>escribir(false);$('pubfinb').onclick=()=>escribir(true);
 }
-const tokArr=new URLSearchParams(location.search).get('a');
-const tokPub=new URLSearchParams(location.search).get('v')||(tokArr?'__arr':'');
-if(tokArr)vistaArranque(tokArr);else if(tokPub)vistaPublica(tokPub);
+const tokArr=new URLSearchParams(location.search).get('a'),tokLl=new URLSearchParams(location.search).get('l');
+const tokPub=new URLSearchParams(location.search).get('v')||(tokArr?'__arr':'')||(tokLl?'__ll':'');
+if(tokArr)vistaArranque(tokArr);else if(tokLl)vistaLlantas(tokLl);else if(tokPub)vistaPublica(tokPub);
 onAuthStateChanged(auth,async user=>{
   if(creando||tokPub)return;
   if(user)await entrar(user);
@@ -2125,7 +2143,8 @@ const mesReg=()=>cmes||hoyD.getMonth()+1;
 function modulo(m){
   if(m!=='ini'&&!puedeVer(m))m='ini';
   document.documentElement.classList.toggle('en-ini',m==='ini');
-  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est'||m==='ests',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep',lc=m==='lic',sm=m==='sim',cp=m==='cap',cv=m==='cpv',bp=m==='bpr',ck=m==='chk';
+  const cal=m==='cal',ini=m==='ini',vr=m==='var',km=m==='km',ral=m==='ral',dc=m==='doc',bl=m==='bar'||m==='lav',es=m==='est'||m==='ests',rs=m==='res',ur=m==='urea',ds=m==='disp',rp=m==='rep',lc=m==='lic',sm=m==='sim',cp=m==='cap',cv=m==='cpv',bp=m==='bpr',ck=m==='chk',ll=m==='lla';
+  $('llav').hidden=!ll;if(ll)renderLla();
   $('chkv').hidden=!ck;if(ck)renderChk();
   $('bprv').hidden=!bp;if(bp)renderBpr();
   $('cpvv').hidden=!cv;if(cv)renderCpv();
@@ -2144,9 +2163,9 @@ function modulo(m){
   document.documentElement.classList.toggle('tema-ral',ral);
   document.documentElement.classList.toggle('tema-cal',cal);document.documentElement.classList.toggle('tema-var',vr);document.documentElement.classList.toggle('tema-km',km);
   document.querySelectorAll('.mi[data-m]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.m===m);b.setAttribute('aria-expanded',b.dataset.m===m)});
-  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp||ck)showDash(false);
-  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp||ck;
-  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp||ck||!canEdit();$('raladd').hidden=!ral||!canEdit();
+  if(cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp||ck||ll)showDash(false);
+  $('inicio').hidden=!ini;$('calv').hidden=!cal;$('varv').hidden=!vr;$('kmv').hidden=!km;$('ralv').hidden=!ral;$('listv').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp||ck||ll;
+  $('add').hidden=cal||ini||vr||km||ral||dc||bl||es||rs||ur||ds||rp||lc||sm||cp||cv||bp||ck||ll||!canEdit();$('raladd').hidden=!ral||!canEdit();
   if(ral)renderRal();$('kmvehb').hidden=!km||!cur||cur.rol!=='admin';$('kmllanos').hidden=!km||!cur||cur.rol!=='admin';
   if(km)renderKm();$('vadd').hidden=!vr||!canEdit();$('vcondb').hidden=!vr||!cur||cur.rol!=='admin';
   if(vr)renderVar();$('dashb').hidden=!cur||cur.rol!=='admin';
@@ -2159,10 +2178,10 @@ document.querySelectorAll('.mi[data-m]').forEach(b=>b.onclick=()=>{if(!cur)retur
   else if(b.getAttribute('aria-pressed')==='true'){b.setAttribute('aria-expanded',b.getAttribute('aria-expanded')!=='true');return}
   if(b.dataset.m==='cal'){cmes=0}modulo(b.dataset.m);if(b.dataset.m==='nov')showDash(false)});
 function titulo(){
-  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden,lc=!$('licv').hidden,sm=!$('simv').hidden,cp=!$('capv').hidden,cv=!$('cpvv').hidden,bp=!$('bprv').hidden,ck=!$('chkv').hidden;
+  const cal=!$('calv').hidden,ini=!$('inicio').hidden,vr=!$('varv').hidden,km=!$('kmv').hidden,ral=!$('ralv').hidden,dc=!$('docv').hidden,bl=!$('blv').hidden,es=!$('estv').hidden,rs=!$('resv').hidden,ur=!$('ureav').hidden,ds=!$('dispv').hidden,rp=!$('repv').hidden,lc=!$('licv').hidden,sm=!$('simv').hidden,cp=!$('capv').hidden,cv=!$('cpvv').hidden,bp=!$('bprv').hidden,ck=!$('chkv').hidden,ll=!$('llav').hidden;
   document.querySelectorAll('.si[data-doc]').forEach(b=>b.setAttribute('aria-current',dc&&b.dataset.doc===docSec));
-  $('vtit').textContent=ini?'':ck?'Checklist':bp?'Buenas Prácticas':cv?'Calidad Preventivo':cp?'Capacitaciones':sm?'SIMIT':lc?'Notificación Licencia':rp?'Repuestos':ds?'Arranque de Flota':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?estNomT()+' · Datos del Excel':estNomT()):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':docSec==='pi'?'PI':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
-  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!lc&&!sm&&!cp&&!cv&&!bp&&!ck&&!cal&&$('dash').hidden);
+  $('vtit').textContent=ini?'':ll?'Llantas':ck?'Checklist':bp?'Buenas Prácticas':cv?'Calidad Preventivo':cp?'Capacitaciones':sm?'SIMIT':lc?'Notificación Licencia':rp?'Repuestos':ds?'Arranque de Flota':ur?'CO₂ · dióxido de carbono':rs?'Residuos Llanos':es?(estVista==='data'?estNomT()+' · Datos del Excel':estNomT()):bl?BLN[blTipo].t:dc?`Documentos · ${docSec==='veh'?'Vehículos':docSec==='con'?'Conductores':docSec==='pi'?'PI':'Control Tiempo'}`:ral?'Ralentí':km?'Kilometrajes':vr?'Varadas':cal?(cmes?`Calibraciones · ${MESES[cmes-1]} ${canio}`:`Calibraciones · Resumen ${canio}`):(!$('dash').hidden?'Dashboard':'Novedades / Solucionadas');
+  $('listab').setAttribute('aria-current',!ini&&!vr&&!km&&!ral&&!dc&&!bl&&!es&&!rs&&!ur&&!ds&&!rp&&!lc&&!sm&&!cp&&!cv&&!bp&&!ck&&!ll&&!cal&&$('dash').hidden);
   $('pdfv').hidden=ini||!cur||cur.rol!=='admin';
   $('cresb').setAttribute('aria-current',cal&&!cmes);
 }
@@ -2366,6 +2385,7 @@ function vistaPDF(){
   if(vis('ralv'))return{el:$('ralv'),titulo:'Ralentí'};
   if(vis('docv'))return{el:$('docv'),titulo:$('vtit').textContent};
   if(vis('blv'))return{el:$('blv'),titulo:BLN[blTipo].t};
+  if(vis('llav'))return{el:$('llav'),titulo:'Llantas'};
   if(vis('chkv'))return{el:$('chkv'),titulo:'Checklist'};
   if(vis('bprv'))return{el:$('bprv'),titulo:'Buenas Practicas'};
   if(vis('cpvv'))return{el:$('cpvv'),titulo:'Calidad Preventivo'};
@@ -5191,7 +5211,7 @@ const PANELES={0:{t:'COMPLIANCE',items:[{t:'DOCUMENTOS',m:'doc',sec:'veh'},{t:'E
   2:{t:'FLEET MANAGEMENT',items:[{t:'CALIBRACIONES VILLAVICENCIO',m:'cal',sede:'Villavicencio'},{t:'CALIBRACIONES YOPAL',m:'cal',sede:'Yopal'},{t:'CAPACITACIONES VILLAVICENCIO',m:'cap',sede:'Villavicencio'},{t:'CAPACITACIONES YOPAL',m:'cap',sede:'Yopal'}]},
   3:{t:'FLEET AUTONOMY & IMPROVEMENTS',items:[{t:'CO₂ VILLAVICENCIO',m:'urea',sede:'Villavicencio'},{t:'CO₂ YOPAL',m:'urea',sede:'Yopal'},{t:'RALENTÍ VILLAVICENCIO',m:'ral',sede:'Villavicencio'},{t:'RALENTÍ YOPAL',m:'ral',sede:'Yopal'}]},
   4:{t:'VARIOS DE FLOTA',items:[{t:'LAVADERO VILLAVICENCIO',m:'lav',sede:'Villavicencio'},{t:'LAVADERO YOPAL',m:'lav',sede:'Yopal'},{t:'BARRIDOS VILLAVICENCIO',m:'bar',sede:'Villavicencio'},{t:'BARRIDOS YOPAL',m:'bar',sede:'Yopal'},
-    {t:'KILOMETRAJES VILLAVICENCIO',m:'km',sede:'Villavicencio'},{t:'KILOMETRAJES YOPAL',m:'km',sede:'Yopal'},{t:'NOVEDADES DE FLOTA VILLAVICENCIO',m:'nov',sede:'Villavicencio'},{t:'NOVEDADES DE FLOTA YOPAL',m:'nov',sede:'Yopal'},{t:'BUENAS PRÁCTICAS',m:'bpr'}]}};
+    {t:'KILOMETRAJES VILLAVICENCIO',m:'km',sede:'Villavicencio'},{t:'KILOMETRAJES YOPAL',m:'km',sede:'Yopal'},{t:'NOVEDADES DE FLOTA VILLAVICENCIO',m:'nov',sede:'Villavicencio'},{t:'NOVEDADES DE FLOTA YOPAL',m:'nov',sede:'Yopal'},{t:'LLANTAS VILLAVICENCIO',m:'lla',sede:'Villavicencio'},{t:'LLANTAS YOPAL',m:'lla',sede:'Yopal'},{t:'BUENAS PRÁCTICAS',m:'bpr'}]}};
 let portPanel=null;
 const panelItems=n=>(PANELES[n]?PANELES[n].items:[]).filter(x=>puedeVer(x.m)&&(!x.sede||puedeSede(x.sede)));
 function portadaComp(n){if(n===undefined)n=portPanel;const P=PANELES[n],ls=panelItems(n),cl=['p1','p2','p3','p4'];
@@ -5469,6 +5489,68 @@ function renderBpr(){
 $('bprguar').onclick=async()=>{if(!canEdit())return;const u=$('bprurl').value.trim();if(!bprId(u)){$('bprmsg').textContent='Pega un enlace de Google Drive (del PowerPoint o de su carpeta).';return}
   try{await setDoc(doc(db,'bprac','config'),{url:u,por:cur.nombre,editado:serverTimestamp()});bprCfg={url:u,por:cur.nombre};bprLista=null;bprErr='';$('bprmsg').textContent='Enlace guardado como predeterminado.';renderBpr()}catch(x){$('bprmsg').textContent=ERR(x.code)}};
 $('bprborr').onclick=async()=>{if(cur.rol!=='admin'||!confirm('¿Borrar el enlace de Drive de Buenas Prácticas?'))return;try{await deleteDoc(doc(db,'bprac','config'));bprCfg=null;bprLista=null;$('bprmsg').textContent='Enlace borrado.';renderBpr()}catch(x){alert(ERR(x.code))}};
+
+/* ---------- LLANTAS: fotos enviadas desde un enlace (placa, nombre y 2 fotos) ---------- */
+let llD=[],llCfg={},llLinks={},unsubLL=null,unsubLC2=null,unsubLK=null,llQ='',llPl='',llMes='',llMsg='';
+function llLinkUrl(t){return `${location.origin}${location.pathname}?l=${t}`}
+const llPlacas=sd=>((llCfg[sd]||{}).placas||[]).slice().sort(cmpP);
+function renderLla(){
+  if(!cur||$('llav').hidden)return;const ed=canEdit(),adm=cur.rol==='admin',L=llLinks[sede],pls=llPlacas(sede);
+  const ls=llD.filter(x=>x.sede===sede).sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||''))||(b.creado?.seconds||0)-(a.creado?.seconds||0));
+  const meses=[...new Set(ls.map(x=>String(x.fecha||'').slice(0,7)).filter(Boolean))].sort().reverse();if(llMes&&!meses.includes(llMes))llMes='';
+  const q=sinTilde(llQ.trim()),vis=ls.filter(x=>(!llPl||x.placa===llPl)&&(!llMes||String(x.fecha||'').startsWith(llMes))&&(!q||sinTilde(`${x.placa} ${x.nombre}`).includes(q)));
+  $('llabody').innerHTML=`
+   <div class="dgrid" style="margin-bottom:14px">
+    ${ed?`<div class="dc arrlink"><h2>🔗 Enlace para enviar fotos</h2><small>Quien abra el enlace elige la placa, escribe su nombre, sube 2 fotos y pulsa «Enviar». Llegan aquí con la fecha y hora del envío.</small>
+      ${L&&L.activo?`<div class="arrurl"><input readonly id="llurl" value="${esc(llLinkUrl(L.id))}"><button type="button" class="btn" id="llcopy">Copiar enlace</button><a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('Flota Llanos · Llantas '+sede+': '+llLinkUrl(L.id))}">WhatsApp</a>${adm?'<button type="button" class="del" id="lldes">Desactivar</button>':''}</div>`
+        :`<div style="margin-top:10px"><button type="button" class="btn" id="llgen">Crear enlace</button></div>`}</div>`:''}
+    ${adm?`<div class="dc"><h2>Placas del enlace · ${esc(sede)}</h2><small>Escribe o pega las placas (una por línea o separadas por coma). Son las que aparecen para elegir en el enlace.</small>
+      <textarea id="llpls" rows="4" style="margin-top:8px;font-family:inherit" placeholder="TRK494&#10;LJV124&#10;PSX831">${esc(pls.join('\n'))}</textarea><div class="hb" style="margin-top:6px"><button type="button" class="btn" id="llplg">Guardar placas</button><small class="mnota">${pls.length} placa${pls.length===1?'':'s'}</small></div></div>`:''}
+   </div>
+   <div class="dc"><div class="chead" style="margin:0"><div><h2>Llantas · ${esc(sede)}</h2><small>${ls.length} registro${ls.length===1?'':'s'} recibido${ls.length===1?'':'s'} · del más reciente al más antiguo</small></div>
+     <div class="hb"><select id="llfp" style="width:auto;margin:0" aria-label="Placa"><option value="">Todas las placas</option>${[...new Set([...pls,...ls.map(x=>x.placa)])].sort(cmpP).map(p=>`<option${p===llPl?' selected':''}>${esc(p)}</option>`).join('')}</select>
+     <select id="llfm" style="width:auto;margin:0" aria-label="Mes"><option value="">Todos los meses</option>${meses.map(k=>`<option value="${k}"${k===llMes?' selected':''}>${MESES[+k.slice(5)-1]} ${k.slice(0,4)}</option>`).join('')}</select>
+     <input type="search" id="llq" placeholder="Buscar placa o nombre…" value="${esc(llQ)}" style="width:190px;margin:0"></div></div>
+     <div class="pprog" role="status">${esc(llMsg)}</div>
+     <div class="llgrid">${vis.map(x=>`<article class="llcard"><div class="llhd"><b>${esc(x.placa)}</b><span>${x.fecha?dtTxt(x.fecha):'—'}</span></div><small>Registró: <b>${esc(x.nombre||'—')}</b></small>
+       <div class="llfotos">${[['foto1','Foto 1'],['foto2','Foto 2']].map(([k,l])=>x[k]?`<figure><img src="${x[k]}" alt="${l} ${esc(x.placa)}" data-llimg><figcaption>${l}</figcaption></figure>`:`<figure class="vac"><span>Sin foto</span><figcaption>${l}</figcaption></figure>`).join('')}</div>
+       ${adm?`<div class="hb" style="justify-content:flex-end"><button type="button" class="del" data-lldel="${x.id}">Borrar</button></div>`:''}</article>`).join('')||`<p class="empty" style="margin:0">${ls.length?'Ningún registro coincide con los filtros.':'Aún no hay registros de llantas en '+esc(sede)+'.'}</p>`}</div></div>`;
+  $('llfp').onchange=e=>{llPl=e.target.value;renderLla()};$('llfm').onchange=e=>{llMes=e.target.value;renderLla()};
+  $('llq').oninput=e=>{llQ=e.target.value;clearTimeout(window.__llq);window.__llq=setTimeout(()=>{renderLla();const i=$('llq');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},300)};
+  const g=$('llgen');if(g)g.onclick=async()=>{const tk=Array.from(crypto.getRandomValues(new Uint8Array(12)),v=>v.toString(16).padStart(2,'0')).join('');try{await setDoc(doc(db,'lllinks',tk),{sede,activo:true,por:cur.nombre,creado:serverTimestamp()})}catch(x){alert(ERR(x.code))}};
+  const c=$('llcopy');if(c)c.onclick=async()=>{try{await navigator.clipboard.writeText($('llurl').value);c.textContent='¡Copiado!';setTimeout(()=>c.textContent='Copiar enlace',1500)}catch(x){$('llurl').select()}};
+  const d=$('lldes');if(d)d.onclick=async()=>{if(!confirm('¿Desactivar el enlace? Ya no se podrán enviar fotos con ese enlace.'))return;try{await updateDoc(doc(db,'lllinks',L.id),{activo:false})}catch(x){alert(ERR(x.code))}};
+  const pg=$('llplg');if(pg)pg.onclick=async()=>{const arr=[...new Set($('llpls').value.split(/[\n,;]+/).map(v=>normP(v)||v.trim().toUpperCase()).filter(Boolean))].slice(0,500);
+    try{await setDoc(doc(db,'llcfg',sede),{placas:arr,por:cur.nombre,editado:serverTimestamp()});llMsg=`✔ ${arr.length} placas guardadas.`;renderLla();setTimeout(()=>{llMsg=''},4000)}catch(x){alert(ERR(x.code))}};
+}
+$('llabody').addEventListener('click',async e=>{const im=e.target.closest('[data-llimg]');if(im){$('bigimg').src=im.src;$('big').showModal();return}
+  const b=e.target.closest('[data-lldel]');if(b&&cur.rol==='admin'){if(!confirm('¿Borrar este registro de llantas?'))return;try{await deleteDoc(doc(db,'llantas',b.dataset.lldel))}catch(x){alert(ERR(x.code))}}});
+// Vista pública del enlace (sin iniciar sesión)
+async function vistaLlantas(t){
+  $('login').hidden=true;$('app').hidden=true;const P=$('pub');P.hidden=false;
+  const cab='<div class="pubh"><div><small>FLOTA LLANOS</small><h1>Llantas</h1></div></div>';
+  P.innerHTML=`<div class="pubw">${cab}<div class="pubc"><p class="empty" style="margin:0">Cargando…</p></div></div>`;
+  let L,pls=[];try{const d=await getDoc(doc(db,'lllinks',t));if(!d.exists()||!d.data().activo)throw 0;L=d.data();const c=await getDoc(doc(db,'llcfg',L.sede));pls=(c.exists()&&c.data().placas||[]).slice().sort(cmpP)}
+  catch(x){P.innerHTML=`<div class="pubw">${cab}<div class="pubc"><p class="empty" style="margin:0">Este enlace no existe o fue desactivado. Pide a Flota Llanos un enlace nuevo.</p></div></div>`;return}
+  const fot=(k,l)=>`<div class="llpf"><span>${l}</span><div class="llpv" id="pv${k}">Sin foto</div><div class="hb"><button type="button" class="btn ghost" data-llcam="${k}">📷 Tomar foto</button><button type="button" class="btn ghost" data-llgal="${k}">Subir</button></div>
+    <input type="file" id="c${k}" accept="image/*" capture="environment" hidden><input type="file" id="g${k}" accept="image/*" hidden></div>`;
+  P.innerHTML=`<div class="pubw">${cab}<div class="pubc"><p style="margin:0 0 10px">Sede <b>${esc(L.sede)}</b></p>
+    <form id="llf" class="arrfrm pub"><label>Placa<select id="llpl" required><option value="">Elige la placa…</option>${pls.map(p=>`<option>${esc(p)}</option>`).join('')}</select></label>
+    <label>Nombre<input id="llnom" required maxlength="80" placeholder="Tu nombre completo" autocomplete="name"></label>
+    <div class="llpfs">${fot(1,'Foto 1')}${fot(2,'Foto 2')}</div>
+    <button type="submit" class="btn" id="llsend">Enviar</button><div class="pprog" id="llmsg" role="status"></div></form></div></div>`;
+  const F={1:'',2:''};
+  const tomar=async(k,f)=>{if(!f)return;try{F[k]=await imgJpeg(f,1100,.62);if(F[k].length>470000)F[k]=await imgJpeg(f,900,.55);$('pv'+k).innerHTML=`<img src="${F[k]}" alt="Foto ${k}">`}catch(x){$('llmsg').textContent='No se pudo leer la imagen.'}};
+  [1,2].forEach(k=>{$('c'+k).onchange=e=>tomar(k,e.target.files[0]);$('g'+k).onchange=e=>tomar(k,e.target.files[0])});
+  P.querySelectorAll('[data-llcam]').forEach(b=>b.onclick=()=>$('c'+b.dataset.llcam).click());P.querySelectorAll('[data-llgal]').forEach(b=>b.onclick=()=>$('g'+b.dataset.llgal).click());
+  $('llf').onsubmit=async e=>{e.preventDefault();const m=$('llmsg'),b=$('llsend'),pl=$('llpl').value,nm=$('llnom').value.trim();
+    if(!pl){m.textContent='Elige la placa.';return}if(!nm){m.textContent='Escribe tu nombre.';return}if(!F[1]||!F[2]){m.textContent='Sube las dos fotos.';return}
+    b.disabled=true;b.textContent='Enviando…';
+    try{await addDoc(collection(db,'llantas'),{sede:L.sede,placa:pl,nombre:nm,foto1:F[1],foto2:F[2],fecha:ahoraDT(),token:t,creado:serverTimestamp()});
+      P.innerHTML=`<div class="pubw">${cab}<div class="pubc"><p style="margin:0;font-size:1.05rem"><b>✔ Fotos enviadas.</b></p><p class="empty" style="margin:10px 0 0">Placa ${esc(pl)} · ${esc(nm)}. ¡Gracias!</p><button type="button" class="btn" id="llotra" style="margin-top:12px">Enviar otro registro</button></div></div>`;
+      $('llotra').onclick=()=>vistaLlantas(t)}
+    catch(x){console.error(x);m.textContent='No se pudo enviar. Intenta de nuevo.';b.disabled=false;b.textContent='Enviar'}};
+}
 
 $('vper').onchange=()=>renderVar();
 
