@@ -1067,6 +1067,12 @@ html.enfoque .shell{--sw:0px}
 .llpfs{display:grid;grid-template-columns:1fr 1fr;gap:10px}.llpf{display:grid;gap:6px}.llpf>span{font-weight:700;font-size:.9rem}
 .llpv{aspect-ratio:3/4;border:2px dashed var(--line);border-radius:10px;display:grid;place-items:center;color:var(--mut);font-size:.85rem;overflow:hidden;background:rgba(0,0,0,.15)}.llpv img{width:100%;height:100%;object-fit:cover}
 .llpf .btn{padding:7px 8px;font-size:.8rem}
+
+/* Botón ⟳ Actualizar (mostaza) */
+.btn.actb{background:linear-gradient(180deg,#f2c94c,#d4a017 55%,#b8860b)!important;color:#111!important;border:1px solid #a67c00!important;font-weight:800;box-shadow:0 4px 10px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.5);margin-left:auto}
+.btn.actb:hover{filter:brightness(1.08)}.btn.actb[hidden]{display:none!important}
+.btn.actb.girando{opacity:.85;cursor:wait}
+.topbar #actv+#pdfv{margin-left:8px}
 </style>
 </head>
 <body>
@@ -1209,6 +1215,7 @@ html.enfoque .shell{--sw:0px}
   <button type="button" class="btn atrasb" id="atrasb" hidden>‹ ATRÁS</button>
   <div class="tabs enfsub" id="enfsub" hidden></div>
   <h1 id="vtit">Novedades / Solucionadas</h1>
+  <button type="button" class="btn actb" id="actv" hidden title="Actualizar esta visual">⟳ Actualizar</button>
   <button class="btn ghost" id="pdfv" hidden title="Descargar esta vista en PDF">⬇ PDF</button>
   <button class="btn" id="add">+ Añadir novedad</button>
   <button class="btn ghost" id="blplb" hidden>Placas</button>
@@ -5244,6 +5251,25 @@ $('padmin').onclick=()=>{if(!cur||cur.rol!=='admin')return;$('adm').classList.ad
 $('adm').addEventListener('close',()=>$('adm').classList.remove('desdeport'));
 $('ppw').onclick=()=>$('pwb').click();
 $('pout').onclick=()=>$('out').click();
+// ⟳ Actualizar (en todas las visuales): vuelve a leer la información de la visual abierta sin salir de ella
+async function actualizarVista(){const b=$('actv');if(!cur||b.disabled)return;const m=(document.querySelector('.menu .mi[aria-pressed="true"]')||{}).dataset?.m;if(!m)return;
+  const y=window.scrollY,t0=b.textContent;b.disabled=true;b.textContent='⟳ Actualizando…';b.classList.add('girando');
+  try{Object.keys(docCache).forEach(k=>delete docCache[k]);
+    switch(m){
+      case 'sim':simDatas[sede]=null;simData=null;simErr='';await simLeer(true);break;
+      case 'cap':capDatas[sede]=null;capErr='';await capLeer(true);break;
+      case 'cpv':cpvData=null;cpvPpt=undefined;cpvErr='';await cpvLeer(true);break;
+      case 'bpr':bprLista=null;bprErr='';await bprLeer();break;
+      case 'chk':chkHtml=null;chkOk=null;chkEstCache=null;renderChk();break;
+      case 'res':if(typeof resCargar==='function')await resCargar(true);break;
+      case 'disp':arrBlobs={};renderDisp();break;
+      case 'doc':if(docSec==='pi'){piMeta={};PI_XLS.forEach(x=>piVer[x.id]=Date.now());renderPI()}else if(docSec==='tie')renderCT();else await renderDoc(true);break;
+      case 'est':case 'ests':estVistaSet(estVista);break;
+      default:modulo(m)}}
+  catch(x){console.error(x)}
+  setTimeout(()=>{window.scrollTo(0,y);b.disabled=false;b.textContent=t0;b.classList.remove('girando')},500)}
+$('actv').onclick=actualizarVista;
+setInterval(()=>{const a=$('actv');if(!a)return;const m=(document.querySelector('.menu .mi[aria-pressed="true"]')||{}).dataset?.m;a.hidden=!cur||!m||!$('inicio').hidden},700);
 function salirPortada(fn){const p=$('portada');p.classList.add('sale');setTimeout(()=>{p.hidden=true;fn()},450)}
 document.addEventListener('keydown',e=>{const s=e.target.closest&&e.target.closest('[data-port]');if(s&&(e.key==='Enter'||e.key===' ')){e.preventDefault();elegirPanel(+s.dataset.port)}});
 
